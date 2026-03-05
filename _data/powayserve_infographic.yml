@@ -1,0 +1,23 @@
+Title: "PowayServe Community Hub"
+Description: "A Poway-wide volunteer + donation landing page powered by local partners (ex: Kiwanis Club of Poway) that helps residents find opportunities, sign up fast, and track community impact."
+Topics:
+  - title: "PowayServe"
+    subtitle: "One page for volunteering, events, and giving."
+    link: "/capstone/powayserve/"
+    image: "powayserve-icon.png" # Add later to /images/
+    alt: "PowayServe Logo"
+    status: "RESEARCH & PROTOTYPING PHASE"
+    team: ["Project Lead Name", "Team Member"]
+    keyPoints:
+      - "Opportunity Finder: Filter by cause, date, and time commitment."
+      - "Fast Sign-Up: Simple registration + confirmation output."
+      - "Donation Shortcuts: Central place to give to verified local projects."
+      - "Smart Sorting: Prioritize urgent needs + soonest upcoming events."
+      - "Matching Logic: Recommend events based on availability/interests."
+      - "Impact Tracking: Hours served, streaks, badges, and goals."
+    tech: ["JavaScript", "Python", "Data Abstraction", "Algorithms", "UI/UX"]
+    description: "PowayServe reduces the friction of community service by consolidating volunteer events and donation pathways into one interface. Users can browse opportunities, filter and sort events, register quickly, and track impact. The system uses lists/dictionaries to store events, algorithms to filter/sort/recommend, and conditional logic to trigger reminders and badges."
+    impact:
+      - "Increases participation by making sign-up easy and visible."
+      - "Reduces information overload from scattered community listings."
+      - "Creates measurable impact metrics (hours, projects, fundraising goals)."
