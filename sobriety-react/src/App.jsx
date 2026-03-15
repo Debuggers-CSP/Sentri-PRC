@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import SideNav from "./components/SideNav";
 import SummaryBar from "./components/SummaryBar";
 import HomeView from "./components/views/HomeView";
@@ -6,39 +6,19 @@ import CheckinView from "./components/views/CheckinView";
 import GardenView from "./components/views/GardenView";
 import RewardsView from "./components/views/RewardsView";
 import HistoryView from "./components/views/HistoryView";
+import LoginView from "./components/views/LoginView";
+import RegisterView from "./components/views/RegisterView";
 
 function App() {
   const [activeView, setActiveView] = useState("home");
+  const [currentUser, setCurrentUser] = useState(null);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [authView, setAuthView] = useState("login");
 
-  const mockDashboardData = {
-    userName: "Max",
-    sobrietyStreakDays: 12,
-    checkinStreakDays: 5,
-    totalPoints: 140,
-    supportLevel: "medium",
-    garden: {
-      level: 1,
-      levelName: "Sprout",
-      xp: 20,
-      xpToNextLevel: 50
-    },
-    nextMilestone: {
-      days: 14,
-      daysRemaining: 2
-    },
-    encouragementMessage:
-      "Today may be heavier than usual. Lean into your support system.",
-    rewards: [
-      { name: "$5 Coffee Gift Card", pointsCost: 100, unlocked: true },
-      { name: "$10 Bookstore Gift Card", pointsCost: 250, unlocked: false },
-      { name: "$15 Smoothie Gift Card", pointsCost: 350, unlocked: false }
-    ],
-    recentCheckins: [
-      { date: "2026-03-10", mood: 7, stress: 5, craving: 4, risk: "low" },
-      { date: "2026-03-11", mood: 6, stress: 7, craving: 5, risk: "medium" },
-      { date: "2026-03-12", mood: 5, stress: 8, craving: 7, risk: "medium" }
-    ]
-  };
+  const API_BASE = "http://localhost:8587/api";
 
   const appStyle = {
     height: "100vh",
@@ -75,12 +55,13 @@ function App() {
     padding: "24px 28px",
     boxSizing: "border-box",
     position: "relative",
-    overflow: "hidden"
+    overflow: "hidden",
+    minHeight: 0
   };
 
   const summaryBarStyle = {
     display: "grid",
-    gridTemplateColumns: "1.2fr 1fr 1fr 1fr",
+    gridTemplateColumns: "1.2fr 1fr 1fr 1fr auto",
     gap: "14px",
     marginBottom: "20px"
   };
@@ -99,24 +80,13 @@ function App() {
 
   const contentAreaStyle = {
     flex: 1,
+    minHeight: 0,
     display: "flex",
     alignItems: "stretch",
     justifyContent: "center",
-    overflow: "hidden"
-  };
-
-  const centerCardStyle = {
-    flex: 1,
-    background: "rgba(255,255,255,0.82)",
-    border: "1px solid rgba(226,232,240,0.95)",
-    borderRadius: "28px",
-    padding: "28px",
-    boxSizing: "border-box",
-    overflow: "hidden",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-    position: "relative"
+    overflowY: "auto",
+    overflowX: "hidden",
+    paddingRight: "6px"
   };
 
   const sideNavStyle = {
@@ -160,10 +130,193 @@ function App() {
     padding: "16px"
   };
 
+  const logoutButtonStyle = {
+    padding: "12px 16px",
+    borderRadius: "16px",
+    border: "1px solid #e5e7eb",
+    background: "rgba(255,255,255,0.92)",
+    color: "#111827",
+    cursor: "pointer",
+    fontSize: "15px",
+    boxShadow: "0 8px 20px rgba(31, 41, 55, 0.05)"
+  };
+
+  const loadDashboard = async (userId) => {
+    const response = await fetch(`${API_BASE}/sobriety/dashboard/${userId}`, {
+      credentials: "include"
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to load dashboard");
+    }
+
+    setDashboardData(data);
+  };
+
+  const loadAuthenticatedUser = async () => {
+    const response = await fetch(`${API_BASE}/id`, {
+      credentials: "include"
+    });
+
+    if (!response.ok) {
+      throw new Error("Not authenticated");
+    }
+
+    const data = await response.json();
+    setCurrentUser(data);
+    return data;
+  };
+
+  const initializeApp = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const user = await loadAuthenticatedUser();
+      await loadDashboard(user.id);
+    } catch (err) {
+      setCurrentUser(null);
+      setDashboardData(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    initializeApp();
+  }, []);
+
+  const handleLogin = async ({ uid, password }) => {
+    try {
+      setAuthLoading(true);
+      setError("");
+
+      const response = await fetch(`${API_BASE}/authenticate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          uid,
+          password
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+
+      const user = await loadAuthenticatedUser();
+      await loadDashboard(user.id);
+      setActiveView("home");
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      setError("");
+
+      await fetch(`${API_BASE}/authenticate`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+    } catch (err) {
+      // ignore logout fetch failures and clear local state anyway
+    } finally {
+      setCurrentUser(null);
+      setDashboardData(null);
+      setActiveView("home");
+    }
+  };
+
+  const handleSubmitCheckin = async (formData) => {
+    if (!currentUser) return;
+
+    try {
+      setError("");
+
+      const response = await fetch(`${API_BASE}/sobriety/checkin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          user_id: currentUser.id,
+          ...formData
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to submit check-in");
+      }
+
+      await loadDashboard(currentUser.id);
+      setActiveView("home");
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const handleRegister = async ({ uid, password }) => {
+  const response = await fetch(`${API_BASE}/user/guest`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        uid,
+        password
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to create account");
+    }
+
+    // Automatically log in after register
+    await handleLogin({ uid, password });
+  };
+
+  const displayData = dashboardData
+    ? {
+        userName: currentUser?.name || "User",
+        sobrietyStreakDays: dashboardData.profile?.current_streak_days ?? 0,
+        checkinStreakDays: dashboardData.profile?.checkin_streak_days ?? 0,
+        totalPoints: dashboardData.profile?.total_points ?? 0,
+        supportLevel: dashboardData.recent_checkins?.[0]?.risk_level || "low",
+        garden: {
+          level: dashboardData.garden?.level ?? 1,
+          levelName: dashboardData.garden?.label ?? "Seedling",
+          xp: dashboardData.garden?.xp ?? 0,
+          xpToNextLevel: 50
+        },
+        nextMilestone: dashboardData.next_milestone || {},
+        encouragementMessage: "Keep going. One day at a time.",
+        rewards: [],
+        recentCheckins: dashboardData.recent_checkins || []
+      }
+    : null;
+
   function renderHomeView() {
     return (
       <HomeView
-        mockDashboardData={mockDashboardData}
+        dashboardData={dashboardData}
         pillStyle={pillStyle}
         smallCardStyle={smallCardStyle}
         setActiveView={setActiveView}
@@ -172,13 +325,19 @@ function App() {
   }
 
   function renderCheckinView() {
-    return <CheckinView pillStyle={pillStyle} smallCardStyle={smallCardStyle} />;
+    return (
+      <CheckinView
+        pillStyle={pillStyle}
+        smallCardStyle={smallCardStyle}
+        onSubmit={handleSubmitCheckin}
+      />
+    );
   }
 
   function renderGardenView() {
     return (
       <GardenView
-        mockDashboardData={mockDashboardData}
+        dashboardData={dashboardData}
         pillStyle={pillStyle}
         smallCardStyle={smallCardStyle}
       />
@@ -188,7 +347,7 @@ function App() {
   function renderRewardsView() {
     return (
       <RewardsView
-        mockDashboardData={mockDashboardData}
+        mockDashboardData={displayData}
         pillStyle={pillStyle}
         smallCardStyle={smallCardStyle}
       />
@@ -198,7 +357,7 @@ function App() {
   function renderHistoryView() {
     return (
       <HistoryView
-        mockDashboardData={mockDashboardData}
+        dashboardData={dashboardData}
         pillStyle={pillStyle}
         smallCardStyle={smallCardStyle}
       />
@@ -229,25 +388,69 @@ function App() {
     { key: "history", icon: "📈", label: "History" }
   ];
 
+  if (loading) {
+    return <div style={{ padding: "40px" }}>Loading sobriety dashboard...</div>;
+  }
+
+  if (!currentUser) {
+    if (authView === "register") {
+      return (
+        <RegisterView
+          onRegister={handleRegister}
+          loading={authLoading}
+          switchToLogin={() => setAuthView("login")}
+        />
+      );
+    }
+
+    return (
+      <LoginView
+        onLogin={handleLogin}
+        loading={authLoading}
+        switchToRegister={() => setAuthView("register")}
+      />
+    );
+  }
+
+  if (!displayData) {
+    return <div style={{ padding: "40px" }}>No dashboard data available.</div>;
+  }
+
   return (
     <div style={appStyle}>
       <div style={shellStyle}>
         <div style={mainPanelStyle}>
-          <SummaryBar
-            mockDashboardData={mockDashboardData}
-            summaryBarStyle={summaryBarStyle}
-            summaryCardStyle={summaryCardStyle}
-          />
+          {error && (
+            <div style={{ marginBottom: "12px", color: "crimson" }}>
+              {error}
+            </div>
+          )}
+
+          <div style={summaryBarStyle}>
+            <SummaryBar
+              dashboardData={dashboardData}
+              currentUser={currentUser}
+              summaryBarStyle={{
+                display: "contents"
+              }}
+              summaryCardStyle={summaryCardStyle}
+            />
+            <button onClick={handleLogout} style={logoutButtonStyle}>
+              Log Out
+            </button>
+          </div>
 
           <div style={contentAreaStyle}>{renderActiveView()}</div>
         </div>
 
-        <SideNav
-          navItems={navItems}
-          activeView={activeView}
-          setActiveView={setActiveView}
-          getNavButtonStyle={getNavButtonStyle}
-        />
+        <div style={sideNavStyle}>
+          <SideNav
+            navItems={navItems}
+            activeView={activeView}
+            setActiveView={setActiveView}
+            getNavButtonStyle={getNavButtonStyle}
+          />
+        </div>
       </div>
     </div>
   );

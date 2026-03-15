@@ -1,24 +1,32 @@
-function SummaryBar({ mockDashboardData, summaryBarStyle, summaryCardStyle }) {
+function SummaryBar({ dashboardData, currentUser, summaryBarStyle, summaryCardStyle }) {
+  const profile = dashboardData?.profile || {};
+  const recentCheckins = dashboardData?.recent_checkins || [];
+
+  const userName = currentUser?.name || currentUser?.uid || "User";
+  const sobrietyStreakDays = profile.current_streak_days ?? 0;
+  const totalPoints = profile.total_points ?? 0;
+  const supportLevel = recentCheckins[0]?.risk_level || "low";
+
   return (
     <div style={summaryBarStyle}>
       <div style={summaryCardStyle}>
         <div style={{ fontSize: "13px", color: "#6b7280" }}>User</div>
         <div style={{ fontSize: "22px", fontWeight: "700", marginTop: "4px" }}>
-          {mockDashboardData.userName}
+          {userName}
         </div>
       </div>
 
       <div style={summaryCardStyle}>
         <div style={{ fontSize: "13px", color: "#6b7280" }}>Sobriety Streak</div>
         <div style={{ fontSize: "22px", fontWeight: "700", marginTop: "4px" }}>
-          {mockDashboardData.sobrietyStreakDays} days
+          {sobrietyStreakDays} days
         </div>
       </div>
 
       <div style={summaryCardStyle}>
         <div style={{ fontSize: "13px", color: "#6b7280" }}>Points</div>
         <div style={{ fontSize: "22px", fontWeight: "700", marginTop: "4px" }}>
-          {mockDashboardData.totalPoints}
+          {totalPoints}
         </div>
       </div>
 
@@ -32,7 +40,7 @@ function SummaryBar({ mockDashboardData, summaryBarStyle, summaryCardStyle }) {
             textTransform: "capitalize"
           }}
         >
-          {mockDashboardData.supportLevel}
+          {supportLevel.replace("_", " ")}
         </div>
       </div>
     </div>
