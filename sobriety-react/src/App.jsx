@@ -21,18 +21,18 @@ function App() {
   const API_BASE = "http://localhost:8587/api";
 
   const appStyle = {
-    height: "100vh",
-    width: "100vw",
-    overflow: "hidden",
+    minHeight: "100vh",
+    width: "100%",
+    overflowX: "hidden",
     background:
-      "linear-gradient(180deg, #f4f8f4 0%, #eef4ff 45%, #f8f7ff 100%)",
-    fontFamily: "Arial, sans-serif",
-    color: "#1f2937",
+      "linear-gradient(180deg, #edf5f1 0%, #eef4f7 45%, #f4f6fb 100%)",
+    fontFamily: '"Inter", "Segoe UI", Arial, sans-serif',
+    color: "#22313f",
     position: "relative"
   };
 
   const shellStyle = {
-    height: "100%",
+    minHeight: "100vh",
     width: "100%",
     display: "flex",
     alignItems: "center",
@@ -43,20 +43,19 @@ function App() {
   };
 
   const mainPanelStyle = {
-    width: "min(1100px, 88vw)",
+    width: "min(1120px, 88vw)",
     height: "min(760px, 90vh)",
     background: "rgba(255,255,255,0.72)",
-    border: "1px solid rgba(255,255,255,0.7)",
-    borderRadius: "32px",
-    boxShadow: "0 20px 60px rgba(31, 41, 55, 0.10)",
-    backdropFilter: "blur(14px)",
+    border: "1px solid rgba(255,255,255,0.75)",
+    borderRadius: "36px",
+    boxShadow: "0 20px 60px rgba(80, 108, 119, 0.12)",
+    backdropFilter: "blur(18px)",
     display: "flex",
     flexDirection: "column",
-    padding: "24px 28px",
+    padding: "20px 24px",
     boxSizing: "border-box",
     position: "relative",
-    overflow: "hidden",
-    minHeight: 0
+    overflow: "hidden"
   };
 
   const summaryBarStyle = {
@@ -67,15 +66,15 @@ function App() {
   };
 
   const summaryCardStyle = {
-    background: "rgba(255,255,255,0.78)",
-    border: "1px solid rgba(226,232,240,0.9)",
-    borderRadius: "20px",
+    background: "rgba(255,255,255,0.58)",
+    border: "1px solid rgba(210, 220, 228, 0.9)",
+    borderRadius: "22px",
     padding: "14px 16px",
     minHeight: "76px",
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
-    boxShadow: "0 8px 20px rgba(31, 41, 55, 0.04)"
+    boxShadow: "0 6px 20px rgba(96, 122, 133, 0.06)"
   };
 
   const contentAreaStyle = {
@@ -84,32 +83,40 @@ function App() {
     display: "flex",
     alignItems: "stretch",
     justifyContent: "center",
-    overflowY: "auto",
-    overflowX: "hidden",
-    paddingRight: "6px"
+    overflow: "hidden"
   };
 
   const sideNavStyle = {
     position: "absolute",
-    right: "32px",
+    right: "20px",
     top: "50%",
     transform: "translateY(-50%)",
     display: "flex",
     flexDirection: "column",
-    gap: "16px",
+    gap: "12px",
     zIndex: 2
   };
 
   const getNavButtonStyle = (view) => ({
-    width: "64px",
-    height: "64px",
+    width: "62px",
+    height: "62px",
     borderRadius: "20px",
-    border: activeView === view ? "2px solid #111827" : "1px solid #e5e7eb",
-    background: activeView === view ? "#111827" : "rgba(255,255,255,0.92)",
-    color: activeView === view ? "#ffffff" : "#111827",
-    fontSize: "26px",
+    border:
+      activeView === view
+        ? "1.5px solid rgba(122, 156, 143, 0.95)"
+        : "1px solid rgba(220, 228, 234, 0.95)",
+    background:
+      activeView === view
+        ? "linear-gradient(180deg, #7ba08e 0%, #6d8f97 100%)"
+        : "rgba(255,255,255,0.76)",
+    color: activeView === view ? "#ffffff" : "#51626f",
+    fontSize: "24px",
     cursor: "pointer",
-    boxShadow: "0 8px 20px rgba(31, 41, 55, 0.08)"
+    boxShadow:
+      activeView === view
+        ? "0 10px 24px rgba(109, 143, 151, 0.18)"
+        : "0 8px 18px rgba(96, 122, 133, 0.05)",
+    transition: "all 0.18s ease"
   });
 
   const pillStyle = {
@@ -118,27 +125,31 @@ function App() {
     gap: "8px",
     padding: "8px 14px",
     borderRadius: "999px",
-    background: "#f3f4f6",
+    background: "rgba(233, 240, 236, 0.95)",
+    border: "1px solid rgba(209, 222, 215, 0.9)",
     fontSize: "14px",
-    color: "#4b5563"
+    color: "#5b6f68",
+    fontWeight: "500"
   };
 
   const smallCardStyle = {
-    background: "#f8fafc",
-    border: "1px solid #e5e7eb",
-    borderRadius: "18px",
-    padding: "16px"
+    background: "rgba(255,255,255,0.52)",
+    border: "1px solid rgba(214, 223, 230, 0.95)",
+    borderRadius: "22px",
+    padding: "16px",
+    boxShadow: "0 8px 24px rgba(96, 122, 133, 0.05)"
   };
 
   const logoutButtonStyle = {
     padding: "12px 16px",
-    borderRadius: "16px",
-    border: "1px solid #e5e7eb",
-    background: "rgba(255,255,255,0.92)",
-    color: "#111827",
+    borderRadius: "18px",
+    border: "1px solid rgba(214, 223, 230, 0.95)",
+    background: "rgba(255,255,255,0.7)",
+    color: "#334155",
     cursor: "pointer",
     fontSize: "15px",
-    boxShadow: "0 8px 20px rgba(31, 41, 55, 0.05)"
+    fontWeight: "500",
+    boxShadow: "0 8px 20px rgba(96, 122, 133, 0.05)"
   };
 
   const loadDashboard = async (userId) => {
@@ -272,7 +283,7 @@ function App() {
   };
 
   const handleRegister = async ({ uid, password }) => {
-  const response = await fetch(`${API_BASE}/user/guest`, {
+    const response = await fetch(`${API_BASE}/user/guest`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -289,27 +300,12 @@ function App() {
       throw new Error(data.message || "Failed to create account");
     }
 
-    // Automatically log in after register
     await handleLogin({ uid, password });
   };
 
   const displayData = dashboardData
     ? {
-        userName: currentUser?.name || "User",
-        sobrietyStreakDays: dashboardData.profile?.current_streak_days ?? 0,
-        checkinStreakDays: dashboardData.profile?.checkin_streak_days ?? 0,
-        totalPoints: dashboardData.profile?.total_points ?? 0,
-        supportLevel: dashboardData.recent_checkins?.[0]?.risk_level || "low",
-        garden: {
-          level: dashboardData.garden?.level ?? 1,
-          levelName: dashboardData.garden?.label ?? "Seedling",
-          xp: dashboardData.garden?.xp ?? 0,
-          xpToNextLevel: 50
-        },
-        nextMilestone: dashboardData.next_milestone || {},
-        encouragementMessage: "Keep going. One day at a time.",
-        rewards: [],
-        recentCheckins: dashboardData.recent_checkins || []
+        rewards: []
       }
     : null;
 

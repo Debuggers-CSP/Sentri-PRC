@@ -6,6 +6,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
     stress_score: 5,
     craving_score: 5,
     sleep_hours: 8,
+    stayed_sober_today: true,
     attended_meeting: false,
     exercise_done: false,
     journal_note: ""
@@ -43,12 +44,32 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
   const inputStyle = {
     width: "100%",
     padding: "10px 12px",
-    borderRadius: "12px",
-    border: "1px solid #d1d5db",
+    borderRadius: "14px",
+    border: "1px solid rgba(209, 218, 225, 0.95)",
     boxSizing: "border-box",
     fontSize: "15px",
-    background: "#ffffff"
+    background: "rgba(255,255,255,0.78)",
+    color: "#334155",
+    outline: "none"
   };
+
+  const soberChoiceStyle = (selected) => ({
+    flex: 1,
+    padding: "12px 14px",
+    borderRadius: "14px",
+    border: selected
+      ? "1.5px solid rgba(122, 156, 143, 0.95)"
+      : "1px solid rgba(209, 218, 225, 0.95)",
+    background: selected
+      ? "linear-gradient(180deg, rgba(123,160,142,0.16) 0%, rgba(109,143,151,0.12) 100%)"
+      : "rgba(255,255,255,0.72)",
+    color: selected ? "#2f4a42" : "#475569",
+    fontSize: "14px",
+    fontWeight: selected ? "700" : "500",
+    cursor: "pointer",
+    textAlign: "center",
+    transition: "all 0.16s ease"
+  });
 
   return (
     <form
@@ -66,7 +87,9 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
           style={{
             fontSize: "clamp(28px, 3vw, 34px)",
             margin: "14px 0 6px 0",
-            lineHeight: 1.1
+            lineHeight: 1.1,
+            color: "#24323d",
+            letterSpacing: "-0.02em"
           }}
         >
           How are you feeling today?
@@ -74,7 +97,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
         <p
           style={{
             margin: 0,
-            color: "#6b7280",
+            color: "#667685",
             fontSize: "clamp(15px, 1.4vw, 17px)"
           }}
         >
@@ -92,13 +115,57 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
           minHeight: 0
         }}
       >
+        <div style={{ ...compactCardStyle, gridColumn: "1 / span 2" }}>
+          <div
+            style={{
+              marginBottom: "10px",
+              fontWeight: "600",
+              fontSize: "15px",
+              color: "#334155"
+            }}
+          >
+            Did you stay sober today?
+          </div>
+
+          <div style={{ display: "flex", gap: "10px" }}>
+            <button
+              type="button"
+              onClick={() => handleChange("stayed_sober_today", true)}
+              style={soberChoiceStyle(formData.stayed_sober_today === true)}
+            >
+              Yes
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleChange("stayed_sober_today", false)}
+              style={soberChoiceStyle(formData.stayed_sober_today === false)}
+            >
+              No
+            </button>
+          </div>
+
+          <div
+            style={{
+              marginTop: "8px",
+              fontSize: "13px",
+              color: "#70808e",
+              lineHeight: 1.35
+            }}
+          >
+            This helps calculate your sobriety streak and tailor support more
+            accurately.
+          </div>
+        </div>
+
         <div style={compactCardStyle}>
           <label
             style={{
               display: "block",
               marginBottom: "8px",
               fontWeight: "600",
-              fontSize: "15px"
+              fontSize: "15px",
+              color: "#334155"
             }}
           >
             Mood Score
@@ -119,7 +186,8 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
               display: "block",
               marginBottom: "8px",
               fontWeight: "600",
-              fontSize: "15px"
+              fontSize: "15px",
+              color: "#334155"
             }}
           >
             Stress Score
@@ -140,7 +208,8 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
               display: "block",
               marginBottom: "8px",
               fontWeight: "600",
-              fontSize: "15px"
+              fontSize: "15px",
+              color: "#334155"
             }}
           >
             Craving Score
@@ -161,7 +230,8 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
               display: "block",
               marginBottom: "8px",
               fontWeight: "600",
-              fontSize: "15px"
+              fontSize: "15px",
+              color: "#334155"
             }}
           >
             Sleep Hours
@@ -184,7 +254,8 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
               gap: "10px",
               alignItems: "center",
               fontSize: "15px",
-              minHeight: "22px"
+              minHeight: "22px",
+              color: "#475569"
             }}
           >
             <input
@@ -203,7 +274,8 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
               gap: "10px",
               alignItems: "center",
               fontSize: "15px",
-              minHeight: "22px"
+              minHeight: "22px",
+              color: "#475569"
             }}
           >
             <input
@@ -221,7 +293,8 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
               display: "block",
               marginBottom: "8px",
               fontWeight: "600",
-              fontSize: "15px"
+              fontSize: "15px",
+              color: "#334155"
             }}
           >
             Journal Note
@@ -234,14 +307,15 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
             style={{
               width: "100%",
               padding: "10px 12px",
-              borderRadius: "12px",
-              border: "1px solid #d1d5db",
+              borderRadius: "14px",
+              border: "1px solid rgba(209, 218, 225, 0.95)",
               boxSizing: "border-box",
               fontSize: "15px",
               resize: "none",
               minHeight: "84px",
               maxHeight: "84px",
-              background: "#ffffff"
+              background: "rgba(255,255,255,0.78)",
+              color: "#334155"
             }}
           />
         </div>
@@ -265,13 +339,15 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
           disabled={submitting}
           style={{
             padding: "12px 18px",
-            borderRadius: "14px",
+            borderRadius: "16px",
             border: "none",
-            background: "#111827",
+            background: "linear-gradient(180deg, #7ba08e 0%, #6d8f97 100%)",
             color: "white",
             cursor: "pointer",
             fontSize: "15px",
-            opacity: submitting ? 0.7 : 1
+            fontWeight: "600",
+            opacity: submitting ? 0.7 : 1,
+            boxShadow: "0 10px 22px rgba(109, 143, 151, 0.18)"
           }}
         >
           {submitting ? "Submitting..." : "Submit Check-In"}
