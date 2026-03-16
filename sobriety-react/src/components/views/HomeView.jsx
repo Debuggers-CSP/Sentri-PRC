@@ -12,7 +12,6 @@ function HomeView({ dashboardData, pillStyle, smallCardStyle, setActiveView }) {
   const xpToNextLevel = garden.xp_to_next_level ?? 100;
 
   const latestCheckin = recentCheckins.length > 0 ? recentCheckins[0] : null;
-  const latestRiskLevel = latestCheckin?.risk_level || "unknown";
   const latestStayedSober = latestCheckin?.stayed_sober_today;
 
   const currentStreakDays = profile.current_streak_days ?? 0;
@@ -20,42 +19,15 @@ function HomeView({ dashboardData, pillStyle, smallCardStyle, setActiveView }) {
   const milestoneDays = nextMilestone.days ?? "—";
   const milestoneDaysRemaining = nextMilestone.days_remaining ?? "—";
 
+  const mlRiskLevel = dashboardData?.ml_risk_level || "unknown";
+  const mlRiskScore = dashboardData?.ml_risk_score;
+  const mlSupportMessage =
+    dashboardData?.ml_support_message || "Keep checking in daily.";
+  const mlSuggestedAction =
+    dashboardData?.ml_suggested_action || "Open Check-In";
+
   const progressPercent =
     xpToNextLevel > 0 ? Math.min((xp / xpToNextLevel) * 100, 100) : 0;
-
-  const getEncouragementMessage = (riskLevel, stayedSoberToday) => {
-    if (stayedSoberToday === false) {
-      return "A hard day does not erase your progress. What matters most now is honesty, care, and taking the next supportive step.";
-    }
-
-    switch (riskLevel) {
-      case "low":
-        return "You’re building steady momentum. Keep protecting what is working.";
-      case "medium":
-        return "Stay grounded and focus on one stabilizing action today.";
-      case "high":
-        return "Keep today small and gentle. Reach for support early.";
-      default:
-        return "Every check-in is a step forward.";
-    }
-  };
-
-  const getSuggestedAction = (riskLevel, stayedSoberToday) => {
-    if (stayedSoberToday === false) {
-      return "Reset gently. Remove immediate triggers, reach out to someone supportive, and use today’s check-in as a fresh starting point.";
-    }
-
-    switch (riskLevel) {
-      case "low":
-        return "Keep momentum going with another healthy routine today.";
-      case "medium":
-        return "Pause, reset, hydrate, and reduce friction around triggers.";
-      case "high":
-        return "Take one low-effort coping step right now and reach out if needed.";
-      default:
-        return "Check in today to earn points and water your garden.";
-    }
-  };
 
   const getGardenEmoji = (level) => {
     if (level >= 10) return "🌳";
@@ -93,7 +65,42 @@ function HomeView({ dashboardData, pillStyle, smallCardStyle, setActiveView }) {
     };
   };
 
+  const getMlRiskBadgeStyle = (riskLevel) => {
+    switch (riskLevel) {
+      case "low":
+        return {
+          background:
+            "linear-gradient(180deg, rgba(123,160,142,0.16) 0%, rgba(109,143,151,0.12) 100%)",
+          color: "#2f4a42",
+          border: "1px solid rgba(122, 156, 143, 0.35)",
+          label: "AI risk: low"
+        };
+      case "medium":
+        return {
+          background: "rgba(251, 191, 36, 0.14)",
+          color: "#9a6700",
+          border: "1px solid rgba(251, 191, 36, 0.35)",
+          label: "AI risk: medium"
+        };
+      case "high":
+        return {
+          background: "rgba(248, 113, 113, 0.14)",
+          color: "#b45309",
+          border: "1px solid rgba(248, 113, 113, 0.3)",
+          label: "AI risk: high"
+        };
+      default:
+        return {
+          background: "rgba(203, 213, 225, 0.18)",
+          color: "#64748b",
+          border: "1px solid rgba(203, 213, 225, 0.4)",
+          label: "AI risk: unknown"
+        };
+    }
+  };
+
   const sobrietyBadge = getSobrietyBadgeStyle(latestStayedSober);
+  const mlRiskBadge = getMlRiskBadgeStyle(mlRiskLevel);
 
   return (
     <>
@@ -227,7 +234,7 @@ function HomeView({ dashboardData, pillStyle, smallCardStyle, setActiveView }) {
           style={{
             display: "grid",
             gap: "10px",
-            gridTemplateRows: "repeat(4, minmax(0, 1fr))",
+            gridTemplateRows: "auto auto auto auto",
             minHeight: 0
           }}
         >
@@ -270,26 +277,50 @@ function HomeView({ dashboardData, pillStyle, smallCardStyle, setActiveView }) {
             <div
               style={{
                 marginTop: "6px",
-                display: "inline-flex",
-                alignItems: "center",
-                padding: "6px 10px",
-                borderRadius: "999px",
-                fontSize: "12px",
-                fontWeight: "600",
-                ...sobrietyBadge
+                display: "flex",
+                gap: "8px",
+                flexWrap: "wrap"
               }}
             >
-              {sobrietyBadge.label}
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "6px 10px",
+                  borderRadius: "999px",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  ...sobrietyBadge
+                }}
+              >
+                {sobrietyBadge.label}
+              </div>
+
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "6px 10px",
+                  borderRadius: "999px",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  ...mlRiskBadge
+                }}
+              >
+                {mlRiskBadge.label}
+              </div>
             </div>
 
             <div style={{ color: "#70808e", marginTop: "6px", fontSize: "13px" }}>
-              Latest support level: {latestRiskLevel.replace("_", " ")}
+              {mlRiskScore !== null && mlRiskScore !== undefined
+                ? `AI confidence score: ${mlRiskScore.toFixed(2)}`
+                : "AI confidence score unavailable"}
             </div>
           </div>
 
           <div style={{ ...smallCardStyle, padding: "12px 14px" }}>
             <div style={{ fontSize: "12px", color: "#70808e" }}>
-              Today’s Encouragement
+              AI Support Insight
             </div>
             <div
               style={{
@@ -300,7 +331,7 @@ function HomeView({ dashboardData, pillStyle, smallCardStyle, setActiveView }) {
                 color: "#334155"
               }}
             >
-              {getEncouragementMessage(latestRiskLevel, latestStayedSober)}
+              {mlSupportMessage}
             </div>
           </div>
 
@@ -316,7 +347,7 @@ function HomeView({ dashboardData, pillStyle, smallCardStyle, setActiveView }) {
                 color: "#475569"
               }}
             >
-              {getSuggestedAction(latestRiskLevel, latestStayedSober)}
+              {mlSuggestedAction}
             </div>
             <button
               onClick={() => setActiveView("checkin")}

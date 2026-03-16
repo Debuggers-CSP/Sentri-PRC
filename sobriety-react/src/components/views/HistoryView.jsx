@@ -1,3 +1,5 @@
+import SobrietyTrendChart from "../SobrietyTrendChart";
+
 function HistoryView({ dashboardData, pillStyle, smallCardStyle }) {
   const recentCheckins = dashboardData?.recent_checkins || [];
 
@@ -33,7 +35,8 @@ function HistoryView({ dashboardData, pillStyle, smallCardStyle }) {
   const getSobrietyStyle = (stayedSoberToday) => {
     if (stayedSoberToday === true) {
       return {
-        background: "linear-gradient(180deg, rgba(123,160,142,0.16) 0%, rgba(109,143,151,0.12) 100%)",
+        background:
+          "linear-gradient(180deg, rgba(123,160,142,0.16) 0%, rgba(109,143,151,0.12) 100%)",
         color: "#2f4a42",
         border: "1px solid rgba(122, 156, 143, 0.35)",
         label: "Sober"
@@ -76,16 +79,36 @@ function HistoryView({ dashboardData, pillStyle, smallCardStyle }) {
         </p>
       </div>
 
+      {recentCheckins.length > 0 && (
+        <div
+          style={{
+            marginTop: "18px",
+            width: "100%",
+            maxWidth: "900px"
+          }}
+        >
+          <SobrietyTrendChart checkins={recentCheckins} />
+        </div>
+      )}
+
       <div
         style={{
           marginTop: "22px",
           display: "grid",
-          gap: "14px"
+          gap: "14px",
+          width: "100%",
+          maxWidth: "900px"
         }}
       >
         {recentCheckins.length === 0 ? (
           <div style={smallCardStyle}>
-            <div style={{ fontWeight: "700", marginBottom: "8px", color: "#24323d" }}>
+            <div
+              style={{
+                fontWeight: "700",
+                marginBottom: "8px",
+                color: "#24323d"
+              }}
+            >
               No check-ins yet
             </div>
             <div style={{ color: "#70808e" }}>
@@ -170,12 +193,8 @@ function HistoryView({ dashboardData, pillStyle, smallCardStyle }) {
                   }}
                 >
                   <span>Points earned: {entry.points_earned ?? 0}</span>
-                  <span>
-                    Meeting: {entry.attended_meeting ? "Yes" : "No"}
-                  </span>
-                  <span>
-                    Exercise: {entry.exercise_done ? "Yes" : "No"}
-                  </span>
+                  <span>Meeting: {entry.attended_meeting ? "Yes" : "No"}</span>
+                  <span>Exercise: {entry.exercise_done ? "Yes" : "No"}</span>
                 </div>
 
                 {entry.journal_note && entry.journal_note.trim() && (

@@ -17,7 +17,33 @@ function App() {
   const [authLoading, setAuthLoading] = useState(false);
   const [error, setError] = useState("");
   const [authView, setAuthView] = useState("login");
+  const DESIGN_WIDTH = 1120;
+  const DESIGN_HEIGHT = 760;
+  const horizontalPadding = 48;
+  const verticalPadding = 48;
+  const navReserve = 110; // room for right-side nav
 
+  const [viewport, setViewport] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight
+  });
+  const scale = Math.min(
+    (viewport.width - horizontalPadding - navReserve) / DESIGN_WIDTH,
+    (viewport.height - verticalPadding) / DESIGN_HEIGHT,
+    1
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setViewport({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const API_BASE = "http://localhost:8587/api";
 
   const appStyle = {
@@ -39,12 +65,13 @@ function App() {
     justifyContent: "center",
     padding: "24px",
     boxSizing: "border-box",
-    position: "relative"
+    position: "relative",
+    overflow: "hidden"
   };
 
   const mainPanelStyle = {
-    width: "min(1120px, 88vw)",
-    height: "min(760px, 90vh)",
+    width: `${DESIGN_WIDTH}px`,
+    height: `${DESIGN_HEIGHT}px`,
     background: "rgba(255,255,255,0.72)",
     border: "1px solid rgba(255,255,255,0.75)",
     borderRadius: "36px",
@@ -56,6 +83,15 @@ function App() {
     boxSizing: "border-box",
     position: "relative",
     overflow: "hidden"
+  };
+
+  const scaledPanelWrapStyle = {
+    width: `${DESIGN_WIDTH}px`,
+    height: `${DESIGN_HEIGHT}px`,
+    transform: `scale(${scale})`,
+    transformOrigin: "center center",
+    position: "relative",
+    flexShrink: 0
   };
 
   const summaryBarStyle = {
@@ -88,7 +124,7 @@ function App() {
 
   const sideNavStyle = {
     position: "absolute",
-    right: "20px",
+    right: "-88px",
     top: "50%",
     transform: "translateY(-50%)",
     display: "flex",
@@ -158,6 +194,7 @@ function App() {
     });
 
     const data = await response.json();
+    console.log("dashboard response:", data);
 
     if (!response.ok) {
       throw new Error(data.message || "Failed to load dashboard");
@@ -415,37 +452,37 @@ function App() {
   return (
     <div style={appStyle}>
       <div style={shellStyle}>
-        <div style={mainPanelStyle}>
-          {error && (
-            <div style={{ marginBottom: "12px", color: "crimson" }}>
-              {error}
-            </div>
-          )}
+        <div style={scaledPanelWrapStyle}>
+          <div style={mainPanelStyle}>
+            {error && (
+              <div style={{ marginBottom: "12px", color: "crimson" }}>
+                {error}
+              </div>
+            )}
 
-          <div style={summaryBarStyle}>
-            <SummaryBar
-              dashboardData={dashboardData}
-              currentUser={currentUser}
-              summaryBarStyle={{
-                display: "contents"
-              }}
-              summaryCardStyle={summaryCardStyle}
-            />
-            <button onClick={handleLogout} style={logoutButtonStyle}>
-              Log Out
-            </button>
+            <div style={summaryBarStyle}>
+              <SummaryBar
+                dashboardData={dashboardData}
+                currentUser={currentUser}
+                summaryBarStyle={{ display: "contents" }}
+                summaryCardStyle={summaryCardStyle}
+              />
+              <button onClick={handleLogout} style={logoutButtonStyle}>
+                Log Out
+              </button>
+            </div>
+
+            <div style={contentAreaStyle}>{renderActiveView()}</div>
           </div>
 
-          <div style={contentAreaStyle}>{renderActiveView()}</div>
-        </div>
-
-        <div style={sideNavStyle}>
-          <SideNav
-            navItems={navItems}
-            activeView={activeView}
-            setActiveView={setActiveView}
-            getNavButtonStyle={getNavButtonStyle}
-          />
+          <div style={sideNavStyle}>
+            <SideNav
+              navItems={navItems}
+              activeView={activeView}
+              setActiveView={setActiveView}
+              getNavButtonStyle={getNavButtonStyle}
+            />
+          </div>
         </div>
       </div>
     </div>

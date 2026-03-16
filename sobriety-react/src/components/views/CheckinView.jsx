@@ -38,16 +38,17 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
 
   const compactCardStyle = {
     ...smallCardStyle,
-    padding: "12px"
+    padding: "10px 12px",
+    borderRadius: "18px"
   };
 
   const inputStyle = {
     width: "100%",
-    padding: "10px 12px",
-    borderRadius: "14px",
+    padding: "8px 10px",
+    borderRadius: "12px",
     border: "1px solid rgba(209, 218, 225, 0.95)",
     boxSizing: "border-box",
-    fontSize: "15px",
+    fontSize: "14px",
     background: "rgba(255,255,255,0.78)",
     color: "#334155",
     outline: "none"
@@ -55,8 +56,8 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
 
   const soberChoiceStyle = (selected) => ({
     flex: 1,
-    padding: "12px 14px",
-    borderRadius: "14px",
+    padding: "10px 12px",
+    borderRadius: "12px",
     border: selected
       ? "1.5px solid rgba(122, 156, 143, 0.95)"
       : "1px solid rgba(209, 218, 225, 0.95)",
@@ -85,9 +86,9 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
         <div style={pillStyle}>📝 Daily Check-In</div>
         <h1
           style={{
-            fontSize: "clamp(28px, 3vw, 34px)",
-            margin: "14px 0 6px 0",
-            lineHeight: 1.1,
+            fontSize: "clamp(24px, 2.6vw, 32px)",
+            margin: "10px 0 4px 0",
+            lineHeight: 1.08,
             color: "#24323d",
             letterSpacing: "-0.02em"
           }}
@@ -98,7 +99,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
           style={{
             margin: 0,
             color: "#667685",
-            fontSize: "clamp(15px, 1.4vw, 17px)"
+            fontSize: "clamp(14px, 1.2vw, 16px)"
           }}
         >
           Keep this quick, honest, and judgment-free.
@@ -107,10 +108,10 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
 
       <div
         style={{
-          marginTop: "16px",
+          marginTop: "12px",
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          gap: "12px",
+          gap: "10px",
           alignContent: "start",
           minHeight: 0
         }}
@@ -118,16 +119,16 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
         <div style={{ ...compactCardStyle, gridColumn: "1 / span 2" }}>
           <div
             style={{
-              marginBottom: "10px",
+              marginBottom: "8px",
               fontWeight: "600",
-              fontSize: "15px",
+              fontSize: "14px",
               color: "#334155"
             }}
           >
             Did you stay sober today?
           </div>
 
-          <div style={{ display: "flex", gap: "10px" }}>
+          <div style={{ display: "flex", gap: "8px" }}>
             <button
               type="button"
               onClick={() => handleChange("stayed_sober_today", true)}
@@ -147,14 +148,13 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
 
           <div
             style={{
-              marginTop: "8px",
-              fontSize: "13px",
+              marginTop: "6px",
+              fontSize: "12px",
               color: "#70808e",
-              lineHeight: 1.35
+              lineHeight: 1.3
             }}
           >
-            This helps calculate your sobriety streak and tailor support more
-            accurately.
+            This helps calculate your sobriety streak and tailor support more accurately.
           </div>
         </div>
 
@@ -162,9 +162,9 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
           <label
             style={{
               display: "block",
-              marginBottom: "8px",
+              marginBottom: "6px",
               fontWeight: "600",
-              fontSize: "15px",
+              fontSize: "14px",
               color: "#334155"
             }}
           >
@@ -184,9 +184,9 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
           <label
             style={{
               display: "block",
-              marginBottom: "8px",
+              marginBottom: "6px",
               fontWeight: "600",
-              fontSize: "15px",
+              fontSize: "14px",
               color: "#334155"
             }}
           >
@@ -206,9 +206,9 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
           <label
             style={{
               display: "block",
-              marginBottom: "8px",
+              marginBottom: "6px",
               fontWeight: "600",
-              fontSize: "15px",
+              fontSize: "14px",
               color: "#334155"
             }}
           >
@@ -228,9 +228,9 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
           <label
             style={{
               display: "block",
-              marginBottom: "8px",
+              marginBottom: "6px",
               fontWeight: "600",
-              fontSize: "15px",
+              fontSize: "14px",
               color: "#334155"
             }}
           >
@@ -251,10 +251,10 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
           <label
             style={{
               display: "flex",
-              gap: "10px",
+              gap: "8px",
               alignItems: "center",
-              fontSize: "15px",
-              minHeight: "22px",
+              fontSize: "14px",
+              minHeight: "20px",
               color: "#475569"
             }}
           >
@@ -271,10 +271,10 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
           <label
             style={{
               display: "flex",
-              gap: "10px",
+              gap: "8px",
               alignItems: "center",
-              fontSize: "15px",
-              minHeight: "22px",
+              fontSize: "14px",
+              minHeight: "20px",
               color: "#475569"
             }}
           >
@@ -291,68 +291,70 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
           <label
             style={{
               display: "block",
-              marginBottom: "8px",
+              marginBottom: "6px",
               fontWeight: "600",
-              fontSize: "15px",
+              fontSize: "14px",
               color: "#334155"
             }}
           >
             Journal Note
           </label>
-          <textarea
-            rows="3"
-            placeholder="Write a short reflection..."
-            value={formData.journal_note}
-            onChange={(e) => handleChange("journal_note", e.target.value)}
+          <div
             style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "14px",
-              border: "1px solid rgba(209, 218, 225, 0.95)",
-              boxSizing: "border-box",
-              fontSize: "15px",
-              resize: "none",
-              minHeight: "84px",
-              maxHeight: "84px",
-              background: "rgba(255,255,255,0.78)",
-              color: "#334155"
+              display: "flex",
+              gap: "10px",
+              alignItems: "flex-end"
             }}
-          />
+          >
+            <textarea
+              rows="2"
+              placeholder="Write a short reflection..."
+              value={formData.journal_note}
+              onChange={(e) => handleChange("journal_note", e.target.value)}
+              style={{
+                flex: 1,
+                padding: "10px 12px",
+                borderRadius: "12px",
+                border: "1px solid rgba(209, 218, 225, 0.95)",
+                boxSizing: "border-box",
+                fontSize: "14px",
+                resize: "none",
+                minHeight: "64px",
+                maxHeight: "64px",
+                background: "rgba(255,255,255,0.78)",
+                color: "#334155"
+              }}
+            />
+
+            <button
+              type="submit"
+              disabled={submitting}
+              style={{
+                padding: "11px 16px",
+                borderRadius: "14px",
+                border: "none",
+                background: "linear-gradient(180deg, #7ba08e 0%, #6d8f97 100%)",
+                color: "white",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "600",
+                opacity: submitting ? 0.7 : 1,
+                boxShadow: "0 10px 22px rgba(109, 143, 151, 0.18)",
+                whiteSpace: "nowrap",
+                flexShrink: 0
+              }}
+            >
+              {submitting ? "Submitting..." : "Submit Check-In"}
+            </button>
+          </div>
         </div>
       </div>
 
       {localError && (
-        <div style={{ marginTop: "10px", color: "crimson", fontSize: "14px" }}>
+        <div style={{ marginTop: "8px", color: "crimson", fontSize: "13px" }}>
           {localError}
         </div>
       )}
-
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          marginTop: "12px"
-        }}
-      >
-        <button
-          type="submit"
-          disabled={submitting}
-          style={{
-            padding: "12px 18px",
-            borderRadius: "16px",
-            border: "none",
-            background: "linear-gradient(180deg, #7ba08e 0%, #6d8f97 100%)",
-            color: "white",
-            cursor: "pointer",
-            fontSize: "15px",
-            fontWeight: "600",
-            opacity: submitting ? 0.7 : 1,
-            boxShadow: "0 10px 22px rgba(109, 143, 151, 0.18)"
-          }}
-        >
-          {submitting ? "Submitting..." : "Submit Check-In"}
-        </button>
-      </div>
     </form>
   );
 }

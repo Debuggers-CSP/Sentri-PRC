@@ -1,7 +1,7 @@
 function SideNav({ navItems, activeView, setActiveView, getNavButtonStyle }) {
   const sideNavStyle = {
     position: "absolute",
-    right: "32px",
+    right: "15px",
     top: "50%",
     transform: "translateY(-50%)",
     display: "flex",
