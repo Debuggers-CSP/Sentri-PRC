@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neural Meeting Recommender — PRC</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0f1a;
+    --surface: #111827;
+    --surface2: #1a2234;
+    --border: #1f2d45;
+    --accent: #4fffb0;
+    --accent2: #00cfff;
+    --accent3: #ff6b6b;
+    --text: #e8edf5;
+    --muted: #6b7a99;
+    --card: #141c2e;
+    --glow: rgba(79,255,176,0.15);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID BG ── */
+  body::before {
+    content:'';
+    position:fixed;
+    inset:0;
+    background-image:
+      linear-gradient(rgba(79,255,176,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,255,176,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display:none; position:relative; z-index:1; min-height:100vh; }
+  .screen.active { display:flex; flex-direction:column; }
+
+  /* ═══════════════════════════════
+     AUTH SCREEN
+  ═══════════════════════════════ */
+  #auth-screen {
+    align-items:center;
+    justify-content:center;
+    padding: 2rem;
+  }
+
+  .auth-container {
+    width:100%;
+    max-width:420px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .logo {
+    text-align:center;
+    margin-bottom: 2.5rem;
+  }
+
+  .logo-badge {
+    display:inline-flex;
+    align-items:center;
+    gap: 0.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 0.4rem 1rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+  }
+
+  .logo-badge::before {
+    content:'';
+    width:6px; height:6px;
+    background:var(--accent);
+    border-radius:50%;
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse 2s infinite;
+  }
+
+  .logo h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.4rem;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #fff 30%, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .logo p {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    font-weight: 300;
+  }
+
+  .auth-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    backdrop-filter: blur(12px);
+  }
+
+  .tab-row {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:4px;
+    background:var(--bg);
+    border-radius:10px;
+    padding:4px;
+    margin-bottom:1.8rem;
+  }
+
+  .tab-btn {
+    background:transparent;
+    border:none;
+    color:var(--muted);
+    padding:0.6rem;
+    border-radius:8px;
+    cursor:pointer;
+    font-family:'Outfit',sans-serif;
+    font-size:0.85rem;
+    font-weight:500;
+    transition: all 0.2s;
+  }
+
+  .tab-btn.active {
+    background:var(--surface2);
+    color:var(--text);
+  }
+
+  .field { margin-bottom:1.2rem; }
+
+  .field label {
+    display:block;
+    font-size:0.75rem;
+    font-weight:500;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:0.5rem;
+    font-family:'DM Mono',monospace;
+  }
+
+  .field input {
+    width:100%;
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:0.75rem 1rem;
+    color:var(--text);
+    font-family:'Outfit',sans-serif;
+    font-size:0.95rem;
+    outline:none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .field input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--glow);
+  }
+
+  .btn-primary {
+    width:100%;
+    background: var(--accent);
+    color: #0b0f1a;
+    border:none;
+    border-radius:10px;
+    padding:0.85rem;
+    font-family:'Outfit',sans-serif;
+    font-weight:600;
+    font-size:0.95rem;
+    cursor:pointer;
+    transition: all 0.2s;
+    margin-top:0.5rem;
+  }
+
+  .btn-primary:hover {
+    background:#3de8a0;
+    transform:translateY(-1px);
+    box-shadow: 0 8px 24px rgba(79,255,176,0.3);
+  }
+
+  .err-msg {
+    color: var(--accent3);
+    font-size:0.8rem;
+    text-align:center;
+    margin-top:0.8rem;
+    font-family:'DM Mono',monospace;
+    min-height:1.2rem;
+  }
+
+  /* ═══════════════════════════════
+     MAIN APP SCREEN
+  ═══════════════════════════════ */
+  #app-screen { flex-direction:column; }
+
+  /* TOP NAV */
+  .topnav {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 1rem 2rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position:sticky;
+    top:0;
+    z-index:100;
+    backdrop-filter:blur(12px);
+  }
+
+  .nav-logo {
+    font-family:'DM Serif Display',serif;
+    font-size:1.2rem;
+    background: linear-gradient(135deg, #fff 30%, var(--accent));
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+  }
+
+  .nav-tabs {
+    display:flex;
+    gap:4px;
+    background:var(--bg);
+    border-radius:10px;
+    padding:4px;
+  }
+
+  .nav-tab {
+    background:transparent;
+    border:none;
+    color:var(--muted);
+    padding:0.45rem 1rem;
+    border-radius:8px;
+    cursor:pointer;
+    font-family:'Outfit',sans-serif;
+    font-size:0.82rem;
+    font-weight:500;
+    transition:all 0.2s;
+    white-space:nowrap;
+  }
+
+  .nav-tab.active {
+    background:var(--surface2);
+    color:var(--text);
+  }
+
+  .nav-right {
+    display:flex;
+    align-items:center;
+    gap:0.8rem;
+  }
+
+  .user-chip {
+    display:flex;
+    align-items:center;
+    gap:0.5rem;
+    background:var(--surface2);
+    border:1px solid var(--border);
+    border-radius:100px;
+    padding:0.35rem 0.8rem 0.35rem 0.4rem;
+    font-size:0.78rem;
+    color:var(--muted);
+  }
+
+  .user-avatar {
+    width:24px;height:24px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:0.65rem;
+    font-weight:700;
+    color:#0b0f1a;
+  }
+
+  .btn-logout {
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--muted);
+    border-radius:8px;
+    padding:0.4rem 0.8rem;
+    font-size:0.78rem;
+    cursor:pointer;
+    font-family:'Outfit',sans-serif;
+    transition:all 0.2s;
+  }
+
+  .btn-logout:hover { border-color:var(--accent3); color:var(--accent3); }
+
+  /* PAGE AREAS */
+  .page { display:none; padding:2rem; max-width:1100px; margin:0 auto; width:100%; }
+  .page.active { display:block; animation: fadeUp 0.4s ease; }
+
+  /* PAGE HEADER */
+  .page-header { margin-bottom:2rem; }
+  .page-header h2 {
+    font-family:'DM Serif Display',serif;
+    font-size:2rem;
+    font-weight:400;
+  }
+  .page-header p { color:var(--muted); margin-top:0.3rem; font-size:0.9rem; }
+
+  /* ── RECOMMEND PAGE ── */
+  .prefs-card {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:1.5rem;
+    margin-bottom:1.5rem;
+  }
+
+  .prefs-card h3 {
+    font-size:0.85rem;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--accent);
+    font-family:'DM Mono',monospace;
+    margin-bottom:1rem;
+  }
+
+  .tag-grid {
+    display:flex;
+    flex-wrap:wrap;
+    gap:0.5rem;
+  }
+
+  .tag-chip {
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:100px;
+    padding:0.35rem 0.85rem;
+    font-size:0.8rem;
+    cursor:pointer;
+    transition:all 0.18s;
+    color:var(--muted);
+    user-select:none;
+    font-family:'DM Mono',monospace;
+  }
+
+  .tag-chip:hover { border-color:var(--accent); color:var(--text); }
+
+  .tag-chip.selected {
+    background:var(--glow);
+    border-color:var(--accent);
+    color:var(--accent);
+    box-shadow:0 0 12px var(--glow);
+  }
+
+  .btn-run {
+    display:flex;
+    align-items:center;
+    gap:0.6rem;
+    background:var(--accent);
+    color:#0b0f1a;
+    border:none;
+    border-radius:10px;
+    padding:0.75rem 1.5rem;
+    font-family:'Outfit',sans-serif;
+    font-weight:600;
+    font-size:0.9rem;
+    cursor:pointer;
+    transition:all 0.2s;
+    margin-top:1.2rem;
+  }
+
+  .btn-run:hover {
+    transform:translateY(-1px);
+    box-shadow:0 8px 24px rgba(79,255,176,0.3);
+  }
+
+  .results-label {
+    font-family:'DM Mono',monospace;
+    font-size:0.75rem;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    margin-bottom:1rem;
+  }
+
+  /* MEETING CARDS */
+  .meetings-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap:1rem;
+  }
+
+  .meeting-card {
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:1.3rem;
+    transition:all 0.25s;
+    position:relative;
+    overflow:hidden;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .meeting-card:hover {
+    border-color:rgba(79,255,176,0.35);
+    transform:translateY(-2px);
+    box-shadow:0 12px 32px rgba(0,0,0,0.4);
+  }
+
+  .meeting-card::before {
+    content:'';
+    position:absolute;
+    top:0;left:0;right:0;
+    height:2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    opacity:0;
+    transition:opacity 0.25s;
+  }
+
+  .meeting-card:hover::before { opacity:1; }
+
+  .card-top {
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:0.8rem;
+  }
+
+  .card-name {
+    font-family:'DM Serif Display',serif;
+    font-size:1.1rem;
+    font-weight:400;
+    flex:1;
+    padding-right:0.5rem;
+  }
+
+  .score-badge {
+    background: var(--surface2);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:0.3rem 0.6rem;
+    font-family:'DM Mono',monospace;
+    font-size:0.75rem;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+
+  .score-badge.high { border-color:var(--accent); color:var(--accent); background:var(--glow); }
+  .score-badge.med  { border-color:#ffcf4f; color:#ffcf4f; background:rgba(255,207,79,0.08); }
+  .score-badge.low  { border-color:var(--border); color:var(--muted); }
+
+  .card-meta {
+    font-size:0.78rem;
+    color:var(--muted);
+    font-family:'DM Mono',monospace;
+    margin-bottom:0.8rem;
+  }
+
+  .card-tags {
+    display:flex;
+    flex-wrap:wrap;
+    gap:0.35rem;
+    margin-bottom:1rem;
+  }
+
+  .ctag {
+    font-size:0.7rem;
+    font-family:'DM Mono',monospace;
+    background:var(--surface2);
+    border-radius:100px;
+    padding:0.2rem 0.6rem;
+    color:var(--muted);
+  }
+
+  .card-actions {
+    display:flex;
+    gap:0.5rem;
+  }
+
+  .btn-tag {
+    flex:1;
+    background:transparent;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:0.45rem;
+    color:var(--muted);
+    font-size:0.75rem;
+    cursor:pointer;
+    font-family:'Outfit',sans-serif;
+    transition:all 0.18s;
+  }
+
+  .btn-tag:hover { border-color:var(--accent2); color:var(--accent2); }
+
+  .btn-feedback {
+    flex:1;
+    background:transparent;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:0.45rem;
+    color:var(--muted);
+    font-size:0.75rem;
+    cursor:pointer;
+    font-family:'Outfit',sans-serif;
+    transition:all 0.18s;
+  }
+
+  .btn-feedback:hover { border-color:var(--accent); color:var(--accent); }
+
+  /* ── TAG PAGE ── */
+  .search-row {
+    display:flex;
+    gap:0.75rem;
+    margin-bottom:1.5rem;
+    flex-wrap:wrap;
+  }
+
+  .search-input {
+    flex:1;
+    min-width:200px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:0.65rem 1rem;
+    color:var(--text);
+    font-family:'Outfit',sans-serif;
+    font-size:0.9rem;
+    outline:none;
+    transition:border-color 0.2s;
+  }
+
+  .search-input:focus { border-color:var(--accent); }
+
+  .filter-chip {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:100px;
+    padding:0.5rem 1rem;
+    font-size:0.8rem;
+    cursor:pointer;
+    font-family:'DM Mono',monospace;
+    color:var(--muted);
+    transition:all 0.18s;
+  }
+
+  .filter-chip.active { border-color:var(--accent); color:var(--accent); background:var(--glow); }
+
+  /* ── HISTORY PAGE ── */
+  .history-empty {
+    text-align:center;
+    padding:4rem 2rem;
+    color:var(--muted);
+  }
+
+  .history-empty .big-icon { font-size:3rem; margin-bottom:1rem; }
+
+  .history-list { display:flex; flex-direction:column; gap:0.75rem; }
+
+  .history-item {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:1.1rem 1.3rem;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    animation: fadeUp 0.3s ease both;
+  }
+
+  .history-item-left h4 {
+    font-size:0.95rem;
+    margin-bottom:0.3rem;
+  }
+
+  .history-item-left .hmeta {
+    font-size:0.75rem;
+    color:var(--muted);
+    font-family:'DM Mono',monospace;
+  }
+
+  .history-rating {
+    display:flex;
+    gap:2px;
+  }
+
+  .star { color:var(--muted); font-size:0.9rem; }
+  .star.on { color:#ffcf4f; }
+
+  /* ═══════════════════════════════
+     MODAL
+  ═══════════════════════════════ */
+  .modal-overlay {
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(11,15,26,0.85);
+    backdrop-filter:blur(8px);
+    z-index:200;
+    align-items:center;
+    justify-content:center;
+    padding:1rem;
+  }
+
+  .modal-overlay.open { display:flex; }
+
+  .modal {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:2rem;
+    width:100%;
+    max-width:480px;
+    animation:scaleIn 0.25s ease;
+    max-height:90vh;
+    overflow-y:auto;
+  }
+
+  .modal-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:1.5rem;
+  }
+
+  .modal-header h3 {
+    font-family:'DM Serif Display',serif;
+    font-size:1.4rem;
+    font-weight:400;
+  }
+
+  .modal-header .meeting-time {
+    font-size:0.75rem;
+    color:var(--muted);
+    font-family:'DM Mono',monospace;
+    margin-top:0.3rem;
+  }
+
+  .btn-close {
+    background:transparent;
+    border:none;
+    color:var(--muted);
+    font-size:1.3rem;
+    cursor:pointer;
+    line-height:1;
+    padding:0.2rem;
+    transition:color 0.2s;
+  }
+
+  .btn-close:hover { color:var(--text); }
+
+  .modal-section { margin-bottom:1.5rem; }
+
+  .modal-section h4 {
+    font-family:'DM Mono',monospace;
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--accent);
+    margin-bottom:0.8rem;
+  }
+
+  /* STAR RATING */
+  .star-picker { display:flex; gap:0.5rem; cursor:pointer; }
+
+  .star-pick {
+    font-size:1.5rem;
+    color:var(--border);
+    transition:color 0.15s, transform 0.15s;
+    cursor:pointer;
+    user-select:none;
+  }
+
+  .star-pick:hover, .star-pick.lit { color:#ffcf4f; transform:scale(1.15); }
+
+  /* RADIO */
+  .radio-group { display:flex; gap:0.5rem; flex-wrap:wrap; }
+
+  .radio-opt {
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:100px;
+    padding:0.35rem 1rem;
+    font-size:0.8rem;
+    cursor:pointer;
+    transition:all 0.18s;
+    color:var(--muted);
+    user-select:none;
+  }
+
+  .radio-opt.selected { border-color:var(--accent); color:var(--accent); background:var(--glow); }
+
+  /* TEXT AREA */
+  .modal-section textarea {
+    width:100%;
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:0.75rem 1rem;
+    color:var(--text);
+    font-family:'Outfit',sans-serif;
+    font-size:0.88rem;
+    resize:vertical;
+    min-height:80px;
+    outline:none;
+    transition:border-color 0.2s;
+  }
+
+  .modal-section textarea:focus { border-color:var(--accent); }
+
+  .btn-submit-modal {
+    width:100%;
+    background:var(--accent);
+    color:#0b0f1a;
+    border:none;
+    border-radius:10px;
+    padding:0.8rem;
+    font-family:'Outfit',sans-serif;
+    font-weight:600;
+    font-size:0.9rem;
+    cursor:pointer;
+    transition:all 0.2s;
+  }
+
+  .btn-submit-modal:hover { background:#3de8a0; transform:translateY(-1px); }
+
+  .success-flash {
+    display:none;
+    text-align:center;
+    padding:1.5rem;
+    color:var(--accent);
+    font-family:'DM Mono',monospace;
+    font-size:0.85rem;
+  }
+
+  .success-flash .check { font-size:2.5rem; margin-bottom:0.5rem; }
+
+  /* TOAST */
+  .toast {
+    position:fixed;
+    bottom:2rem;
+    left:50%;
+    transform:translateX(-50%) translateY(100px);
+    background:var(--surface);
+    border:1px solid var(--accent);
+    border-radius:100px;
+    padding:0.65rem 1.5rem;
+    font-size:0.82rem;
+    color:var(--accent);
+    font-family:'DM Mono',monospace;
+    z-index:300;
+    transition:transform 0.3s cubic-bezier(.34,1.56,.64,1);
+    pointer-events:none;
+  }
+
+  .toast.show { transform:translateX(-50%) translateY(0); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  @keyframes scaleIn {
+    from { opacity:0; transform:scale(0.92); }
+    to   { opacity:1; transform:scale(1); }
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity:1; }
+    50% { opacity:0.4; }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .topnav { padding:0.75rem 1rem; }
+    .nav-tabs .nav-tab { padding:0.4rem 0.6rem; font-size:0.75rem; }
+    .page { padding:1rem; }
+    .meetings-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════ AUTH SCREEN ═══════ -->
+<div id="auth-screen" class="screen active">
+  <div class="auth-container">
+    <div class="logo">
+      <div class="logo-badge">PRC · Neural Recommender</div>
+      <h1>Find Your<br><em>Meeting</em></h1>
+      <p>Personalized recovery meeting recommendations<br>powered by community tags &amp; KNN matching</p>
+    </div>
+    <div class="auth-card">
+      <div class="tab-row">
+        <button class="tab-btn active" onclick="switchAuthTab('login')">Sign In</button>
+        <button class="tab-btn" onclick="switchAuthTab('register')">Register</button>
+      </div>
+      <div id="login-form">
+        <div class="field">
+          <label>Username</label>
+          <input type="text" id="login-user" placeholder="your username" autocomplete="username">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button class="btn-primary" onclick="doLogin()">Sign In →</button>
+      </div>
+      <div id="register-form" style="display:none">
+        <div class="field">
+          <label>Username</label>
+          <input type="text" id="reg-user" placeholder="choose a username" autocomplete="username">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="reg-pass" placeholder="create a password" autocomplete="new-password">
+        </div>
+        <div class="field">
+          <label>Confirm Password</label>
+          <input type="password" id="reg-pass2" placeholder="confirm password">
+        </div>
+        <button class="btn-primary" onclick="doRegister()">Create Account →</button>
+      </div>
+      <div class="err-msg" id="auth-err"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ APP SCREEN ═══════ -->
+<div id="app-screen" class="screen">
+  <nav class="topnav">
+    <span class="nav-logo">NMR</span>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchPage('recommend')">🎯 Recommend</button>
+      <button class="nav-tab" onclick="switchPage('browse')">🗂 Browse &amp; Tag</button>
+      <button class="nav-tab" onclick="switchPage('history')">📋 My History</button>
+    </div>
+    <div class="nav-right">
+      <div class="user-chip">
+        <div class="user-avatar" id="user-avatar-initials">?</div>
+        <span id="nav-username">User</span>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <!-- ── RECOMMEND PAGE ── -->
+  <div id="page-recommend" class="page active">
+    <div class="page-header">
+      <h2>Find Your Match</h2>
+      <p>Select what matters to you — the algorithm will score every meeting against your preferences.</p>
+    </div>
+    <div class="prefs-card">
+      <h3>⚡ My Preferences</h3>
+      <div class="tag-grid" id="pref-tags"></div>
+      <button class="btn-run" onclick="runKNN()">
+        <span>⟳</span> Run Recommender
+      </button>
+    </div>
+    <div class="results-label" id="results-label">Select preferences above and run the recommender</div>
+    <div class="meetings-grid" id="recommend-results"></div>
+  </div>
+
+  <!-- ── BROWSE PAGE ── -->
+  <div id="page-browse" class="page">
+    <div class="page-header">
+      <h2>Browse &amp; Tag Meetings</h2>
+      <p>Help the community by tagging meetings you've attended. Your tags power the AI.</p>
+    </div>
+    <div class="search-row">
+      <input type="text" class="search-input" placeholder="Search meetings..." id="browse-search" oninput="renderBrowse()">
+      <button class="filter-chip" id="fc-all" onclick="setFilter('all')">All</button>
+      <button class="filter-chip" id="fc-tagged" onclick="setFilter('tagged')">Tagged</button>
+      <button class="filter-chip" id="fc-untagged" onclick="setFilter('untagged')">Untagged</button>
+    </div>
+    <div class="meetings-grid" id="browse-results"></div>
+  </div>
+
+  <!-- ── HISTORY PAGE ── -->
+  <div id="page-history" class="page">
+    <div class="page-header">
+      <h2>My Activity</h2>
+      <p>Your submitted tags and feedback — the data that trains the recommender.</p>
+    </div>
+    <div id="history-content"></div>
+  </div>
+
+</div>
+
+<!-- ═══════ TAG MODAL ═══════ -->
+<div class="modal-overlay" id="tag-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h3 id="modal-tag-name">Meeting Name</h3>
+        <div class="meeting-time" id="modal-tag-time">—</div>
+      </div>
+      <button class="btn-close" onclick="closeModal('tag-modal')">✕</button>
+    </div>
+    <div class="modal-section">
+      <h4>Select tags for this meeting</h4>
+      <div class="tag-grid" id="modal-tag-chips"></div>
+    </div>
+    <div id="tag-success" class="success-flash">
+      <div class="check">✓</div>
+      Tags saved! Thank you for contributing.
+    </div>
+    <button class="btn-submit-modal" id="tag-submit-btn" onclick="submitTags()">Save Tags</button>
+  </div>
+</div>
+
+<!-- ═══════ FEEDBACK MODAL ═══════ -->
+<div class="modal-overlay" id="feedback-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h3 id="modal-fb-name">Meeting Name</h3>
+        <div class="meeting-time" id="modal-fb-time">—</div>
+      </div>
+      <button class="btn-close" onclick="closeModal('feedback-modal')">✕</button>
+    </div>
+    <div id="fb-success" class="success-flash">
+      <div class="check">✓</div>
+      Feedback saved! This helps improve recommendations.
+    </div>
+    <div id="fb-form-body">
+      <div class="modal-section">
+        <h4>Q1 · How was the energy? (1–5)</h4>
+        <div class="star-picker" id="star-picker">
+          <span class="star-pick" data-v="1" onclick="setStar(1)">★</span>
+          <span class="star-pick" data-v="2" onclick="setStar(2)">★</span>
+          <span class="star-pick" data-v="3" onclick="setStar(3)">★</span>
+          <span class="star-pick" data-v="4" onclick="setStar(4)">★</span>
+          <span class="star-pick" data-v="5" onclick="setStar(5)">★</span>
+        </div>
+      </div>
+      <div class="modal-section">
+        <h4>Q2 · Was it beginner-friendly?</h4>
+        <div class="radio-group">
+          <div class="radio-opt" onclick="setRadio(this,'beginner')">Yes</div>
+          <div class="radio-opt" onclick="setRadio(this,'beginner')">Somewhat</div>
+          <div class="radio-opt" onclick="setRadio(this,'beginner')">No</div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <h4>Q3 · Describe this meeting in a few words</h4>
+        <textarea id="fb-text" placeholder="e.g. calm, spiritually focused, great speaker..."></textarea>
+      </div>
+      <button class="btn-submit-modal" onclick="submitFeedback()">Submit Feedback</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+//  SQLITE SIMULATION (localStorage)
+// ══════════════════════════════════════════
+
+const DB = {
+  get(key) {
+    try { return JSON.parse(localStorage.getItem('prc_nmr_' + key)) || null; }
+    catch { return null; }
+  },
+  set(key, val) {
+    localStorage.setItem('prc_nmr_' + key, JSON.stringify(val));
+  }
+};
+
+function getUsers()    { return DB.get('users')    || {}; }
+function getTags()     { return DB.get('tags')      || {}; } // { meetingId: { tagName: count } }
+function getFeedback() { return DB.get('feedback')  || []; }
+function getHistory()  { return DB.get('history')   || []; }
+function getCurrentUser() { return DB.get('session'); }
+
+function saveUsers(u) { DB.set('users', u); }
+function saveTags(t)  { DB.set('tags', t); }
+function saveFeedback(f) { DB.set('feedback', f); }
+function saveHistory(h)  { DB.set('history', h); }
+
+// ══════════════════════════════════════════
+//  MEETINGS DATA (seeded PRC list)
+// ══════════════════════════════════════════
+
+const MEETINGS = [
+  { id: 1,  name: "Monday Morning Serenity",     time: "Mon 7:00 AM",  type:"AA", location:"Room A" },
+  { id: 2,  name: "Steps to Freedom",            time: "Mon 6:30 PM",  type:"NA", location:"Main Hall" },
+  { id: 3,  name: "Tuesday Speaker Series",      time: "Tue 7:00 PM",  type:"AA", location:"Chapel" },
+  { id: 4,  name: "Women's Wisdom Circle",       time: "Wed 10:00 AM", type:"AA", location:"Room B" },
+  { id: 5,  name: "Young People's Meeting",      time: "Wed 7:00 PM",  type:"AA", location:"Main Hall" },
+  { id: 6,  name: "Big Book Deep Dive",           time: "Thu 6:00 PM",  type:"AA", location:"Library" },
+  { id: 7,  name: "Thursday Night NA",           time: "Thu 8:00 PM",  type:"NA", location:"Room C" },
+  { id: 8,  name: "Meditation & Mindfulness",    time: "Fri 7:00 AM",  type:"Other", location:"Garden" },
+  { id: 9,  name: "Friday Night Speaker",        time: "Fri 7:30 PM",  type:"AA", location:"Main Hall" },
+  { id: 10, name: "Weekend Warriors",            time: "Sat 10:00 AM", type:"NA", location:"Room A" },
+  { id: 11, name: "Saturday Spiritual Hour",     time: "Sat 6:00 PM",  type:"Other", location:"Chapel" },
+  { id: 12, name: "Sunday Newcomers Welcome",    time: "Sun 9:00 AM",  type:"AA", location:"Room B" },
+  { id: 13, name: "Steps 1–3 Workshop",          time: "Sun 3:00 PM",  type:"AA", location:"Library" },
+  { id: 14, name: "LGBTQ+ Safe Space",           time: "Mon 8:00 PM",  type:"AA", location:"Room D" },
+  { id: 15, name: "Men's Group Discussion",      time: "Tue 6:00 PM",  type:"AA", location:"Room A" },
+  { id: 16, name: "Dual Recovery Meeting",       time: "Wed 6:30 PM",  type:"Other", location:"Room C" },
+];
+
+const ALL_TAGS = [
+  "#Meditation", "#HighEnergy", "#BeginnerFriendly", "#YoungAdults",
+  "#Speaker", "#SmallGroup", "#LargeGroup", "#Spiritual", "#BookStudy",
+  "#WomenOnly", "#MenOnly", "#LGBTQ+", "#Newcomers", "#DualRecovery",
+  "#Candlelight", "#Discussion", "#StepWork", "#Outdoor", "#NA", "#AA"
+];
+
+// ══════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════
+
+let currentAuthTab = 'login';
+
+function switchAuthTab(tab) {
+  currentAuthTab = tab;
+  document.getElementById('login-form').style.display    = tab === 'login'    ? 'block' : 'none';
+  document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', (i===0 && tab==='login') || (i===1 && tab==='register'));
+  });
+  document.getElementById('auth-err').textContent = '';
+}
+
+function simpleHash(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return hash.toString(36);
+}
+
+function doLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const err  = document.getElementById('auth-err');
+  if (!user || !pass) { err.textContent = 'Please fill in all fields.'; return; }
+  const users = getUsers();
+  if (!users[user]) { err.textContent = 'Account not found.'; return; }
+  if (users[user].hash !== simpleHash(pass)) { err.textContent = 'Incorrect password.'; return; }
+  DB.set('session', user);
+  enterApp(user);
+}
+
+function doRegister() {
+  const user  = document.getElementById('reg-user').value.trim();
+  const pass  = document.getElementById('reg-pass').value;
+  const pass2 = document.getElementById('reg-pass2').value;
+  const err   = document.getElementById('auth-err');
+  if (!user || !pass) { err.textContent = 'Please fill in all fields.'; return; }
+  if (pass !== pass2) { err.textContent = 'Passwords do not match.'; return; }
+  if (pass.length < 4) { err.textContent = 'Password must be at least 4 characters.'; return; }
+  const users = getUsers();
+  if (users[user]) { err.textContent = 'Username already taken.'; return; }
+  users[user] = { hash: simpleHash(pass), joined: new Date().toISOString() };
+  saveUsers(users);
+  DB.set('session', user);
+  enterApp(user);
+}
+
+function doLogout() {
+  DB.set('session', null);
+  document.getElementById('auth-screen').classList.add('active');
+  document.getElementById('app-screen').classList.remove('active');
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('auth-err').textContent = '';
+  switchAuthTab('login');
+}
+
+function enterApp(user) {
+  document.getElementById('auth-screen').classList.remove('active');
+  document.getElementById('app-screen').classList.add('active');
+  document.getElementById('nav-username').textContent = user;
+  document.getElementById('user-avatar-initials').textContent = user[0].toUpperCase();
+  selectedPrefs = [];
+  renderPrefTags();
+  currentFilter = 'all';
+  document.getElementById('fc-all').classList.add('active');
+  document.getElementById('fc-tagged').classList.remove('active');
+  document.getElementById('fc-untagged').classList.remove('active');
+  renderBrowse();
+  renderHistory();
+  switchPage('recommend');
+}
+
+// auto-login if session exists
+window.addEventListener('DOMContentLoaded', () => {
+  const user = getCurrentUser();
+  if (user) { enterApp(user); }
+  renderPrefTags(); // seed chips even on auth screen load
+});
+
+// ══════════════════════════════════════════
+//  NAV
+// ══════════════════════════════════════════
+
+function switchPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  const idx = { recommend:0, browse:1, history:2 }[id];
+  document.querySelectorAll('.nav-tab')[idx].classList.add('active');
+  if (id === 'history') renderHistory();
+}
+
+// ══════════════════════════════════════════
+//  RECOMMEND PAGE + KNN
+// ══════════════════════════════════════════
+
+let selectedPrefs = [];
+
+function renderPrefTags() {
+  const grid = document.getElementById('pref-tags');
+  if (!grid) return;
+  grid.innerHTML = ALL_TAGS.map(t => `
+    <div class="tag-chip ${selectedPrefs.includes(t) ? 'selected' : ''}"
+         onclick="togglePref('${t}')">${t}</div>
+  `).join('');
+}
+
+function togglePref(tag) {
+  const i = selectedPrefs.indexOf(tag);
+  if (i === -1) selectedPrefs.push(tag); else selectedPrefs.splice(i, 1);
+  renderPrefTags();
+}
+
+// KNN: cosine similarity between user pref vector & meeting tag vector
+function cosineSimilarity(vecA, vecB, keys) {
+  let dot = 0, normA = 0, normB = 0;
+  for (const k of keys) {
+    dot   += (vecA[k]||0) * (vecB[k]||0);
+    normA += (vecA[k]||0) ** 2;
+    normB += (vecB[k]||0) ** 2;
+  }
+  if (normA === 0 || normB === 0) return 0;
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+function runKNN() {
+  const tagsDB = getTags();
+
+  // Build user preference vector
+  const userVec = {};
+  for (const tag of ALL_TAGS) userVec[tag] = selectedPrefs.includes(tag) ? 1 : 0;
+
+  // Score each meeting
+  const scored = MEETINGS.map(m => {
+    const mTags = tagsDB[m.id] || {};
+    const total = Object.values(mTags).reduce((a,b) => a+b, 0) || 1;
+    const mVec = {};
+    for (const tag of ALL_TAGS) mVec[tag] = (mTags[tag] || 0) / total;
+    const score = selectedPrefs.length === 0 ? Math.random() : cosineSimilarity(userVec, mVec, ALL_TAGS);
+    return { ...m, score, mTags };
+  });
+
+  scored.sort((a,b) => b.score - a.score);
+
+  const label = document.getElementById('results-label');
+  label.textContent = selectedPrefs.length === 0
+    ? 'Showing all meetings (no preferences selected)'
+    : `Showing ${scored.length} meetings · sorted by compatibility`;
+
+  const grid = document.getElementById('recommend-results');
+  grid.innerHTML = scored.map((m, idx) => {
+    const pct = Math.round(m.score * 100);
+    const badgeClass = pct >= 60 ? 'high' : pct >= 30 ? 'med' : 'low';
+    const topTags = Object.entries(m.mTags).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([t])=>t);
+    return `
+      <div class="meeting-card" style="animation-delay:${idx*0.04}s">
+        <div class="card-top">
+          <div class="card-name">${m.name}</div>
+          <div class="score-badge ${selectedPrefs.length ? badgeClass : 'low'}">
+            ${selectedPrefs.length ? pct + '% match' : m.type}
+          </div>
+        </div>
+        <div class="card-meta">${m.time} · ${m.location} · ${m.type}</div>
+        <div class="card-tags">
+          ${topTags.length ? topTags.map(t=>`<span class="ctag">${t}</span>`).join('') : '<span class="ctag" style="color:var(--border)">no tags yet</span>'}
+        </div>
+        <div class="card-actions">
+          <button class="btn-tag"      onclick="openTagModal(${m.id})">+ Add Tags</button>
+          <button class="btn-feedback" onclick="openFeedbackModal(${m.id})">★ Feedback</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+//  BROWSE + FILTER
+// ══════════════════════════════════════════
+
+let currentFilter = 'all';
+
+function setFilter(f) {
+  currentFilter = f;
+  ['all','tagged','untagged'].forEach(x => {
+    document.getElementById('fc-' + x).classList.toggle('active', x === f);
+  });
+  renderBrowse();
+}
+
+function renderBrowse() {
+  const q      = (document.getElementById('browse-search')?.value || '').toLowerCase();
+  const tagsDB = getTags();
+  let list = MEETINGS.filter(m => {
+    const match = m.name.toLowerCase().includes(q) || m.time.toLowerCase().includes(q) || m.type.toLowerCase().includes(q);
+    const hasTag = Object.keys(tagsDB[m.id] || {}).length > 0;
+    if (currentFilter === 'tagged'   && !hasTag) return false;
+    if (currentFilter === 'untagged' && hasTag)  return false;
+    return match;
+  });
+
+  const grid = document.getElementById('browse-results');
+  if (!grid) return;
+  grid.innerHTML = list.map((m, idx) => {
+    const mTags = tagsDB[m.id] || {};
+    const topTags = Object.entries(mTags).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([t,c])=>
+      `<span class="ctag">${t} <span style="color:var(--accent);font-size:0.65rem">${c}</span></span>`
+    ).join('');
+    return `
+      <div class="meeting-card" style="animation-delay:${idx*0.03}s">
+        <div class="card-top">
+          <div class="card-name">${m.name}</div>
+          <div class="score-badge">${m.type}</div>
+        </div>
+        <div class="card-meta">${m.time} · ${m.location}</div>
+        <div class="card-tags">
+          ${topTags || '<span class="ctag" style="color:var(--border)">be the first to tag this meeting!</span>'}
+        </div>
+        <div class="card-actions">
+          <button class="btn-tag"      onclick="openTagModal(${m.id})">+ Tag Meeting</button>
+          <button class="btn-feedback" onclick="openFeedbackModal(${m.id})">★ Leave Feedback</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+//  TAG MODAL
+// ══════════════════════════════════════════
+
+let activeMeetingId = null;
+let selectedModalTags = [];
+
+function openTagModal(id) {
+  activeMeetingId = id;
+  selectedModalTags = [];
+  const m = MEETINGS.find(x => x.id === id);
+  document.getElementById('modal-tag-name').textContent = m.name;
+  document.getElementById('modal-tag-time').textContent = m.time + ' · ' + m.location;
+  document.getElementById('tag-success').style.display = 'none';
+  document.getElementById('tag-submit-btn').style.display = 'block';
+  const tagsDB = getTags();
+  const current = Object.keys(tagsDB[id] || {});
+  const chips = document.getElementById('modal-tag-chips');
+  chips.innerHTML = ALL_TAGS.map(t => `
+    <div class="tag-chip ${current.includes(t) ? 'selected' : ''}"
+         data-tag="${t}"
+         onclick="toggleModalTag(this,'${t}')">${t}</div>
+  `).join('');
+  selectedModalTags = [...current];
+  document.getElementById('tag-modal').classList.add('open');
+}
+
+function toggleModalTag(el, tag) {
+  const i = selectedModalTags.indexOf(tag);
+  if (i === -1) selectedModalTags.push(tag); else selectedModalTags.splice(i, 1);
+  el.classList.toggle('selected', selectedModalTags.includes(tag));
+}
+
+function submitTags() {
+  if (!selectedModalTags.length) { showToast('Select at least one tag'); return; }
+  const tagsDB = getTags();
+  if (!tagsDB[activeMeetingId]) tagsDB[activeMeetingId] = {};
+  for (const t of selectedModalTags) {
+    tagsDB[activeMeetingId][t] = (tagsDB[activeMeetingId][t] || 0) + 1;
+  }
+  saveTags(tagsDB);
+
+  // Save to history
+  const hist = getHistory();
+  hist.unshift({
+    type: 'tag',
+    meetingId: activeMeetingId,
+    meetingName: MEETINGS.find(m => m.id === activeMeetingId).name,
+    tags: [...selectedModalTags],
+    date: new Date().toISOString()
+  });
+  saveHistory(hist);
+
+  document.getElementById('tag-submit-btn').style.display = 'none';
+  document.getElementById('tag-success').style.display = 'block';
+  renderBrowse();
+  setTimeout(() => closeModal('tag-modal'), 1600);
+  showToast('Tags saved ✓');
+}
+
+// ══════════════════════════════════════════
+//  FEEDBACK MODAL
+// ══════════════════════════════════════════
+
+let fbStar = 0;
+let fbBeginner = '';
+
+function openFeedbackModal(id) {
+  activeMeetingId = id;
+  fbStar = 0; fbBeginner = '';
+  const m = MEETINGS.find(x => x.id === id);
+  document.getElementById('modal-fb-name').textContent = m.name;
+  document.getElementById('modal-fb-time').textContent = m.time + ' · ' + m.location;
+  document.getElementById('fb-success').style.display  = 'none';
+  document.getElementById('fb-form-body').style.display = 'block';
+  document.querySelectorAll('.star-pick').forEach(s => s.classList.remove('lit'));
+  document.querySelectorAll('.radio-opt').forEach(r => r.classList.remove('selected'));
+  document.getElementById('fb-text').value = '';
+  document.getElementById('feedback-modal').classList.add('open');
+}
+
+function setStar(n) {
+  fbStar = n;
+  document.querySelectorAll('.star-pick').forEach(s => {
+    s.classList.toggle('lit', parseInt(s.dataset.v) <= n);
+  });
+}
+
+function setRadio(el, group) {
+  document.querySelectorAll('.radio-opt').forEach(r => r.classList.remove('selected'));
+  el.classList.add('selected');
+  if (group === 'beginner') fbBeginner = el.textContent;
+}
+
+function submitFeedback() {
+  if (!fbStar) { showToast('Please rate the energy level'); return; }
+  if (!fbBeginner) { showToast('Please answer Q2'); return; }
+  const text = document.getElementById('fb-text').value.trim();
+
+  const fb = getFeedback();
+  fb.push({
+    meetingId: activeMeetingId,
+    user: getCurrentUser(),
+    energy: fbStar,
+    beginner: fbBeginner,
+    text,
+    date: new Date().toISOString()
+  });
+  saveFeedback(fb);
+
+  // Auto-tag from text keywords
+  if (text) {
+    const tagsDB = getTags();
+    if (!tagsDB[activeMeetingId]) tagsDB[activeMeetingId] = {};
+    const words = text.toLowerCase();
+    const autoMap = {
+      'meditat': '#Meditation', 'calm': '#Meditation', 'quiet': '#Meditation',
+      'energy': '#HighEnergy', 'high energy': '#HighEnergy', 'lively': '#HighEnergy',
+      'beginner': '#BeginnerFriendly', 'newcomer': '#Newcomers', 'new': '#BeginnerFriendly',
+      'young': '#YoungAdults', 'youth': '#YoungAdults',
+      'speaker': '#Speaker', 'spoke': '#Speaker',
+      'small': '#SmallGroup', 'intimate': '#SmallGroup',
+      'large': '#LargeGroup', 'big group': '#LargeGroup',
+      'spiritual': '#Spiritual', 'spirit': '#Spiritual', 'pray': '#Spiritual',
+      'book': '#BookStudy', 'big book': '#BookStudy', 'step': '#StepWork',
+      'outdoor': '#Outdoor', 'outside': '#Outdoor', 'garden': '#Outdoor'
+    };
+    for (const [kw, tag] of Object.entries(autoMap)) {
+      if (words.includes(kw)) {
+        tagsDB[activeMeetingId][tag] = (tagsDB[activeMeetingId][tag] || 0) + 1;
+      }
+    }
+    saveTags(tagsDB);
+  }
+
+  // Save history
+  const hist = getHistory();
+  hist.unshift({
+    type: 'feedback',
+    meetingId: activeMeetingId,
+    meetingName: MEETINGS.find(m => m.id === activeMeetingId).name,
+    energy: fbStar,
+    beginner: fbBeginner,
+    date: new Date().toISOString()
+  });
+  saveHistory(hist);
+
+  document.getElementById('fb-form-body').style.display = 'none';
+  document.getElementById('fb-success').style.display = 'block';
+  renderBrowse();
+  setTimeout(() => closeModal('feedback-modal'), 1600);
+  showToast('Feedback submitted ✓');
+}
+
+// ══════════════════════════════════════════
+//  HISTORY PAGE
+// ══════════════════════════════════════════
+
+function renderHistory() {
+  const hist = getHistory();
+  const el   = document.getElementById('history-content');
+  if (!el) return;
+  if (!hist.length) {
+    el.innerHTML = `<div class="history-empty">
+      <div class="big-icon">📭</div>
+      <p>No activity yet.</p>
+      <p style="font-size:0.8rem;margin-top:0.4rem">Tag meetings or leave feedback to build your history.</p>
+    </div>`;
+    return;
+  }
+  el.innerHTML = `<div class="history-list">${hist.map((h,i) => {
+    const d = new Date(h.date).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    if (h.type === 'tag') {
+      return `<div class="history-item" style="animation-delay:${i*0.04}s">
+        <div class="history-item-left">
+          <h4>${h.meetingName}</h4>
+          <div class="hmeta">Tagged · ${d}</div>
+          <div style="margin-top:0.4rem;display:flex;gap:0.3rem;flex-wrap:wrap">
+            ${h.tags.map(t=>`<span class="ctag">${t}</span>`).join('')}
+          </div>
+        </div>
+        <div style="font-size:1.2rem;color:var(--accent2)">🏷</div>
+      </div>`;
+    } else {
+      const stars = [1,2,3,4,5].map(n =>
+        `<span class="star ${n <= h.energy ? 'on' : ''}">★</span>`).join('');
+      return `<div class="history-item" style="animation-delay:${i*0.04}s">
+        <div class="history-item-left">
+          <h4>${h.meetingName}</h4>
+          <div class="hmeta">Feedback · ${d} · Beginner-friendly: ${h.beginner}</div>
+          <div class="history-rating" style="margin-top:0.4rem">${stars}</div>
+        </div>
+        <div style="font-size:1.2rem;color:var(--accent)">★</div>
+      </div>`;
+    }
+  }).join('')}</div>`;
+}
+
+// ══════════════════════════════════════════
+//  UTILITIES
+// ══════════════════════════════════════════
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+</script>
+</body>
+</html>
