@@ -33,7 +33,9 @@ exclude:
   - _notebooks
   - _docx
   - venv
-
+  - sobriety-react
+  - sobriety-react/node_modules
+  - node_modules
 
 # Build settings
 # --------------
