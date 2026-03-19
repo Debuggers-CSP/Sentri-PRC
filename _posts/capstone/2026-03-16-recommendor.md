@@ -5,6 +5,6 @@ description: A KNN-based meeting recommendation engine that collects community t
 permalink: /capstone/meeting/
 ---
 
-{% include index.html %}
+{% include index-neuralmeeting.html %}
 
 <p>This is a test to isolate the issue with the page.</p>
