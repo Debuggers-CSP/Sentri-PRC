@@ -1,0 +1,23 @@
+body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
+.mono { font-family: 'Fira Code', monospace; }
+
+.glass {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.neon-border-cyan { box-shadow: 0 0 15px rgba(34, 211, 238, 0.3); border: 1px solid #22d3ee; }
+.neon-text-purple { text-shadow: 0 0 10px #a855f7; }
+
+@keyframes flow {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+.data-flow {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #22d3ee, transparent);
+    animation: flow 2s linear infinite;
+}
+
+button:active { transform: scale(0.95); }

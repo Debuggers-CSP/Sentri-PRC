@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Packet Forge | System Architect Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; overflow-x: hidden; }
+        .mono { font-family: 'Fira Code', monospace; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 1.5rem; }
+        .neon-glow { box-shadow: 0 0 20px rgba(34, 211, 238, 0.2); border: 1px solid rgba(34, 211, 238, 0.5); }
+        @keyframes slide-in { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .animate-slide { animation: slide-in 0.4s ease-out forwards; }
+        .step-indicator { background: linear-gradient(90deg, #22d3ee, #818cf8); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const OSI_DATA = [
+            { step: 1, name: "Application", tech: "HTTP/Fetch" },
+            { step: 2, name: "Presentation", tech: "SSL/TLS" },
+            { step: 3, name: "Session", tech: "Websockets" },
+            { step: 4, name: "Transport", tech: "TCP Header" },
+            { step: 5, name: "Network", tech: "IP Header" },
+            { step: 6, name: "Data Link", tech: "Ethernet Frame" },
+            { step: 7, name: "Physical", tech: "Bitstream" }
+        ];
+
+        const TCP_DATA = [
+            { step: 1, name: "Application", tech: "HTTP/SSL/Session", payload: ["HTTP", "SSL", "Session"] },
+            { step: 2, name: "Transport", tech: "TCP Header", payload: ["TCP"] },
+            { step: 3, name: "Internet", tech: "IP Header", payload: ["IP"] },
+            { step: 4, name: "Data Link", tech: "Ethernet Frame", payload: ["Ethernet"] },
+            { step: 5, name: "Physical", tech: "Bitstream", payload: ["Bits"] }
+        ];
+
+        function App() {
+            const [model, setModel] = useState('OSI');
+            const [packet, setPacket] = useState([]);
+            const [missionStage, setMissionStage] = useState(1); // 1: Build, 2: Handshake, 3: Proxy, 4: Success
+            const [logs, setLogs] = useState(["[SYSTEM]: Architecture Forge Online."]);
+            const [nginx, setNginx] = useState({ port: '', origin: '' });
+
+            const log = (msg) => setLogs(prev => [`> ${msg}`, ...prev.slice(0, 3)]);
+
+            // Logic to determine the current required UI step based on packet length
+            const getRequiredStep = () => {
+                if (model === 'OSI') return packet.length + 1;
+                // For TCP, we jump differently because Step 1 adds 3 items
+                if (packet.length === 0) return 1;
+                if (packet.length === 3) return 2;
+                if (packet.length === 4) return 3;
+                if (packet.length === 5) return 4;
+                if (packet.length === 6) return 5;
+                return 6; // Done
+            };
+
+            const currentStep = getRequiredStep();
+
+            const resetGame = (newModel) => {
+                setModel(newModel);
+                setPacket([]);
+                setMissionStage(1);
+                log(`Switched to ${newModel} Mode. Mission Reset.`);
+            };
+
+            const addLayer = (layer) => {
+                if (missionStage !== 1) return;
+                
+                if (layer.step !== currentStep) {
+                    return log(`❌ ERROR: Click STEP ${currentStep} next!`);
+                }
+
+                if (model === 'TCP') {
+                    setPacket([...packet, ...layer.payload]);
+                } else {
+                    setPacket([...packet, layer.tech]);
+                }
+                
+                log(`✓ Step ${layer.step} Linked: ${layer.name} headers integrated.`);
+            };
+
+            useEffect(() => {
+                if (packet.length >= 7 && missionStage === 1) {
+                    setMissionStage(2);
+                    log("🏆 FORGE COMPLETE. Transitioning to Transport Handshake.");
+                }
+            }, [packet]);
+
+            const runHandshake = () => {
+                log("📡 Initiating TCP 3-Way Handshake...");
+                setTimeout(() => {
+                    log("✓ SYN-ACK Received. Link Stable.");
+                    setMissionStage(3);
+                }, 1500);
+            };
+
+            const deploy = () => {
+                const cleanPort = nginx.port.trim();
+                const cleanOrigin = nginx.origin.toLowerCase().trim();
+
+                if (cleanPort !== '80' && cleanPort !== '443') {
+                    return log("❌ SECURITY ALERT: Port blocked. Standard web nodes require 80 or 443.");
+                }
+                
+                if (!cleanOrigin.includes("github.io")) {
+                    return log("❌ GATEWAY REJECTED: Backend only trusts validated GitHub origins.");
+                }
+                
+                setMissionStage(4);
+            };
+
+            return (
+                <div className="min-h-screen p-4 md:p-8 max-w-6xl mx-auto">
+                    
+                    {/* DYNAMIC MISSION DIRECTIVE */}
+                    <div className="glass p-6 mb-8 border-cyan-500/50 bg-cyan-950/20 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                            <div className="step-indicator text-slate-950 px-3 py-1 rounded font-black text-xs uppercase tracking-tighter">Mission Phase {missionStage}</div>
+                            <h2 className="text-cyan-400 font-bold text-sm italic">
+                                {missionStage === 1 && `DIRECTIVE: Click [STEP ${currentStep}] in the Architecture Palette.`}
+                                {missionStage === 2 && "DIRECTIVE: Execute the 3-Way Handshake protocol."}
+                                {missionStage === 3 && "DIRECTIVE: Authenticate the Nginx gateway and CORS origin."}
+                                {missionStage === 4 && "DIRECTIVE: System status 100%. Node Synchronized."}
+                            </h2>
+                        </div>
+                        <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                            <button onClick={() => resetGame('OSI')} className={`px-4 py-1 rounded-lg text-[10px] font-black transition-all ${model === 'OSI' ? 'bg-cyan-500 text-black shadow-[0_0_10px_#22d3ee]' : 'text-slate-500'}`}>OSI (7 STEPS)</button>
+                            <button onClick={() => resetGame('TCP')} className={`px-4 py-1 rounded-lg text-[10px] font-black transition-all ${model === 'TCP' ? 'bg-indigo-500 text-black shadow-[0_0_10px_#818cf8]' : 'text-slate-500'}`}>TCP/IP (5 STEPS)</button>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        
+                        {/* THE ARCHITECTURE PALETTE */}
+                        <div className="lg:col-span-4 glass p-6">
+                            <h3 className="text-[10px] font-black text-slate-500 uppercase mb-6 tracking-widest border-b border-slate-800 pb-2">Architecture Palette</h3>
+                            <div className="space-y-3">
+                                {(model === 'OSI' ? OSI_DATA : TCP_DATA).map((l) => {
+                                    const isDone = model === 'OSI' ? packet.includes(l.tech) : 
+                                                   (l.step === 1 ? packet.includes("HTTP") :
+                                                    l.step === 2 ? packet.includes("TCP") :
+                                                    l.step === 3 ? packet.includes("IP") :
+                                                    l.step === 4 ? packet.includes("Ethernet") : packet.includes("Bits"));
+                                    
+                                    const isNext = !isDone && missionStage === 1 && l.step === currentStep;
+                                    
+                                    return (
+                                        <div 
+                                            key={l.step} 
+                                            onClick={() => addLayer(l)}
+                                            className={`p-4 rounded-2xl border-2 transition-all cursor-pointer relative ${isDone ? 'bg-cyan-600 border-white/40 opacity-100' : isNext ? 'border-cyan-400 bg-cyan-400/10 animate-pulse opacity-100' : 'bg-slate-900 border-slate-800 opacity-20'}`}
+                                        >
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className={`text-[10px] font-black uppercase ${isDone ? 'text-white' : 'text-cyan-500'}`}>STEP {l.step}</span>
+                                                <span className="text-xs font-black text-white">{l.name}</span>
+                                            </div>
+                                            <p className="text-[9px] mono opacity-80">{l.tech}</p>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </div>
+
+                        {/* WORKSPACE */}
+                        <div className="lg:col-span-8 space-y-6">
+                            <div className="glass p-10 flex flex-col items-center justify-center relative overflow-hidden min-h-[220px]">
+                                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent"></div>
+                                <h4 className="text-[10px] text-slate-600 font-black uppercase mb-10 tracking-[0.5em]">Packet Encapsulation Stream</h4>
+                                <div className="flex flex-row-reverse items-center gap-2 overflow-x-auto w-full justify-center">
+                                    <div className="bg-white text-black px-6 py-4 font-black rounded-sm shadow-[0_0_40px_rgba(255,255,255,0.2)] text-xs shrink-0">DATA PAYLOAD</div>
+                                    {packet.map((p, i) => (
+                                        <div key={i} className="animate-slide bg-cyan-500 text-slate-950 px-3 py-2 text-[10px] font-black rounded italic whitespace-nowrap shrink-0">[{p}]</div>
+                                    ))}
+                                    {packet.length === 0 && <p className="text-slate-800 italic text-sm">Awaiting Byte-Stream Initialization...</p>}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className={`glass p-6 border-l-4 border-emerald-500 transition-all ${missionStage !== 2 ? 'opacity-20 grayscale pointer-events-none' : 'neon-glow'}`}>
+                                    <h5 className="text-[10px] font-black text-emerald-400 uppercase mb-4">Transport Reliability</h5>
+                                    <button onClick={runHandshake} className="w-full py-4 bg-emerald-500 text-black rounded-xl text-[10px] font-black hover:scale-105 transition-all">EXECUTE 3-WAY HANDSHAKE</button>
+                                </div>
+
+                                <div className={`glass p-6 border-l-4 border-yellow-500 transition-all ${missionStage !== 3 ? 'opacity-20 grayscale pointer-events-none' : 'neon-glow'}`}>
+                                    <h5 className="text-[10px] font-black text-yellow-500 uppercase mb-4">Network Orchestration</h5>
+                                    <div className="space-y-3">
+                                        <input type="text" placeholder="Access Port (80)" className="w-full bg-black/50 border border-slate-800 p-2 rounded text-[10px] text-yellow-500 outline-none focus:border-yellow-500" onChange={e => setNginx({...nginx, port: e.target.value})} />
+                                        <input type="text" placeholder="Origin (github.io)" className="w-full bg-black/50 border border-slate-800 p-2 rounded text-[10px] text-yellow-500 outline-none focus:border-yellow-500" onChange={e => setNginx({...nginx, origin: e.target.value})} />
+                                        <button onClick={deploy} className="w-full py-2 bg-yellow-500 text-black rounded-lg font-black text-[10px] uppercase">Authorize Deployment</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-black/90 p-4 rounded-2xl border border-slate-800 h-28 mono text-[10px]">
+                                {logs.map((log, i) => (
+                                    <div key={i} className={i === 0 ? "text-cyan-400" : "text-slate-700"}>{log}</div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* LORE-FRIENDLY SUCCESS OVERLAY */}
+                    {missionStage === 4 && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl p-6">
+                            <div className="glass p-12 max-w-xl text-center border-cyan-400 shadow-[0_0_150px_rgba(34,211,238,0.5)]">
+                                <div className="text-7xl mb-8 animate-bounce">⚡</div>
+                                <h2 className="text-5xl font-black text-white italic mb-2 uppercase tracking-tighter">NODE SYNCHRONIZED</h2>
+                                <p className="text-cyan-400 text-xs font-bold uppercase mb-8 tracking-[0.3em]">ELITE SYSTEM ARCHITECT STATUS REACHED</p>
+                                <p className="text-slate-400 text-xs leading-relaxed mb-10">
+                                    Your packet has successfully navigated the protocol stack, established a stable <strong>TCP Handshake</strong>, and cleared the <strong>Nginx gateway</strong> rules. The remote cloud node is now live and communicating with the origin server.
+                                </p>
+                                <button onClick={() => window.location.reload()} className="bg-white text-black px-12 py-4 rounded-full font-black text-xs uppercase hover:scale-110 transition-all shadow-xl">Re-Init System</button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "name": "jal",
+  "version": "1.0.0",
+  "description": "Founded and maintained by John Mortensen.",
+  "main": "App.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Debuggers-CSP/JAL.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Debuggers-CSP/JAL/issues"
+  },
+  "homepage": "https://github.com/Debuggers-CSP/JAL#readme"
+}
