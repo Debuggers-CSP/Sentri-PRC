@@ -26,16 +26,25 @@ future: true
 # Exclude from Jekyll watch - these are processed by our conversion scripts
 # This prevents double-regeneration when saving notebooks/docx files
 exclude:
-# Jekyll defaults
   - vendor
-# Custom excludes
   - Makefile
   - _notebooks
   - _docx
   - venv
-  - sobriety-react
-  - sobriety-react/node_modules
+  - .venv
   - node_modules
+  - Sentri             # <--- Add this (Case sensitive!)
+  - sentri             # <--- Add lowercase too just in case
+  - sentri-dist        # <--- Add this
+  - sobriety-react
+keep_files: ["sentri-app"]
+# Add this near the top or near your 'exclude' section
+include:
+  - sentri-app
+
+# Ensure it stays there during incremental builds
+keep_files:
+  - sentri-app
 
 # Build settings
 # --------------

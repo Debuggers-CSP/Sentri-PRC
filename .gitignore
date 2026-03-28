@@ -59,3 +59,12 @@ _notebooks/**/*_csa.md
 _notebooks/**/*_csse.md
 _notebooks/**/*_cwgu.md
 _notebooks/**/*_content.md
+# Ignore the "junk" inside the React folder
+Sentri/node_modules/
+Sentri/.env
+Sentri/.env.local
+
+# Ignore the build artifacts
+sentri-dist/
+sentri-app/
+_site/

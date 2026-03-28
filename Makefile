@@ -225,15 +225,6 @@ clean: stop
 	@echo "Removing _site directory..."
 	@rm -rf _site
 
-stop:
-	@echo "Stopping server..."
-	@@lsof -ti :$(PORT) | xargs kill >/dev/null 2>&1 || true
-	@echo "Stopping logging process..."
-	@@ps aux | awk -v log_file=$(LOG_FILE) '$$0 ~ "tail -f " log_file { print $$2 }' | xargs kill >/dev/null 2>&1 || true
-	@echo "Stopping notebook watcher..."
-	@@ps aux | grep "watch-notebooks" | grep -v grep | awk '{print $$2}' | xargs kill >/dev/null 2>&1 || true
-	@@ps aux | grep "find _notebooks" | grep -v grep | awk '{print $$2}' | xargs kill >/dev/null 2>&1 || true
-	@rm -f $(LOG_FILE) /tmp/.notebook_watch_marker /tmp/.jekyll_regenerating
 
 reload:
 	@make stop
@@ -380,3 +371,54 @@ convert-fix:
 	@echo "Running conversion fixes..."
 	@echo "️Fixing notebooks with known warnings or errors..."
 	@$(PYTHON) scripts/check_conversion_warnings.py --fix
+
+# --- Integrated Sentri + JAL Build Logic ---
+
+# Use this to start both in dev mode (Two servers, different ports)
+# This is what you'll use while CODING
+dev-integrated: 
+	@make stop
+	@make sentri-serve & 
+	@make dev
+
+# This starts the Sentri dev server in the background
+sentri-serve:
+	@echo "Starting Sentri Dev Server..."
+	@cd sentri && npm install && npm run dev -- --port 3000 > /tmp/sentri.log 2>&1 &
+
+# Use this for DEPLOYMENT (One server, one port)
+# This builds React, moves it into JAL, and builds the whole site
+build-integrated: clean
+	@echo "📦 Step 1: Building Sentri React App..."
+	cd Sentri && npm install && npm run build
+	
+	@echo "🏗️  Step 2: Building JAL Site..."
+	# We build the Jekyll site first
+	bundle exec jekyll build
+	
+	@echo "🚚 Step 3: Injecting Sentri into the finished _site..."
+	# Create the folder directly inside the final _site directory
+	rm -rf _site/sentri-app
+	mkdir -p _site/sentri-app
+	# Copy the compiled React files directly into the destination
+	cp -r sentri-dist/* _site/sentri-app/
+	# Create a .nojekyll file inside _site to prevent GitHub Pages/Jekyll issues
+	touch _site/.nojekyll
+	
+	@echo "✅ SUCCESS! Integrated site is ready."
+	@echo "Checking file existence..."
+	@ls -d _site/sentri-app && echo "Found _site/sentri-app!" || echo "ERROR: Folder still missing"
+
+# Update your existing stop command to also kill the Sentri dev server
+stop:
+	@echo "Stopping all servers..."
+	# Kill JAL (Jekyll)
+	@@lsof -ti :$(PORT) | xargs kill >/dev/null 2>&1 || true
+	# Kill Sentri (React)
+	@@lsof -ti :3000 | xargs kill >/dev/null 2>&1 || true
+	@echo "Stopping logging process..."
+	@@ps aux | awk -v log_file=$(LOG_FILE) '$$0 ~ "tail -f " log_file { print $$2 }' | xargs kill >/dev/null 2>&1 || true
+	@echo "Stopping notebook watcher..."
+	@@ps aux | grep "watch-notebooks" | grep -v grep | awk '{print $$2}' | xargs kill >/dev/null 2>&1 || true
+	@rm -f $(LOG_FILE) /tmp/.notebook_watch_marker /tmp/.jekyll_regenerating
+	@echo "Cleanup complete."
