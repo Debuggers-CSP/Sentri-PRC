@@ -24,7 +24,7 @@ const [errorMessage, setErrorMessage] = useState("");
 
  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage(""); // Clear old errors
+    setErrorMessage("");
     setSuccessMessage("");
 
     try {
@@ -40,15 +40,17 @@ const [errorMessage, setErrorMessage] = useState("");
       const data = await response.json();
 
       if (response.ok) {
-        // 1. Tell your AuthContext the user is logged in
-        // 2. Navigate to the root/home
-        login(loginUsername, loginPassword, loginUsername);  
+        // --- UPDATED LOGIC ---
+        // 1. We get the real email from data.user.email
+        // 2. We pass it as the first argument so AuthContext stores it
+        login(data.user.email, loginPassword, data.user.username); 
+        
         navigate("/"); 
       } else {
-        setErrorMessage("Invalid username or password. Please try again.");
+        setErrorMessage(data.message || "Invalid credentials");
       }
     } catch (err) {
-      setErrorMessage("Connection error. Is the backend running?");
+      setErrorMessage("Connection error.");
     }
 };
 
