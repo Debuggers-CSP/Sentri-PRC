@@ -422,3 +422,11 @@ stop:
 	@@ps aux | grep "watch-notebooks" | grep -v grep | awk '{print $$2}' | xargs kill >/dev/null 2>&1 || true
 	@rm -f $(LOG_FILE) /tmp/.notebook_watch_marker /tmp/.jekyll_regenerating
 	@echo "Cleanup complete."
+
+# Run this to code on both JAL and Sentri at the same time
+dev-integrated:
+	@make stop
+	@echo "🚀 Starting Sentri Dev Server (Instant Updates) on Port 3000..."
+	@(cd Sentri && npm run dev -- --port 3000) &
+	@echo "🚀 Starting JAL Dev Server on Port 4500..."
+	@make dev
