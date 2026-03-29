@@ -132,6 +132,7 @@ const [errorMessage, setErrorMessage] = useState("");
                       placeholder="Your username"
                       value={loginUsername}
                       onChange={(e) => setLoginUsername(e.target.value)}
+                      autoComplete="off"
                       required
                     />
                   </div>
@@ -143,6 +144,7 @@ const [errorMessage, setErrorMessage] = useState("");
                       placeholder="••••••••"
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
+                      autoComplete="off"
                       required
                     />
                   </div>
