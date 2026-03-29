@@ -45,6 +45,13 @@ export function Home() {
                 <Phone className="w-4 h-4" />
                 <span>(858) 555-0123</span>
               </div>
+              
+  {/* ADDED: Show Login button only if NOT logged in */}
+  {!user && (
+    <Button asChild variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
+      <Link to="/login">Sign In</Link>
+    </Button>
+  )}
               <UserProfile />
             </div>
           </div>
