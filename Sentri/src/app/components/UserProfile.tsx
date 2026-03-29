@@ -17,6 +17,7 @@ export function UserProfile() {
   const navigate = useNavigate();
 
   if (!user) {
+    console.log("No user found, not rendering profile dropdown");
     return null;
   }
 

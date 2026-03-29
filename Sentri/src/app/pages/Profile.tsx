@@ -10,6 +10,7 @@ export function Profile() {
   const { user } = useAuth();
 
   if (!user) {
+    console.log("No user found, redirecting to login...");
     return null;
   }
 

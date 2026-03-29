@@ -19,48 +19,67 @@ export function Login() {
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
 
+  const [successMessage, setSuccessMessage] = useState("");
+const [errorMessage, setErrorMessage] = useState("");
+
  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(""); // Clear old errors
+    setSuccessMessage("");
+
     try {
       const response = await fetch("http://localhost:5001/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
-          username: loginUsername, // Updated from loginEmail
+          username: loginUsername,
           password: loginPassword,
         }),
       });
 
       const data = await response.json();
-      console.log("Backend response:", data.message);
+
+      if (response.ok) {
+        // 1. Tell your AuthContext the user is logged in
+        // 2. Navigate to the root/home
+        login(loginUsername, loginPassword, loginUsername);  
+        navigate("/"); 
+      } else {
+        setErrorMessage("Invalid username or password. Please try again.");
+      }
     } catch (err) {
-      console.error("Connection Error:", err);
+      setErrorMessage("Connection error. Is the backend running?");
     }
 };
 
  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage("");
+    setSuccessMessage("");
 
     try {
-        const response = await fetch("http://localhost:5001/register", { // Make sure URL matches
+        const response = await fetch("http://localhost:5001/register", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
-                username: registerName, // Match the key your backend expects
+                username: registerName,
                 password: registerPassword,
-                email: registerEmail   // Match the key your backend expects
+                email: registerEmail
             }),
         });
 
         if (response.ok) {
-            console.log("Registration successful!");
-            navigate("/login"); // Redirect user to login page
+            setSuccessMessage("Account successfully registered! You can now login.");
+            // Optional: clear the register fields
+            setRegisterName("");
+            setRegisterEmail("");
+            setRegisterPassword("");
         } else {
             const errorData = await response.json();
-            alert(errorData.message || "Registration failed");
+            setErrorMessage(errorData.message || "Registration failed");
         }
     } catch (err) {
-        console.error("Connection Error:", err);
+        setErrorMessage("Connection Error: Could not reach server.");
     }
 };
   return (
@@ -82,6 +101,19 @@ export function Login() {
             </p>
           </CardHeader>
           <CardContent>
+            {/* Success Feedback */}
+  {successMessage && (
+    <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded text-sm text-center">
+      {successMessage}
+    </div>
+  )}
+
+  {/* Error Feedback */}
+  {errorMessage && (
+    <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm text-center">
+      {errorMessage}
+    </div>
+  )}
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="login">Login</TabsTrigger>
