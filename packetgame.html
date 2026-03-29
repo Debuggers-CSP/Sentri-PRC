@@ -18,6 +18,7 @@
         @keyframes slide-in { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         .animate-slide { animation: slide-in 0.4s ease-out forwards; }
         .step-indicator { background: linear-gradient(90deg, #22d3ee, #818cf8); }
+        .info-panel { border-left: 4px solid #38bdf8; }
     </style>
 </head>
 <body>
@@ -27,45 +28,44 @@
         const { useState, useEffect } = React;
 
         const OSI_DATA = [
-            { step: 1, name: "Application", tech: "HTTP/Fetch" },
-            { step: 2, name: "Presentation", tech: "SSL/TLS" },
-            { step: 3, name: "Session", tech: "Websockets" },
-            { step: 4, name: "Transport", tech: "TCP Header" },
-            { step: 5, name: "Network", tech: "IP Header" },
-            { step: 6, name: "Data Link", tech: "Ethernet Frame" },
-            { step: 7, name: "Physical", tech: "Bitstream" }
+            { step: 1, name: "Application", tech: "HTTP/Fetch", desc: "Interfaces with software to initiate network requests. This is where your JavaScript fetch() starts." },
+            { step: 2, name: "Presentation", tech: "SSL/TLS", desc: "Translates and encrypts data. It ensures that the information is in a format the receiver can read." },
+            { step: 3, name: "Session", tech: "Websockets", desc: "Manages the 'dialogue' between two systems. It opens, maintains, and closes connections." },
+            { step: 4, name: "Transport", tech: "TCP Header", desc: "Handles end-to-end communication and error checking. It splits data into segments." },
+            { step: 5, name: "Network", tech: "IP Header", desc: "Determines the best physical path for the data using IP addresses (Routing)." },
+            { step: 6, name: "Data Link", tech: "Ethernet Frame", desc: "Defines the protocol for hardware-to-hardware data transfer on the same local network (MAC Addresses)." },
+            { step: 7, name: "Physical", tech: "Bitstream", desc: "The actual transmission of raw 0s and 1s over hardware like fiber optics, copper wire, or radio waves." }
         ];
 
         const TCP_DATA = [
-            { step: 1, name: "Application", tech: "HTTP/SSL/Session", payload: ["HTTP", "SSL", "Session"] },
-            { step: 2, name: "Transport", tech: "TCP Header", payload: ["TCP"] },
-            { step: 3, name: "Internet", tech: "IP Header", payload: ["IP"] },
-            { step: 4, name: "Data Link", tech: "Ethernet Frame", payload: ["Ethernet"] },
-            { step: 5, name: "Physical", tech: "Bitstream", payload: ["Bits"] }
+            { step: 1, name: "Application", tech: "HTTP/SSL/Session", payload: ["HTTP", "SSL", "Session"], desc: "Combines OSI Layers 5-7. Handles all high-level protocols and data formatting for the web." },
+            { step: 2, name: "Transport", tech: "TCP Header", payload: ["TCP"], desc: "Ensures reliable delivery through ports (like 80 or 443) and error sequence checking." },
+            { step: 3, name: "Internet", tech: "IP Header", payload: ["IP"], desc: "The 'Routing' layer. Packages data into IP packets to move them across network boundaries." },
+            { step: 4, name: "Data Link", tech: "Ethernet Frame", payload: ["Ethernet"], desc: "Creates 'Frames' that hardware can understand to move data between local network nodes." },
+            { step: 5, name: "Physical", tech: "Bitstream", payload: ["Bits"], desc: "Converts frames into electrical or optical signals to traverse the physical medium." }
         ];
 
         function App() {
             const [model, setModel] = useState('OSI');
             const [packet, setPacket] = useState([]);
-            const [missionStage, setMissionStage] = useState(1); // 1: Build, 2: Handshake, 3: Proxy, 4: Success
+            const [missionStage, setMissionStage] = useState(1); 
             const [logs, setLogs] = useState(["[SYSTEM]: Architecture Forge Online."]);
             const [nginx, setNginx] = useState({ port: '', origin: '' });
 
             const log = (msg) => setLogs(prev => [`> ${msg}`, ...prev.slice(0, 3)]);
 
-            // Logic to determine the current required UI step based on packet length
             const getRequiredStep = () => {
                 if (model === 'OSI') return packet.length + 1;
-                // For TCP, we jump differently because Step 1 adds 3 items
                 if (packet.length === 0) return 1;
                 if (packet.length === 3) return 2;
                 if (packet.length === 4) return 3;
                 if (packet.length === 5) return 4;
                 if (packet.length === 6) return 5;
-                return 6; // Done
+                return 6; 
             };
 
             const currentStep = getRequiredStep();
+            const activeInfo = (model === 'OSI' ? OSI_DATA : TCP_DATA).find(l => l.step === currentStep);
 
             const resetGame = (newModel) => {
                 setModel(newModel);
@@ -76,24 +76,21 @@
 
             const addLayer = (layer) => {
                 if (missionStage !== 1) return;
-                
                 if (layer.step !== currentStep) {
-                    return log(`❌ ERROR: Click STEP ${currentStep} next!`);
+                    return log(`❌ ERROR: Step out of sequence. Follow the Encapsulation order.`);
                 }
-
                 if (model === 'TCP') {
                     setPacket([...packet, ...layer.payload]);
                 } else {
                     setPacket([...packet, layer.tech]);
                 }
-                
                 log(`✓ Step ${layer.step} Linked: ${layer.name} headers integrated.`);
             };
 
             useEffect(() => {
                 if (packet.length >= 7 && missionStage === 1) {
                     setMissionStage(2);
-                    log("🏆 FORGE COMPLETE. Transitioning to Transport Handshake.");
+                    log("🏆 ENCAPSULATION COMPLETE. Transitioning to Transport Handshake.");
                 }
             }, [packet]);
 
@@ -108,30 +105,23 @@
             const deploy = () => {
                 const cleanPort = nginx.port.trim();
                 const cleanOrigin = nginx.origin.toLowerCase().trim();
-
-                if (cleanPort !== '80' && cleanPort !== '443') {
-                    return log("❌ SECURITY ALERT: Port blocked. Standard web nodes require 80 or 443.");
-                }
-                
-                if (!cleanOrigin.includes("github.io")) {
-                    return log("❌ GATEWAY REJECTED: Backend only trusts validated GitHub origins.");
-                }
-                
+                if (cleanPort !== '80' && cleanPort !== '443') return log("❌ SECURITY ALERT: AWS Security Groups only permit 80/443.");
+                if (!cleanOrigin.includes("github.io")) return log("❌ GATEWAY REJECTED: Backend only trusts validated GitHub origins.");
                 setMissionStage(4);
             };
 
             return (
-                <div className="min-h-screen p-4 md:p-8 max-w-6xl mx-auto">
+                <div className="min-h-screen p-4 md:p-8 max-w-6xl mx-auto flex flex-col gap-6">
                     
-                    {/* DYNAMIC MISSION DIRECTIVE */}
-                    <div className="glass p-6 mb-8 border-cyan-500/50 bg-cyan-950/20 flex flex-col md:flex-row items-center justify-between gap-4">
+                    {/* MISSION DIRECTIVE & TOGGLE */}
+                    <div className="glass p-6 border-cyan-500/50 bg-cyan-950/20 flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
                             <div className="step-indicator text-slate-950 px-3 py-1 rounded font-black text-xs uppercase tracking-tighter">Mission Phase {missionStage}</div>
                             <h2 className="text-cyan-400 font-bold text-sm italic">
-                                {missionStage === 1 && `DIRECTIVE: Click [STEP ${currentStep}] in the Architecture Palette.`}
-                                {missionStage === 2 && "DIRECTIVE: Execute the 3-Way Handshake protocol."}
-                                {missionStage === 3 && "DIRECTIVE: Authenticate the Nginx gateway and CORS origin."}
-                                {missionStage === 4 && "DIRECTIVE: System status 100%. Node Synchronized."}
+                                {missionStage === 1 && `DIRECTIVE: Perform Encapsulation on Layer ${currentStep}.`}
+                                {missionStage === 2 && "DIRECTIVE: Establish a reliable TCP connection."}
+                                {missionStage === 3 && "DIRECTIVE: Configure the Nginx Reverse Proxy."}
+                                {missionStage === 4 && "DIRECTIVE: Node Synchronized. Data Flowing."}
                             </h2>
                         </div>
                         <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
@@ -140,49 +130,57 @@
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                         
-                        {/* THE ARCHITECTURE PALETTE */}
-                        <div className="lg:col-span-4 glass p-6">
-                            <h3 className="text-[10px] font-black text-slate-500 uppercase mb-6 tracking-widest border-b border-slate-800 pb-2">Architecture Palette</h3>
+                        {/* THE ARCHITECTURE PALETTE (Left) */}
+                        <div className="lg:col-span-4 glass p-6 flex flex-col gap-4">
+                            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-800 pb-2">Architecture Palette</h3>
                             <div className="space-y-3">
                                 {(model === 'OSI' ? OSI_DATA : TCP_DATA).map((l) => {
-                                    const isDone = model === 'OSI' ? packet.includes(l.tech) : 
-                                                   (l.step === 1 ? packet.includes("HTTP") :
-                                                    l.step === 2 ? packet.includes("TCP") :
-                                                    l.step === 3 ? packet.includes("IP") :
-                                                    l.step === 4 ? packet.includes("Ethernet") : packet.includes("Bits"));
-                                    
+                                    const isDone = model === 'OSI' ? packet.includes(l.tech) : (l.step === 1 ? packet.includes("HTTP") : l.step === 2 ? packet.includes("TCP") : l.step === 3 ? packet.includes("IP") : l.step === 4 ? packet.includes("Ethernet") : packet.includes("Bits"));
                                     const isNext = !isDone && missionStage === 1 && l.step === currentStep;
-                                    
                                     return (
                                         <div 
                                             key={l.step} 
                                             onClick={() => addLayer(l)}
-                                            className={`p-4 rounded-2xl border-2 transition-all cursor-pointer relative ${isDone ? 'bg-cyan-600 border-white/40 opacity-100' : isNext ? 'border-cyan-400 bg-cyan-400/10 animate-pulse opacity-100' : 'bg-slate-900 border-slate-800 opacity-20'}`}
+                                            className={`p-4 rounded-2xl border-2 transition-all cursor-pointer relative ${isDone ? 'bg-cyan-600 border-white/40' : isNext ? 'border-cyan-400 bg-cyan-400/10 animate-pulse' : 'bg-slate-900 border-slate-800 opacity-20'}`}
                                         >
                                             <div className="flex justify-between items-center mb-1">
                                                 <span className={`text-[10px] font-black uppercase ${isDone ? 'text-white' : 'text-cyan-500'}`}>STEP {l.step}</span>
                                                 <span className="text-xs font-black text-white">{l.name}</span>
                                             </div>
-                                            <p className="text-[9px] mono opacity-80">{l.tech}</p>
+                                            <p className="text-[9px] mono opacity-60 leading-tight">{l.desc}</p>
                                         </div>
                                     )
                                 })}
                             </div>
                         </div>
 
-                        {/* WORKSPACE */}
+                        {/* WORKSPACE & INFORMATION PANEL (Right) */}
                         <div className="lg:col-span-8 space-y-6">
-                            <div className="glass p-10 flex flex-col items-center justify-center relative overflow-hidden min-h-[220px]">
+                            
+                            {/* ARCHITECT'S MANUAL (Lillian's Informative Feedback Panel) */}
+                            <div className="glass p-6 info-panel bg-sky-950/10">
+                                <h4 className="text-[10px] font-black text-sky-400 uppercase mb-2 tracking-widest">Architect's Manual</h4>
+                                <div className="text-sm text-slate-300 leading-relaxed italic">
+                                    {missionStage === 1 && (activeInfo ? (
+                                        <span><strong>Knowledge Point:</strong> {activeInfo.desc} <br/><span className="text-xs text-slate-500 mt-2 block">Concept: Encapsulation wraps data in headers to prepare it for travel.</span></span>
+                                    ) : "Packet Forge Complete. Ready for transport.") }
+                                    {missionStage === 2 && "Knowledge Point: The 3-Way Handshake (SYN, SYN-ACK, ACK) establishes a reliable connection so data is delivered in the correct order without loss."}
+                                    {missionStage === 3 && "Knowledge Point: Nginx acts as an 'Orchestrator' or Reverse Proxy. It listens on public ports (80/443) and forwards traffic to your internal server (localhost:8587)."}
+                                    {missionStage === 4 && "System Active. Data is flowing from GitHub Pages to AWS EC2 across all layers of the stack."}
+                                </div>
+                            </div>
+
+                            <div className="glass p-8 flex flex-col items-center justify-center relative overflow-hidden min-h-[180px]">
                                 <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent"></div>
-                                <h4 className="text-[10px] text-slate-600 font-black uppercase mb-10 tracking-[0.5em]">Packet Encapsulation Stream</h4>
+                                <h4 className="text-[10px] text-slate-600 font-black uppercase mb-8 tracking-[0.4em]">Packet Stream</h4>
                                 <div className="flex flex-row-reverse items-center gap-2 overflow-x-auto w-full justify-center">
-                                    <div className="bg-white text-black px-6 py-4 font-black rounded-sm shadow-[0_0_40px_rgba(255,255,255,0.2)] text-xs shrink-0">DATA PAYLOAD</div>
+                                    <div className="bg-white text-black px-6 py-4 font-black rounded-sm shadow-[0_0_40px_rgba(255,255,255,0.2)] text-xs shrink-0">DATA</div>
                                     {packet.map((p, i) => (
                                         <div key={i} className="animate-slide bg-cyan-500 text-slate-950 px-3 py-2 text-[10px] font-black rounded italic whitespace-nowrap shrink-0">[{p}]</div>
                                     ))}
-                                    {packet.length === 0 && <p className="text-slate-800 italic text-sm">Awaiting Byte-Stream Initialization...</p>}
+                                    {packet.length === 0 && <p className="text-slate-800 italic text-sm text-center">Awaiting Byte-Stream Initialization...</p>}
                                 </div>
                             </div>
 
@@ -210,15 +208,15 @@
                         </div>
                     </div>
 
-                    {/* LORE-FRIENDLY SUCCESS OVERLAY */}
+                    {/* SUCCESS OVERLAY */}
                     {missionStage === 4 && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl p-6">
                             <div className="glass p-12 max-w-xl text-center border-cyan-400 shadow-[0_0_150px_rgba(34,211,238,0.5)]">
                                 <div className="text-7xl mb-8 animate-bounce">⚡</div>
-                                <h2 className="text-5xl font-black text-white italic mb-2 uppercase tracking-tighter">NODE SYNCHRONIZED</h2>
-                                <p className="text-cyan-400 text-xs font-bold uppercase mb-8 tracking-[0.3em]">ELITE SYSTEM ARCHITECT STATUS REACHED</p>
+                                <h2 className="text-5xl font-black text-white italic mb-2 uppercase tracking-tighter leading-none">NODE SYNCHRONIZED</h2>
+                                <p className="text-cyan-400 text-xs font-bold uppercase mb-8 tracking-[0.3em]">SYSTEM ARCHITECT MISSION SUCCESS</p>
                                 <p className="text-slate-400 text-xs leading-relaxed mb-10">
-                                    Your packet has successfully navigated the protocol stack, established a stable <strong>TCP Handshake</strong>, and cleared the <strong>Nginx gateway</strong> rules. The remote cloud node is now live and communicating with the origin server.
+                                    Your packet successfully navigated the protocol stack using <strong>Encapsulation</strong>, established a <strong>TCP Handshake</strong>, and cleared the <strong>Nginx Reverse Proxy</strong> security rules. The network interaction between GitHub and AWS is live.
                                 </p>
                                 <button onClick={() => window.location.reload()} className="bg-white text-black px-12 py-4 rounded-full font-black text-xs uppercase hover:scale-110 transition-all shadow-xl">Re-Init System</button>
                             </div>

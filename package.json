@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/Debuggers-CSP/JAL/issues"
   },
-  "homepage": "https://github.com/Debuggers-CSP/JAL#readme"
+  "homepage": "https://github.com/Debuggers-CSP/JAL#readme",
+  "dependencies": {
+    "react-router-dom": "^7.13.2"
+  }
 }

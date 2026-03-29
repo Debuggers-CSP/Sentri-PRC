@@ -13,24 +13,56 @@ export function Login() {
   const location = useLocation();
   const { login } = useAuth();
   
-  const [loginEmail, setLoginEmail] = useState("");
+  const [loginUsername, setLoginUsername] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [registerName, setRegisterName] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+ const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(loginEmail, loginPassword);
-    navigate("/");
-  };
+    try {
+      const response = await fetch("http://localhost:5001/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          username: loginUsername, // Updated from loginEmail
+          password: loginPassword,
+        }),
+      });
 
-  const handleRegister = (e: React.FormEvent) => {
+      const data = await response.json();
+      console.log("Backend response:", data.message);
+    } catch (err) {
+      console.error("Connection Error:", err);
+    }
+};
+
+ const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(registerEmail, registerPassword, registerName);
-    navigate("/");
-  };
 
+    try {
+        const response = await fetch("http://localhost:5001/register", { // Make sure URL matches
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                username: registerName, // Match the key your backend expects
+                password: registerPassword,
+                email: registerEmail   // Match the key your backend expects
+            }),
+        });
+
+        if (response.ok) {
+            console.log("Registration successful!");
+            navigate("/login"); // Redirect user to login page
+        } else {
+            const errorData = await response.json();
+            alert(errorData.message || "Registration failed");
+        }
+    } catch (err) {
+        console.error("Connection Error:", err);
+    }
+};
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -43,7 +75,7 @@ export function Login() {
         </div>
 
         <Card>
-          <CardHeader>
+          <CardHeader>  
             <h2 className="text-2xl text-center text-gray-900">Welcome</h2>
             <p className="text-center text-gray-600 text-sm">
               Sign in or create an account to continue
@@ -59,13 +91,13 @@ export function Login() {
               <TabsContent value="login">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
+                    <Label htmlFor="login-username">Username</Label>
                     <Input
-                      id="login-email"
-                      type="email"
-                      placeholder="you@example.com"
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
+                      id="login-username"
+                      type="text"
+                      placeholder="Your username"
+                      value={loginUsername}
+                      onChange={(e) => setLoginUsername(e.target.value)}
                       required
                     />
                   </div>
@@ -89,7 +121,7 @@ export function Login() {
               <TabsContent value="register">
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="register-name">Full Name</Label>
+                    <Label htmlFor="register-name">Username</Label>
                     <Input
                       id="register-name"
                       type="text"
