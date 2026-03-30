@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router";
-import { ArrowLeft, Calendar, Users, Activity, Award, Clock, CheckCircle, TrendingUp } from "lucide-react";
+import { ArrowLeft, Calendar, Users, Activity, Award, Clock, CheckCircle, MessageSquare, History } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { UserProfile } from "../components/UserProfile";
@@ -21,11 +21,18 @@ export function Profile() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // MOCK CHAT HISTORY DATA
+  const mockChatHistory = [
+    { id: 1, text: "Feeling a bit overwhelmed today, but staying focused on my goals.", date: "March 28, 2026", status: "Stable" },
+    { id: 2, text: "Had a strong craving after work, reached out to my sponsor immediately.", date: "March 26, 2026", status: "Distressed" },
+    { id: 3, text: "Woke up feeling grateful for another day of sobriety. Ready for the meeting.", date: "March 25, 2026", status: "Stable" },
+    { id: 4, text: "Struggling with sleep patterns, but keeping the routine.", date: "March 24, 2026", status: "Stable" }
+  ];
+
   useEffect(() => {
     const fetchMeetings = async () => {
       if (!user?.id) return;
       try {
-        // Fetching from the backend route we created in Step 2
         const response = await fetch(`http://localhost:5001/get-user-meetings?user_id=${user.id}`);
         if (response.ok) {
           const data = await response.json();
@@ -45,14 +52,12 @@ export function Profile() {
     return null;
   }
 
-  // Logic to split meetings into Past and Upcoming
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const upcomingMeetings = meetings.filter(m => new Date(m.date) >= today);
   const pastMeetings = meetings.filter(m => new Date(m.date) < today);
 
-  // Stats configuration
   const stats = [
     { label: "Upcoming Meetings", value: upcomingMeetings.length, icon: Calendar, color: "blue" },
     { label: "Past Meetings", value: pastMeetings.length, icon: CheckCircle, color: "green" },
@@ -61,7 +66,6 @@ export function Profile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
@@ -98,7 +102,7 @@ export function Profile() {
           </div>
         </Card>
 
-        {/* Stats Grid - Updated to 3 columns */}
+        {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
           {stats.map((stat) => {
             const Icon = stat.icon;
@@ -147,22 +151,12 @@ export function Profile() {
                       </div>
                       <div className="text-sm text-gray-600 flex items-center gap-3">
                         <span>{meeting.date}</span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {meeting.time}
-                        </span>
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {meeting.time}</span>
                       </div>
                     </div>
                   </div>
-                )) : (
-                  <p className="text-gray-500 text-sm py-4">No upcoming meetings scheduled.</p>
-                )}
+                )) : <p className="text-gray-500 text-sm py-4">No upcoming meetings scheduled.</p>}
               </div>
-              <Button variant="outline" className="w-full mt-4" asChild>
-                <Link to="/meetings" className="flex items-center gap-2">
-                  Find More Meetings
-                </Link>
-              </Button>
             </CardContent>
           </Card>
 
@@ -189,32 +183,37 @@ export function Profile() {
                       </div>
                     </div>
                   </div>
-                )) : (
-                  <p className="text-gray-500 text-sm py-4">No past meetings recorded.</p>
-                )}
+                )) : <p className="text-gray-500 text-sm py-4">No past meetings recorded.</p>}
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Sobriety Tracker Placeholder (Kept per instruction) */}
+        {/* --- CHAT HISTORY SECTION --- */}
         <Card className="mt-8">
           <CardContent className="p-8">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-green-600" />
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <History className="w-5 h-5 text-blue-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900">Sobriety Tracker</h3>
+              <h3 className="text-xl font-semibold text-gray-900">Previous Chat History</h3>
             </div>
-            <div className="text-center py-12 bg-gradient-to-b from-green-50 to-white rounded-lg border-2 border-dashed border-green-200">
-              <Award className="w-16 h-16 text-green-400 mx-auto mb-4" />
-              <h4 className="text-xl text-gray-900 mb-2">Track Your Milestones</h4>
-              <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                Monitor your recovery journey with our sobriety tracker. Coming soon!
-              </p>
-              <Button className="bg-green-600 hover:bg-green-700 text-white" disabled>
-                Set Up Tracker (Coming Soon)
-              </Button>
+            
+            <div className="space-y-4">
+              {mockChatHistory.map((chat) => (
+                <div key={chat.id} className="flex flex-col p-4 bg-gray-50 rounded-lg border border-gray-100">
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <MessageSquare className="w-3 h-3" />
+                      <span>{chat.date}</span>
+                    </div>
+                    <Badge className={chat.status === "Stable" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}>
+                      {chat.status}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-700 italic">"{chat.text}"</p>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
