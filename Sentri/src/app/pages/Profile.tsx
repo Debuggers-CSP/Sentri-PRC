@@ -1,39 +1,62 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
-import { ArrowLeft, Calendar, Users, Activity, TrendingUp, Award, MessageCircle, Clock } from "lucide-react";
+import { ArrowLeft, Calendar, Users, Activity, Award, Clock, CheckCircle, TrendingUp } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { UserProfile } from "../components/UserProfile";
 import { useAuth } from "../context/AuthContext";
 import { Badge } from "../components/ui/badge";
 
+interface Meeting {
+  id: number;
+  name: string;
+  date: string;
+  time: string;
+  location: string;
+  type: string;
+}
+
 export function Profile() {
   const { user } = useAuth();
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMeetings = async () => {
+      if (!user?.id) return;
+      try {
+        // Fetching from the backend route we created in Step 2
+        const response = await fetch(`http://localhost:5001/get-user-meetings?user_id=${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setMeetings(data);
+        }
+      } catch (err) {
+        console.error("Error fetching meetings:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMeetings();
+  }, [user?.id]);
 
   if (!user) {
-    console.log("No user found, redirecting to login...");
     return null;
   }
 
-  // Mock data for user activities
-  const recentMeetings = [
-    { id: 1, program: "AA", date: "March 22, 2026", time: "7:00 PM", location: "Main Hall" },
-    { id: 2, program: "NA", date: "March 21, 2026", time: "6:30 PM", location: "Room B" },
-    { id: 3, program: "AA", date: "March 20, 2026", time: "7:00 PM", location: "Main Hall" },
-    { id: 4, program: "CA", date: "March 19, 2026", time: "8:00 PM", location: "Room A" },
-  ];
+  // Logic to split meetings into Past and Upcoming
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  const programActivities = [
-    { id: 1, activity: "Shared your story in group", program: "AA", date: "March 22, 2026" },
-    { id: 2, activity: "Completed Step 4 workbook", program: "NA", date: "March 20, 2026" },
-    { id: 3, activity: "Celebrated 30-day milestone", program: "AA", date: "March 18, 2026" },
-    { id: 4, activity: "Joined community chat", program: "CA", date: "March 15, 2026" },
-  ];
+  const upcomingMeetings = meetings.filter(m => new Date(m.date) >= today);
+  const pastMeetings = meetings.filter(m => new Date(m.date) < today);
 
+  // Stats configuration
   const stats = [
-    { label: "Meetings Attended", value: "24", icon: Users, color: "blue" },
-    { label: "Current Streak", value: "8 days", icon: TrendingUp, color: "green" },
+    { label: "Upcoming Meetings", value: upcomingMeetings.length, icon: Calendar, color: "blue" },
+    { label: "Past Meetings", value: pastMeetings.length, icon: CheckCircle, color: "green" },
     { label: "Program Groups", value: "3", icon: Award, color: "purple" },
-    { label: "Days Active", value: "45", icon: Calendar, color: "orange" },
   ];
 
   return (
@@ -75,16 +98,15 @@ export function Profile() {
           </div>
         </Card>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Stats Grid - Updated to 3 columns */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
           {stats.map((stat) => {
             const Icon = stat.icon;
             const colorClasses = {
               blue: "bg-blue-100 text-blue-600",
               green: "bg-green-100 text-green-600",
               purple: "bg-purple-100 text-purple-600",
-              orange: "bg-orange-100 text-orange-600",
-            }[stat.color];
+            }[stat.color as "blue" | "green" | "purple"];
 
             return (
               <Card key={stat.label} className="hover:shadow-lg transition-shadow">
@@ -103,24 +125,24 @@ export function Profile() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Recent Meetings */}
+          {/* Upcoming Meetings List */}
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-blue-100 rounded-lg">
                   <Calendar className="w-5 h-5 text-blue-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900">Recent Meetings</h3>
+                <h3 className="text-xl font-semibold text-gray-900">Upcoming Meetings</h3>
               </div>
               <div className="space-y-4">
-                {recentMeetings.map((meeting) => (
+                {upcomingMeetings.length > 0 ? upcomingMeetings.map((meeting) => (
                   <div key={meeting.id} className="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0">
                     <div className="p-2 bg-blue-50 rounded-lg">
                       <Users className="w-5 h-5 text-blue-600" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold text-gray-900">{meeting.program}</span>
+                        <span className="font-semibold text-gray-900">{meeting.name}</span>
                         <Badge variant="outline" className="text-xs">{meeting.location}</Badge>
                       </div>
                       <div className="text-sm text-gray-600 flex items-center gap-3">
@@ -132,51 +154,50 @@ export function Profile() {
                       </div>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <p className="text-gray-500 text-sm py-4">No upcoming meetings scheduled.</p>
+                )}
               </div>
-              <Button variant="outline" className="w-full mt-4">
+              <Button variant="outline" className="w-full mt-4" asChild>
                 <Link to="/meetings" className="flex items-center gap-2">
-                  View All Meetings
+                  Find More Meetings
                 </Link>
               </Button>
             </CardContent>
           </Card>
 
-          {/* Program Activities */}
+          {/* Past Meetings List */}
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <Activity className="w-5 h-5 text-purple-600" />
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900">Program Activities</h3>
+                <h3 className="text-xl font-semibold text-gray-900">Past Meetings</h3>
               </div>
               <div className="space-y-4">
-                {programActivities.map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0">
-                    <div className="p-2 bg-purple-50 rounded-lg">
-                      <MessageCircle className="w-5 h-5 text-purple-600" />
+                {pastMeetings.length > 0 ? pastMeetings.map((meeting) => (
+                  <div key={meeting.id} className="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0">
+                    <div className="p-2 bg-green-50 rounded-lg">
+                      <Activity className="w-5 h-5 text-green-600" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-gray-900 mb-1">{activity.activity}</p>
+                      <p className="text-gray-900 mb-1 font-semibold">{meeting.name}</p>
                       <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="text-xs">{activity.program}</Badge>
-                        <span className="text-xs text-gray-500">{activity.date}</span>
+                        <Badge variant="secondary" className="text-xs">{meeting.type}</Badge>
+                        <span className="text-xs text-gray-500">{meeting.date}</span>
                       </div>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <p className="text-gray-500 text-sm py-4">No past meetings recorded.</p>
+                )}
               </div>
-              <Button variant="outline" className="w-full mt-4">
-                <Link to="/programs" className="flex items-center gap-2">
-                  View My Programs
-                </Link>
-              </Button>
             </CardContent>
           </Card>
         </div>
 
-        {/* Sobriety Tracker Placeholder */}
+        {/* Sobriety Tracker Placeholder (Kept per instruction) */}
         <Card className="mt-8">
           <CardContent className="p-8">
             <div className="flex items-center gap-3 mb-6">
