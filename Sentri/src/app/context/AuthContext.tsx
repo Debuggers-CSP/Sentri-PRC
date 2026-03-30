@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 
 interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
   hasCompletedRecommender: boolean;
@@ -10,7 +10,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string, name?: string) => void;
+   login: (email: string, password: string, name: string, id: number) => void;
   logout: () => void;
   completeRecommender: () => void;
   completeMeetingRecommender: () => void;
@@ -19,22 +19,33 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  // 1. CHANGE: Start with the user from LocalStorage instead of 'null'
+  const [user, setUser] = useState<User | null>(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
 
-  const login = (email: string, password: string, name?: string) => {
-    // Mock login - in real app would call API
-    setUser({
-      id: "1",
-      name: name || email.split("@")[0],
-      email,
+  const login = (email: string, password: string, name: string, id: number) => {
+    const userData = {
+      id: id,
+      name: name,
+      email: email,
       hasCompletedRecommender: false,
       hasCompletedMeetingRecommender: false,
-    });
+    };
+
+    console.log("DEBUG 2: AuthContext saving userData:", userData); // <--- Add this
+    
+    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
   };
 
   const logout = () => {
     setUser(null);
+    // 2. CHANGE: Remove the user from storage so they stay logged out
+    localStorage.removeItem("user");
   };
+  
 
   const completeRecommender = () => {
     if (user) {

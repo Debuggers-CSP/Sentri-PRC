@@ -43,7 +43,8 @@ const [errorMessage, setErrorMessage] = useState("");
         // --- UPDATED LOGIC ---
         // 1. We get the real email from data.user.email
         // 2. We pass it as the first argument so AuthContext stores it
-        login(data.user.email, loginPassword, data.user.username); 
+        console.log("DEBUG 1: Backend response user object:", data.user);
+        login(data.user.email, loginPassword, data.user.username, data.user.id); 
         
         navigate("/"); 
       } else {

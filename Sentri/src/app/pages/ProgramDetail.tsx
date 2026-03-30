@@ -166,6 +166,42 @@ export function ProgramDetail() {
     }
   };
 
+  const handleAddToCalendar = async () => {
+    console.log("DEBUG 3: Meeting Button sees user state as:", user); // <--- Add this
+
+  if (!user || !user.id) {
+    alert("Please log in first!");
+    return;
+  }
+
+  // Ensure these keys (name, date, time) match data.get() in Flask
+  const meetingToSave = {
+    user_id: user.id,
+    name: "AA - Evening Recovery", 
+    date: "2026-04-01",
+    time: "7:00 PM",
+    location: "del norte",
+    type: "Open"
+  };
+
+  try {
+    const response = await fetch("http://localhost:5001/add-meeting", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(meetingToSave),
+    });
+
+    if (response.ok) {
+      alert("✅ Saved successfully!");
+    } else {
+      const errorData = await response.json();
+      alert(`❌ Failed: ${errorData.message}`);
+    }
+  } catch (err) {
+    console.error("Connection Error:", err);
+  }
+};
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Header */}
@@ -239,10 +275,13 @@ export function ProgramDetail() {
                     </div>
                   ))}
                 </div>
-                <Button className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Add to My Calendar
-                </Button>
+                <Button 
+  onClick={handleAddToCalendar} // <--- ADD THIS LINE
+  className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white"
+>
+  <Calendar className="w-4 h-4 mr-2" />
+  Add to My Calendar
+</Button>
               </CardContent>
             </Card>
           </div>
