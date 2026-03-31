@@ -6,6 +6,7 @@ import { Button } from "../components/ui/button";
 import { UserProfile } from "../components/UserProfile";
 import { useAuth } from "../context/AuthContext";
 import { Badge } from "../components/ui/badge";
+import { pythonURI, javaURI, fetchOptions } from '../../../../assets/js/api/config.js';
 
 interface Meeting {
   id: number;
@@ -33,7 +34,7 @@ export function Profile() {
     const fetchMeetings = async () => {
       if (!user?.id) return;
       try {
-        const response = await fetch(`http://localhost:5001/get-user-meetings?user_id=${user.id}`);
+        const response = await fetch(`${pythonURI}/get-user-meetings?user_id=${user.id}`, fetchOptions);
         if (response.ok) {
           const data = await response.json();
           setMeetings(data);

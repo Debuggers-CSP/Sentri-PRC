@@ -15,6 +15,7 @@ import caLogo from "../../assets/58e3f4b9794493f73bea7d751b9df8993b8c105f.png";
 import gaLogo from "../../assets/675121813725057c96f90900dde1cdb27e6a8031.png";
 import saLogo from "../../assets/50593eb25097566896b0e6a4b491eabb700c98a6.png";
 import { useAuth } from "../context/AuthContext";
+import { pythonURI, javaURI, fetchOptions } from '../../../../assets/js/api/config.js';
 
 const programsData: Record<string, any> = {
   aa: {
@@ -185,7 +186,8 @@ export function ProgramDetail() {
   };
 
   try {
-    const response = await fetch("http://localhost:5001/add-meeting", {
+    const response = await fetch("${pythonURI}/add-meeting", {
+      ...fetchOptions,
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(meetingToSave),

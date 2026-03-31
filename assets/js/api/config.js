@@ -1,15 +1,13 @@
----
----
-
 // ^^ Do not remove the above front matter, it is required for Jekyll processing
 
-export const baseurl = "{{ site.baseurl }}";
+// export const baseurl = "{{ site.baseurl }}";
+export const baseurl = ""; 
 
 export var pythonURI;
 if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
-    pythonURI = "http://localhost:8587";  // Same URI for localhost or 127.0.0.1
+    pythonURI = "http://localhost:8323";  // Same URI for localhost or 127.0.0.1
 } else {
-    pythonURI = "https://flask.opencodingsociety.com";
+    pythonURI = "https://sentri.opencodingsociety.com";
 
 }
 
@@ -21,17 +19,17 @@ if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
     javaURI = "https://spring.opencodingsociety.com";
 }
 
+/** @type {RequestInit} */
 export const fetchOptions = {
-    method: 'GET',  // Default method is GET
-    mode: 'cors', // Enable CORS (Cross-Origin Resource Sharing)
-    cache: 'default', // Default caching behavior
-    credentials: 'include', // Include credentials (cookies, etc.)
+    method: 'GET',
+    mode: 'cors',
+    cache: 'default',
+    credentials: 'include',
     headers: {
         'Content-Type': 'application/json',
-        'X-Origin': 'client' // Custom header to identify source
+        'X-Origin': 'client'
     },
 };
-
 // User Login Function (allows both GET and POST)
 export function login(options) {
     // Modify the options to use the correct method and include the request body

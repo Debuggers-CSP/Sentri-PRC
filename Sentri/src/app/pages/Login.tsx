@@ -7,6 +7,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { useAuth } from "../context/AuthContext";
+import { pythonURI, javaURI, fetchOptions } from '../../../../assets/js/api/config.js';
 
 export function Login() {
   const navigate = useNavigate();
@@ -28,7 +29,8 @@ const [errorMessage, setErrorMessage] = useState("");
     setSuccessMessage("");
 
     try {
-      const response = await fetch("http://localhost:5001/login", {
+      const response = await fetch(`${pythonURI}/login`, {
+        ...fetchOptions,
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -61,7 +63,8 @@ const [errorMessage, setErrorMessage] = useState("");
     setSuccessMessage("");
 
     try {
-        const response = await fetch("http://localhost:5001/register", {
+        const response = await fetch(`${pythonURI}/register`, {
+          ...fetchOptions,
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
