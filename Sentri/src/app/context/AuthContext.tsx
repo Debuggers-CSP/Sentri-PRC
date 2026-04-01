@@ -3,6 +3,7 @@ import { createContext, useContext, useState, ReactNode } from "react";
 interface User {
   id: number;
   name: string;
+  username?: string;
   email: string;
   hasCompletedRecommender: boolean;
   hasCompletedMeetingRecommender: boolean;

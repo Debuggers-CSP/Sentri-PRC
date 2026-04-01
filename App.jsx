@@ -1,5 +1,5 @@
 const { useState, useEffect } = React;
-const { motion, AnimatePresence } = FramerMotion;
+const { motion, AnimatePresence } = window.FramerMotion; 
 
 // --- DATA CONSTANTS ---
 const LAYERS = [
