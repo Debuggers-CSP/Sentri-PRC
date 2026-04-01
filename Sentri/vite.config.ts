@@ -21,7 +21,7 @@ export default defineConfig({
 
   // 2. Tell Vite where to put the compiled files so JAL can find them
   build: {
-    outDir: '../sentri-dist', 
+    outDir: 'dist', 
     emptyOutDir: true,
   },
 })
