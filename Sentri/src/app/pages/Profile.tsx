@@ -6,7 +6,7 @@ import { Button } from "../components/ui/button";
 import { UserProfile } from "../components/UserProfile";
 import { useAuth } from "../context/AuthContext";
 import { Badge } from "../components/ui/badge";
-import { pythonURI, javaURI, fetchOptions } from '../../../../assets/js/api/config.js';
+import { pythonURI, fetchOptions } from '../../../../assets/js/api/config.js';
 
 interface Meeting {
   id: number;
@@ -17,41 +17,47 @@ interface Meeting {
   type: string;
 }
 
+interface CommunityChat {
+  id: number;
+  program_id: string;
+  message: string;
+  timestamp: string;
+}
+
 export function Profile() {
   const { user } = useAuth();
   const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [chatHistory, setChatHistory] = useState<CommunityChat[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // MOCK CHAT HISTORY DATA
-  const mockChatHistory = [
-    { id: 1, text: "Feeling a bit overwhelmed today, but staying focused on my goals.", date: "March 28, 2026", status: "Stable" },
-    { id: 2, text: "Had a strong craving after work, reached out to my sponsor immediately.", date: "March 26, 2026", status: "Distressed" },
-    { id: 3, text: "Woke up feeling grateful for another day of sobriety. Ready for the meeting.", date: "March 25, 2026", status: "Stable" },
-    { id: 4, text: "Struggling with sleep patterns, but keeping the routine.", date: "March 24, 2026", status: "Stable" }
-  ];
-
   useEffect(() => {
-    const fetchMeetings = async () => {
+    const fetchData = async () => {
       if (!user?.id) return;
       try {
-        const response = await fetch(`${pythonURI}/get-user-meetings?user_id=${user.id}`, fetchOptions);
-        if (response.ok) {
-          const data = await response.json();
-          setMeetings(data);
+        // 1. Fetch Meetings
+        const meetingRes = await fetch(`${pythonURI}/get-user-meetings?user_id=${user.id}`, fetchOptions);
+        if (meetingRes.ok) {
+          const mData = await meetingRes.json();
+          setMeetings(mData);
+        }
+
+        // 2. Fetch Community Chat History (The actual messages from the DB)
+        const chatRes = await fetch(`${pythonURI}/get-user-community-chats?user_id=${user.id}`, fetchOptions);
+        if (chatRes.ok) {
+          const cData = await chatRes.json();
+          setChatHistory(cData);
         }
       } catch (err) {
-        console.error("Error fetching meetings:", err);
+        console.error("Error fetching profile data:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMeetings();
+    fetchData();
   }, [user?.id]);
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -59,11 +65,17 @@ export function Profile() {
   const upcomingMeetings = meetings.filter(m => new Date(m.date) >= today);
   const pastMeetings = meetings.filter(m => new Date(m.date) < today);
 
-  const stats = [
-    { label: "Upcoming Meetings", value: upcomingMeetings.length, icon: Calendar, color: "blue" },
-    { label: "Past Meetings", value: pastMeetings.length, icon: CheckCircle, color: "green" },
-    { label: "Program Groups", value: "3", icon: Award, color: "purple" },
-  ];
+  // Helper to format SQLite timestamp (2026-04-01 05:50:...)
+  const formatDate = (ts: string) => {
+    if (!ts) return "";
+    return new Date(ts.replace(" ", "T") + "Z").toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
@@ -89,14 +101,14 @@ export function Profile() {
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white">
             <div className="flex items-center gap-4">
               <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-4xl font-bold">
-                {user.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
+                {user.username?.[0]?.toUpperCase() || "U"}
               </div>
               <div>
-                <h2 className="text-3xl mb-2">{user.name}</h2>
-                <p className="text-blue-100 text-lg">{user.email}</p>
-                <div className="flex gap-2 mt-3">
-                  <Badge className="bg-white/20 text-white border-white/30">Member since March 2026</Badge>
-                  <Badge className="bg-green-500/80 text-white border-green-400/30">Active</Badge>
+                <h2 className="text-3xl mb-1">{user.username || "User"}</h2>
+                <p className="text-blue-100">{user.email}</p>
+                <div className="flex gap-2 mt-4">
+                  <Badge className="bg-white/20 text-white border-white/30">Member</Badge>
+                  <Badge className="bg-green-500/80 text-white border-none">Active Now</Badge>
                 </div>
               </div>
             </div>
@@ -105,119 +117,74 @@ export function Profile() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
-            const colorClasses = {
-              blue: "bg-blue-100 text-blue-600",
-              green: "bg-green-100 text-green-600",
-              purple: "bg-purple-100 text-purple-600",
-            }[stat.color as "blue" | "green" | "purple"];
-
-            return (
-              <Card key={stat.label} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={`p-3 rounded-lg ${colorClasses}`}>
-                      <Icon className="w-6 h-6" />
-                    </div>
-                  </div>
-                  <div className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>
-                  <div className="text-sm text-gray-600">{stat.label}</div>
-                </CardContent>
-              </Card>
-            );
-          })}
+          <Card>
+            <CardContent className="p-6">
+              <div className="p-3 w-fit rounded-lg bg-blue-100 text-blue-600 mb-4"><Calendar /></div>
+              <div className="text-3xl font-bold">{upcomingMeetings.length}</div>
+              <div className="text-sm text-gray-600">Upcoming Meetings</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="p-3 w-fit rounded-lg bg-green-100 text-green-600 mb-4"><CheckCircle /></div>
+              <div className="text-3xl font-bold">{pastMeetings.length}</div>
+              <div className="text-sm text-gray-600">Past Meetings</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="p-3 w-fit rounded-lg bg-purple-100 text-purple-600 mb-4"><MessageSquare /></div>
+              <div className="text-3xl font-bold">{chatHistory.length}</div>
+              <div className="text-sm text-gray-600">Chat Messages</div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Upcoming Meetings List */}
+          {/* Meetings List */}
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Calendar className="w-5 h-5 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900">Upcoming Meetings</h3>
-              </div>
+              <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                <Calendar className="text-blue-600" /> Upcoming Meetings
+              </h3>
               <div className="space-y-4">
-                {upcomingMeetings.length > 0 ? upcomingMeetings.map((meeting) => (
-                  <div key={meeting.id} className="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0">
-                    <div className="p-2 bg-blue-50 rounded-lg">
-                      <Users className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold text-gray-900">{meeting.name}</span>
-                        <Badge variant="outline" className="text-xs">{meeting.location}</Badge>
-                      </div>
-                      <div className="text-sm text-gray-600 flex items-center gap-3">
-                        <span>{meeting.date}</span>
-                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {meeting.time}</span>
-                      </div>
-                    </div>
+                {upcomingMeetings.length > 0 ? upcomingMeetings.map((m) => (
+                  <div key={m.id} className="p-4 bg-gray-50 rounded-lg">
+                    <div className="font-semibold">{m.name}</div>
+                    <div className="text-xs text-gray-500">{m.date} at {m.time} • {m.location}</div>
                   </div>
-                )) : <p className="text-gray-500 text-sm py-4">No upcoming meetings scheduled.</p>}
+                )) : <p className="text-gray-400 text-sm text-center">No upcoming meetings.</p>}
               </div>
             </CardContent>
           </Card>
 
-          {/* Past Meetings List */}
+          {/* CHAT HISTORY SECTION */}
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900">Past Meetings</h3>
-              </div>
-              <div className="space-y-4">
-                {pastMeetings.length > 0 ? pastMeetings.map((meeting) => (
-                  <div key={meeting.id} className="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0">
-                    <div className="p-2 bg-green-50 rounded-lg">
-                      <Activity className="w-5 h-5 text-green-600" />
+              <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                <History className="text-purple-600" /> Community Chat History
+              </h3>
+              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                {chatHistory.length > 0 ? chatHistory.map((chat) => (
+                  <div key={chat.id} className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                    <div className="flex justify-between items-center mb-2">
+                      <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 uppercase text-[10px]">
+                        {chat.program_id} Room
+                      </Badge>
+                      <span className="text-[10px] text-gray-400">{formatDate(chat.timestamp)}</span>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-gray-900 mb-1 font-semibold">{meeting.name}</p>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="text-xs">{meeting.type}</Badge>
-                        <span className="text-xs text-gray-500">{meeting.date}</span>
-                      </div>
-                    </div>
+                    <p className="text-sm text-gray-700 italic">"{chat.message}"</p>
                   </div>
-                )) : <p className="text-gray-500 text-sm py-4">No past meetings recorded.</p>}
+                )) : (
+                  <div className="text-center py-10">
+                    <p className="text-gray-400 text-sm">No community chats found.</p>
+                    <Link to="/programs" className="text-blue-600 text-xs hover:underline mt-2 inline-block">Join a room</Link>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
         </div>
-
-        {/* --- CHAT HISTORY SECTION --- */}
-        <Card className="mt-8">
-          <CardContent className="p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <History className="w-5 h-5 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900">Previous Chat History</h3>
-            </div>
-            
-            <div className="space-y-4">
-              {mockChatHistory.map((chat) => (
-                <div key={chat.id} className="flex flex-col p-4 bg-gray-50 rounded-lg border border-gray-100">
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <MessageSquare className="w-3 h-3" />
-                      <span>{chat.date}</span>
-                    </div>
-                    <Badge className={chat.status === "Stable" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}>
-                      {chat.status}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-gray-700 italic">"{chat.text}"</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

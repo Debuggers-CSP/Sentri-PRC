@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useParams } from "react-router";
 import { ArrowLeft, Calendar, Clock, MapPin, Send, Users } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
@@ -15,198 +15,151 @@ import caLogo from "../../assets/58e3f4b9794493f73bea7d751b9df8993b8c105f.png";
 import gaLogo from "../../assets/675121813725057c96f90900dde1cdb27e6a8031.png";
 import saLogo from "../../assets/50593eb25097566896b0e6a4b491eabb700c98a6.png";
 import { useAuth } from "../context/AuthContext";
-import { pythonURI, javaURI, fetchOptions } from '../../../../assets/js/api/config.js';
+import { pythonURI, fetchOptions } from '../../../../assets/js/api/config.js';
 
 const programsData: Record<string, any> = {
   aa: {
-    id: 1,
-    name: "AA",
-    fullName: "Alcoholics Anonymous",
-    logo: aaLogo,
-    description: "Alcoholics Anonymous is a fellowship of people who share their experience, strength and hope with each other that they may solve their common problem and help others to recover from alcoholism. The only requirement for membership is a desire to stop drinking. There are no dues or fees for AA membership; we are self-supporting through our own contributions.",
+    id: 1, name: "AA", fullName: "Alcoholics Anonymous", logo: aaLogo,
+    description: "Alcoholics Anonymous is a fellowship of people who share their experience, strength and hope with each other that they may solve their common problem and help others to recover from alcoholism.",
     focus: ["Alcohol addiction recovery", "12-step program", "Peer support"],
-    meetings: [
-      { day: "Monday", time: "7:00 PM - 8:30 PM", location: "Main Hall", type: "Open" },
-      { day: "Tuesday", time: "6:30 PM - 8:00 PM", location: "Room A", type: "Closed" },
-      { day: "Wednesday", time: "12:00 PM - 1:00 PM", location: "Community Center", type: "Open" },
-      { day: "Thursday", time: "7:00 PM - 8:30 PM", location: "Main Hall", type: "Closed" },
-      { day: "Friday", time: "8:00 PM - 9:30 PM", location: "Room B", type: "Open" },
-      { day: "Saturday", time: "10:00 AM - 11:30 AM", location: "Main Hall", type: "Open" },
-      { day: "Sunday", time: "6:00 PM - 7:30 PM", location: "Chapel", type: "Closed" },
-    ]
+    meetings: [{ day: "Monday", time: "7:00 PM - 8:30 PM", location: "Main Hall", type: "Open" }, { day: "Friday", time: "8:00 PM - 9:30 PM", location: "Room B", type: "Open" }]
   },
-  aca: {
-    id: 2,
-    name: "ACA",
-    fullName: "Adult Children of Alcoholics",
-    logo: acaLogo,
-    description: "Adult Children of Alcoholics (ACA) is a 12-step program for adults who grew up in alcoholic or dysfunctional homes. The program focuses on healing childhood trauma and breaking the patterns learned in dysfunctional family systems. ACA provides a safe space to address the effects of growing up with addiction or dysfunction.",
-    focus: ["Childhood trauma healing", "Family dysfunction", "Inner child work"],
-    meetings: [
-      { day: "Monday", time: "6:00 PM - 7:30 PM", location: "Room C", type: "Closed" },
-      { day: "Wednesday", time: "7:00 PM - 8:30 PM", location: "Room B", type: "Open" },
-      { day: "Friday", time: "6:30 PM - 8:00 PM", location: "Room C", type: "Closed" },
-      { day: "Sunday", time: "4:00 PM - 5:30 PM", location: "Main Hall", type: "Open" },
-    ]
-  },
-  alateen: {
-    id: 3,
-    name: "Alateen",
-    fullName: "Alateen Support Group",
-    logo: alateenLogo,
-    description: "Alateen is a recovery program for young people (ages 13-18) who have been affected by someone else's drinking. Through sharing experiences with peers who understand, teens learn coping skills and how to handle the challenges of living with or caring about someone with a drinking problem.",
-    focus: ["Teen support", "Family impact", "Peer understanding"],
-    meetings: [
-      { day: "Tuesday", time: "4:00 PM - 5:00 PM", location: "Youth Center", type: "Closed" },
-      { day: "Thursday", time: "4:00 PM - 5:00 PM", location: "Youth Center", type: "Closed" },
-      { day: "Saturday", time: "2:00 PM - 3:00 PM", location: "Room A", type: "Open" },
-    ]
-  },
-  "al-anon": {
-    id: 4,
-    name: "Al-Anon",
-    fullName: "Al-Anon Family Groups",
-    logo: alanonLogo,
-    description: "Al-Anon Family Groups provide support to anyone whose life is or has been affected by someone else's drinking. Members share their experience, strength, and hope to help each other cope with the effects of alcoholism in a loved one and learn to take care of themselves.",
-    focus: ["Family support", "Codependency", "Self-care"],
-    meetings: [
-      { day: "Monday", time: "7:30 PM - 9:00 PM", location: "Room D", type: "Open" },
-      { day: "Wednesday", time: "6:00 PM - 7:30 PM", location: "Main Hall", type: "Closed" },
-      { day: "Friday", time: "12:00 PM - 1:00 PM", location: "Room A", type: "Open" },
-      { day: "Saturday", time: "9:00 AM - 10:30 AM", location: "Community Center", type: "Open" },
-    ]
-  },
+  aca: { id: 2, name: "ACA", fullName: "Adult Children of Alcoholics", logo: acaLogo, focus: ["Trauma healing"], description: "For adults from dysfunctional homes.", meetings: [] },
+  alateen: { id: 3, name: "Alateen", fullName: "Alateen Support Group", logo: alateenLogo, focus: ["Teen support"], description: "For young people affected by someone's drinking.", meetings: [] },
+  "al-anon": { id: 4, name: "Al-Anon", fullName: "Al-Anon Family Groups", logo: alanonLogo, focus: ["Family support"], description: "Support for families of alcoholics.", meetings: [] },
   na: {
-    id: 5,
-    name: "NA",
-    fullName: "Narcotics Anonymous",
-    logo: naLogo,
-    description: "Narcotics Anonymous is a global, community-based organization with a multi-lingual and multicultural membership. NA was founded in 1953, and our membership growth was minimal during our initial twenty years. Since the 1970s, our membership has increased rapidly, and NA can be found in 144 countries worldwide.",
+    id: 5, name: "NA", fullName: "Narcotics Anonymous", logo: naLogo,
+    description: "Narcotics Anonymous is a global, community-based organization for recovery from drug addiction.",
     focus: ["Drug addiction recovery", "12-step program", "Clean living"],
-    meetings: [
-      { day: "Monday", time: "8:00 PM - 9:30 PM", location: "Room B", type: "Open" },
-      { day: "Tuesday", time: "7:00 PM - 8:30 PM", location: "Main Hall", type: "Closed" },
-      { day: "Thursday", time: "6:30 PM - 8:00 PM", location: "Room B", type: "Open" },
-      { day: "Friday", time: "7:00 PM - 8:30 PM", location: "Chapel", type: "Closed" },
-      { day: "Saturday", time: "7:00 PM - 8:30 PM", location: "Main Hall", type: "Open" },
-    ]
+    meetings: [{ day: "Monday", time: "8:00 PM - 9:30 PM", location: "Room B", type: "Open" }, { day: "Thursday", time: "6:30 PM - 8:00 PM", location: "Room B", type: "Open" }]
   },
-  ca: {
-    id: 6,
-    name: "CA",
-    fullName: "Cocaine Anonymous",
-    logo: caLogo,
-    description: "Cocaine Anonymous is a fellowship of men and women who share their experience, strength and hope with each other that they may solve their common problem and help others to recover from their addiction. The only requirement for membership is a desire to stop using cocaine and all other mind-altering substances.",
-    focus: ["Cocaine recovery", "Substance-free living", "Support network"],
-    meetings: [
-      { day: "Tuesday", time: "8:00 PM - 9:30 PM", location: "Room A", type: "Closed" },
-      { day: "Thursday", time: "7:30 PM - 9:00 PM", location: "Room D", type: "Open" },
-      { day: "Saturday", time: "5:00 PM - 6:30 PM", location: "Room B", type: "Closed" },
-    ]
-  },
-  ga: {
-    id: 7,
-    name: "GA",
-    fullName: "Gamblers Anonymous",
-    logo: gaLogo,
-    description: "Gamblers Anonymous is a fellowship of men and women who have joined together to do something about their own gambling problem and to help other compulsive gamblers do the same. The only requirement for membership is a desire to stop gambling.",
-    focus: ["Gambling addiction", "Financial recovery", "Behavioral change"],
-    meetings: [
-      { day: "Monday", time: "6:30 PM - 8:00 PM", location: "Room E", type: "Open" },
-      { day: "Wednesday", time: "7:30 PM - 9:00 PM", location: "Room E", type: "Closed" },
-      { day: "Friday", time: "6:00 PM - 7:30 PM", location: "Room D", type: "Open" },
-    ]
-  },
-  sa: {
-    id: 8,
-    name: "SA",
-    fullName: "Sexaholics Anonymous",
-    logo: saLogo,
-    description: "Sexaholics Anonymous is a fellowship of men and women who share their experience, strength, and hope with each other that they may solve their common problem and help others to recover from sexual addiction. Membership is open to all who share a desire to stop sexually destructive thinking and behavior.",
-    focus: ["Sexual sobriety", "Relationship health", "Personal boundaries"],
-    meetings: [
-      { day: "Tuesday", time: "7:00 PM - 8:30 PM", location: "Room F", type: "Closed" },
-      { day: "Thursday", time: "8:00 PM - 9:30 PM", location: "Room F", type: "Closed" },
-      { day: "Sunday", time: "7:00 PM - 8:30 PM", location: "Room E", type: "Open" },
-    ]
-  }
+  ca: { id: 6, name: "CA", fullName: "Cocaine Anonymous", logo: caLogo, focus: ["Cocaine recovery"], description: "Fellowship for cocaine recovery.", meetings: [] },
+  ga: { id: 7, name: "GA", fullName: "Gamblers Anonymous", logo: gaLogo, focus: ["Gambling addiction"], description: "Fellowship for gambling recovery.", meetings: [] },
+  sa: { id: 8, name: "SA", fullName: "Sexaholics Anonymous", logo: saLogo, focus: ["Sexual sobriety"], description: "Fellowship for sexual addiction recovery.", meetings: [] }
 };
 
 export function ProgramDetail() {
   const { programId } = useParams<{ programId: string }>();
   const { user } = useAuth();
   const [message, setMessage] = useState("");
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const chatEndRef = useRef<HTMLDivElement>(null);
   
   const program = programId ? programsData[programId] : null;
 
-  // Mock chat messages
-  const [chatMessages] = useState([
-    { id: 1, user: "Sarah M.", message: "Just celebrated 90 days today! Thank you all for the support.", time: "2 hours ago", isOwn: false },
-    { id: 2, user: "Mike T.", message: "Congratulations Sarah! That's amazing progress! 🎉", time: "1 hour ago", isOwn: false },
-    { id: 3, user: "Jennifer K.", message: "Looking forward to tonight's meeting. See everyone there!", time: "45 min ago", isOwn: false },
-    { id: 4, user: "You", message: "Great job Sarah! Your story is inspiring.", time: "30 min ago", isOwn: true },
-  ]);
+  // 1. Function to Fetch Chat History
+  const fetchChatHistory = async () => {
+    if (!programId) return;
+    try {
+      const response = await fetch(`${pythonURI}/get-chat-history/${programId}`, fetchOptions);
+      if (response.ok) {
+        const data = await response.json();
+        setChatMessages(data);
+      }
+    } catch (err) {
+      console.error("Error fetching chat:", err);
+    }
+  };
+
+  // 2. Load history on mount and poll every 5 seconds for "live" feel
+  useEffect(() => {
+    fetchChatHistory();
+    const interval = setInterval(fetchChatHistory, 5000);
+    return () => clearInterval(interval);
+  }, [programId]);
+
+  // 3. Auto-scroll to bottom whenever new messages arrive
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages]);
+
+  const handleSendMessage = async () => {
+    if (!message.trim()) return;
+
+    if (!user || !user.id) {
+      alert("Please log in to chat");
+      return;
+    }
+
+    // DEBUG: Look at this in your browser console (F12) 
+    // to see exactly what is inside your user object
+    console.log("Current User Object:", user);
+
+    const payload = {
+      program_id: programId,
+      user_id: user.id,
+      // Fallback: If username is missing in the object, 
+      // check if it's called 'name' or use 'Anonymous'
+      username: user.username || user.name || "Anonymous", 
+      message: message.trim()
+    };
+
+    try {
+      const response = await fetch(`${pythonURI}/send-chat-message`, {
+        ...fetchOptions,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        setMessage("");
+        fetchChatHistory();
+      } else {
+        const errData = await response.json();
+        alert(`Error: ${errData.message}`);
+      }
+    } catch (err) {
+      console.error("Send Error:", err);
+    }
+  };
+
+  const handleAddToCalendar = async () => {
+    if (!user || !user.id) {
+      alert("Please log in first!");
+      return;
+    }
+
+    const meetingToSave = {
+      user_id: user.id,
+      name: `${program?.name} Meeting`, 
+      date: "2026-04-01",
+      time: "7:00 PM",
+      location: "del norte",
+      type: "Open"
+    };
+
+    try {
+      const response = await fetch(`${pythonURI}/add-meeting`, {
+        ...fetchOptions,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(meetingToSave),
+      });
+
+      if (response.ok) {
+        alert("✅ Meeting saved to your profile!");
+      } else {
+        alert("❌ Failed to save meeting.");
+      }
+    } catch (err) {
+      console.error("Connection Error:", err);
+    }
+  };
 
   if (!program) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl text-gray-900 mb-4">Program not found</h2>
-          <Link to="/programs">
-            <Button>Back to Programs</Button>
-          </Link>
+          <Link to="/programs"><Button>Back to Programs</Button></Link>
         </div>
       </div>
     );
   }
 
-  const handleSendMessage = () => {
-    if (message.trim()) {
-      // In a real app, this would send the message to a backend
-      setMessage("");
-    }
-  };
-
-  const handleAddToCalendar = async () => {
-    console.log("DEBUG 3: Meeting Button sees user state as:", user); // <--- Add this
-
-  if (!user || !user.id) {
-    alert("Please log in first!");
-    return;
-  }
-
-  // Ensure these keys (name, date, time) match data.get() in Flask
-  const meetingToSave = {
-    user_id: user.id,
-    name: "AA - Evening Recovery", 
-    date: "2026-04-01",
-    time: "7:00 PM",
-    location: "del norte",
-    type: "Open"
-  };
-
-  try {
-    const response = await fetch("${pythonURI}/add-meeting", {
-      ...fetchOptions,
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(meetingToSave),
-    });
-
-    if (response.ok) {
-      alert("✅ Saved successfully!");
-    } else {
-      const errorData = await response.json();
-      alert(`❌ Failed: ${errorData.message}`);
-    }
-  } catch (err) {
-    console.error("Connection Error:", err);
-  }
-};
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
@@ -223,7 +176,6 @@ export function ProgramDetail() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Program Overview */}
         <Card className="mb-8 overflow-hidden">
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white">
             <div className="flex items-center gap-6">
@@ -232,9 +184,7 @@ export function ProgramDetail() {
                 <h2 className="text-4xl mb-3">{program.fullName}</h2>
                 <div className="flex flex-wrap gap-2">
                   {program.focus.map((item: string, idx: number) => (
-                    <Badge key={idx} className="bg-white/20 text-white border-white/30">
-                      {item}
-                    </Badge>
+                    <Badge key={idx} className="bg-white/20 text-white border-white/30">{item}</Badge>
                   ))}
                 </div>
               </div>
@@ -247,14 +197,11 @@ export function ProgramDetail() {
         </Card>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Meeting Schedule */}
           <div className="lg:col-span-2">
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Calendar className="w-5 h-5 text-blue-600" />
-                  </div>
+                  <div className="p-2 bg-blue-100 rounded-lg"><Calendar className="w-5 h-5 text-blue-600" /></div>
                   <h3 className="text-xl font-semibold text-gray-900">Weekly Meeting Schedule</h3>
                 </div>
                 <div className="space-y-3">
@@ -262,72 +209,63 @@ export function ProgramDetail() {
                     <div key={idx} className="flex items-center justify-between p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
                       <div className="flex items-center gap-4">
                         <div className="w-20 font-semibold text-gray-900">{meeting.day}</div>
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <Clock className="w-4 h-4" />
-                          <span>{meeting.time}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <MapPin className="w-4 h-4" />
-                          <span>{meeting.location}</span>
-                        </div>
+                        <div className="flex items-center gap-2 text-gray-600"><Clock className="w-4 h-4" /><span>{meeting.time}</span></div>
+                        <div className="flex items-center gap-2 text-gray-600"><MapPin className="w-4 h-4" /><span>{meeting.location}</span></div>
                       </div>
-                      <Badge variant={meeting.type === "Open" ? "default" : "secondary"}>
-                        {meeting.type}
-                      </Badge>
+                      <Badge variant={meeting.type === "Open" ? "default" : "secondary"}>{meeting.type}</Badge>
                     </div>
                   ))}
                 </div>
-                <Button 
-  onClick={handleAddToCalendar} // <--- ADD THIS LINE
-  className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white"
->
-  <Calendar className="w-4 h-4 mr-2" />
-  Add to My Calendar
-</Button>
+                <Button onClick={handleAddToCalendar} className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white">
+                  <Calendar className="w-4 h-4 mr-2" /> Add to My Calendar
+                </Button>
               </CardContent>
             </Card>
           </div>
 
-          {/* Community Chatroom */}
           <div className="lg:col-span-1">
             <Card className="h-[600px] flex flex-col">
-              <CardContent className="p-6 flex-1 flex flex-col">
+              <CardContent className="p-6 flex-1 flex flex-col overflow-hidden">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <Users className="w-5 h-5 text-purple-600" />
-                  </div>
+                  <div className="p-2 bg-purple-100 rounded-lg"><Users className="w-5 h-5 text-purple-600" /></div>
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900">Community Chat</h3>
-                    <p className="text-sm text-gray-500">24 members online</p>
+                    <p className="text-sm text-gray-500">Live Support Room</p>
                   </div>
                 </div>
 
-                {/* Chat Messages */}
-                <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-                  {chatMessages.map((msg) => (
-                    <div key={msg.id} className={`flex flex-col ${msg.isOwn ? 'items-end' : 'items-start'}`}>
-                      <div className={`max-w-[80%] rounded-lg p-3 ${
-                        msg.isOwn 
-                          ? 'bg-blue-600 text-white' 
-                          : 'bg-gray-100 text-gray-900'
-                      }`}>
-                        {!msg.isOwn && <div className="text-xs font-semibold mb-1 opacity-70">{msg.user}</div>}
-                        <p className="text-sm">{msg.message}</p>
-                      </div>
-                      <span className="text-xs text-gray-500 mt-1">{msg.time}</span>
-                    </div>
-                  ))}
+                {/* Live Chat Area */}
+                <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
+                  {chatMessages.length === 0 ? (
+                    <p className="text-center text-gray-400 mt-10">No messages yet. Be the first to say hello!</p>
+                  ) : (
+                    chatMessages.map((msg) => {
+                      const isOwn = user && msg.user_id === user.id;
+                      return (
+                        <div key={msg.id} className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
+                          <div className={`max-w-[85%] rounded-lg p-3 ${isOwn ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'}`}>
+                            {!isOwn && <div className="text-xs font-bold mb-1 text-purple-600">{msg.username}</div>}
+                            <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                          </div>
+                          <span className="text-[10px] text-gray-400 mt-1">
+                             {new Date(msg.timestamp + "Z").toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      );
+                    })
+                  )}
+                  <div ref={chatEndRef} />
                 </div>
 
-                {/* Message Input */}
                 <div className="border-t pt-4">
                   <div className="flex gap-2">
                     <Textarea
-                      placeholder="Type your message..."
+                      placeholder={user ? "Type your message..." : "Log in to chat"}
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       className="resize-none"
                       rows={2}
+                      disabled={!user}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -337,15 +275,13 @@ export function ProgramDetail() {
                     />
                     <Button 
                       onClick={handleSendMessage}
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                      disabled={!message.trim()}
+                      className="bg-blue-600 hover:bg-blue-700 text-white h-auto"
+                      disabled={!message.trim() || !user}
                     >
                       <Send className="w-4 h-4" />
                     </Button>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Press Enter to send, Shift+Enter for new line
-                  </p>
+                  <p className="text-[10px] text-gray-500 mt-2">Press Enter to send</p>
                 </div>
               </CardContent>
             </Card>
