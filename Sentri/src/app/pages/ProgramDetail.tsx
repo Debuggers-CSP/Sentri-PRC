@@ -38,14 +38,43 @@ const programsData: Record<string, any> = {
   sa: { id: 8, name: "SA", fullName: "Sexaholics Anonymous", logo: saLogo, focus: ["Sexual sobriety"], description: "Fellowship for sexual addiction recovery.", meetings: [] }
 };
 
+// Helper: Given a day name like "Monday", return the next occurrence as YYYY-MM-DD
+function getNextDateForDay(dayName: string): string {
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const targetDay = days.indexOf(dayName);
+  if (targetDay === -1) return new Date().toISOString().split("T")[0];
+
+  const today = new Date();
+  const todayDay = today.getDay();
+  let daysUntil = targetDay - todayDay;
+  if (daysUntil <= 0) daysUntil += 7; // always get the NEXT occurrence
+
+  const nextDate = new Date(today);
+  nextDate.setDate(today.getDate() + daysUntil);
+  return nextDate.toISOString().split("T")[0]; // e.g. "2026-04-07"
+}
+
+// Helper: Extract just the start time from a range like "7:00 PM - 8:30 PM"
+function extractStartTime(timeRange: string): string {
+  return timeRange.split(" - ")[0].trim(); // e.g. "7:00 PM"
+}
+
 export function ProgramDetail() {
   const { programId } = useParams<{ programId: string }>();
   const { user } = useAuth();
   const [message, setMessage] = useState("");
   const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [selectedMeeting, setSelectedMeeting] = useState<any>(null); // ← NEW
   const chatEndRef = useRef<HTMLDivElement>(null);
   
   const program = programId ? programsData[programId] : null;
+
+  // Auto-select the first meeting when program loads
+  useEffect(() => {
+    if (program?.meetings?.length > 0) {
+      setSelectedMeeting(program.meetings[0]);
+    }
+  }, [programId]);
 
   // 1. Function to Fetch Chat History
   const fetchChatHistory = async () => {
@@ -81,15 +110,11 @@ export function ProgramDetail() {
       return;
     }
 
-    // DEBUG: Look at this in your browser console (F12) 
-    // to see exactly what is inside your user object
     console.log("Current User Object:", user);
 
     const payload = {
       program_id: programId,
       user_id: user.id,
-      // Fallback: If username is missing in the object, 
-      // check if it's called 'name' or use 'Anonymous'
       username: user.username || user.name || "Anonymous", 
       message: message.trim()
     };
@@ -114,20 +139,32 @@ export function ProgramDetail() {
     }
   };
 
-  const handleAddToCalendar = async () => {
+  const handleAddToCalendar = async (meeting?: any) => {
     if (!user || !user.id) {
       alert("Please log in first!");
       return;
     }
 
+    // Use the meeting passed directly from the row button,
+    // or fall back to selectedMeeting, or the first meeting in the list
+    const targetMeeting = meeting || selectedMeeting || program?.meetings?.[0];
+
+    if (!targetMeeting) {
+      alert("No meeting available to add.");
+      return;
+    }
+
+    // Build the payload using REAL data from the meeting object
     const meetingToSave = {
       user_id: user.id,
-      name: `${program?.name} Meeting`, 
-      date: "2026-04-01",
-      time: "7:00 PM",
-      location: "del norte",
-      type: "Open"
+      name: `${program?.name} Meeting`,          // e.g. "AA Meeting"
+      date: getNextDateForDay(targetMeeting.day), // e.g. "2026-04-07" (next Monday)
+      time: extractStartTime(targetMeeting.time), // e.g. "7:00 PM"
+      location: targetMeeting.location,           // e.g. "Main Hall"
+      type: targetMeeting.type,                   // e.g. "Open"
     };
+
+    console.log("Saving meeting:", meetingToSave); // Debug: check browser console
 
     try {
       const response = await fetch(`${pythonURI}/add-meeting`, {
@@ -138,7 +175,7 @@ export function ProgramDetail() {
       });
 
       if (response.ok) {
-        alert("✅ Meeting saved to your profile!");
+        alert(`✅ ${program?.name} meeting on ${targetMeeting.day} at ${extractStartTime(targetMeeting.time)} saved to your profile!`);
       } else {
         alert("❌ Failed to save meeting.");
       }
@@ -204,20 +241,56 @@ export function ProgramDetail() {
                   <div className="p-2 bg-blue-100 rounded-lg"><Calendar className="w-5 h-5 text-blue-600" /></div>
                   <h3 className="text-xl font-semibold text-gray-900">Weekly Meeting Schedule</h3>
                 </div>
-                <div className="space-y-3">
-                  {program.meetings.map((meeting: any, idx: number) => (
-                    <div key={idx} className="flex items-center justify-between p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className="w-20 font-semibold text-gray-900">{meeting.day}</div>
-                        <div className="flex items-center gap-2 text-gray-600"><Clock className="w-4 h-4" /><span>{meeting.time}</span></div>
-                        <div className="flex items-center gap-2 text-gray-600"><MapPin className="w-4 h-4" /><span>{meeting.location}</span></div>
+
+                {program.meetings.length === 0 ? (
+                  <p className="text-gray-500 text-center py-6">No scheduled meetings listed for this program.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {program.meetings.map((meeting: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className={`flex items-center justify-between p-4 rounded-lg transition-colors cursor-pointer border-2 ${
+                          selectedMeeting === meeting
+                            ? "bg-blue-100 border-blue-400"
+                            : "bg-blue-50 border-transparent hover:bg-blue-100"
+                        }`}
+                        onClick={() => setSelectedMeeting(meeting)}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-20 font-semibold text-gray-900">{meeting.day}</div>
+                          <div className="flex items-center gap-2 text-gray-600"><Clock className="w-4 h-4" /><span>{meeting.time}</span></div>
+                          <div className="flex items-center gap-2 text-gray-600"><MapPin className="w-4 h-4" /><span>{meeting.location}</span></div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Badge variant={meeting.type === "Open" ? "default" : "secondary"}>{meeting.type}</Badge>
+                          {/* Per-row Add button — saves THIS specific meeting */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-blue-600 border-blue-400 hover:bg-blue-600 hover:text-white"
+                            onClick={(e) => {
+                              e.stopPropagation(); // don't also trigger the row's onClick
+                              handleAddToCalendar(meeting);
+                            }}
+                          >
+                            <Calendar className="w-3 h-3 mr-1" /> Add
+                          </Button>
+                        </div>
                       </div>
-                      <Badge variant={meeting.type === "Open" ? "default" : "secondary"}>{meeting.type}</Badge>
-                    </div>
-                  ))}
-                </div>
-                <Button onClick={handleAddToCalendar} className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white">
-                  <Calendar className="w-4 h-4 mr-2" /> Add to My Calendar
+                    ))}
+                  </div>
+                )}
+
+                {/* Main button — adds the selected (highlighted) meeting */}
+                <Button
+                  onClick={() => handleAddToCalendar(selectedMeeting)}
+                  className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white"
+                  disabled={!selectedMeeting}
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  {selectedMeeting
+                    ? `Add ${selectedMeeting.day} Meeting to My Calendar`
+                    : "Select a Meeting Above"}
                 </Button>
               </CardContent>
             </Card>
