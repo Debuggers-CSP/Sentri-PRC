@@ -50,6 +50,6 @@ export const router = createBrowserRouter(
   ],
   {
     /* ADD THIS SECOND ARGUMENT HERE */
-    basename: "/Sentri-PRC",
+    basename: "/", 
   }
 );

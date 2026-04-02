@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   // 1. Set the base path so React knows it lives in a subfolder
-  base: '/Sentri-PRC/', 
+  base: '/', 
 
   plugins: [
     react(),
