@@ -8,6 +8,7 @@ import { Label } from "../components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { useAuth } from "../context/AuthContext";
 import { pythonURI, javaURI, fetchOptions } from '../../../../assets/js/api/config.js';
+import { set } from "date-fns";
 
 export function Login() {
   const navigate = useNavigate();
@@ -18,6 +19,8 @@ export function Login() {
   const [loginPassword, setLoginPassword] = useState("");
   const [registerName, setRegisterName] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
 
   const [successMessage, setSuccessMessage] = useState("");
@@ -70,7 +73,9 @@ const [errorMessage, setErrorMessage] = useState("");
             body: JSON.stringify({ 
                 username: registerName,
                 password: registerPassword,
-                email: registerEmail
+                email: registerEmail,
+                fname: firstName, // This key MUST be "fname"
+                lname: lastName  // This key MUST be "lname"
             }),
         });
 
@@ -78,8 +83,11 @@ const [errorMessage, setErrorMessage] = useState("");
             setSuccessMessage("Account successfully registered! You can now login.");
             // Optional: clear the register fields
             setRegisterName("");
+            setFirstName("");
+            setLastName("");
             setRegisterEmail("");
             setRegisterPassword("");
+           
         } else {
             const errorData = await response.json();
             setErrorMessage(errorData.message || "Registration failed");
@@ -165,9 +173,31 @@ const [errorMessage, setErrorMessage] = useState("");
                     <Input
                       id="register-name"
                       type="text"
-                      placeholder="John Doe"
+                      placeholder="Choose a username"
                       value={registerName}
                       onChange={(e) => setRegisterName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="register-first-name">First Name</Label>
+                    <Input
+                      id="register-first-name"
+                      type="text"
+                      placeholder="John"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="register-last-name">Last Name</Label>
+                    <Input
+                      id="register-last-name"
+                      type="text"
+                      placeholder="Doe"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
                       required
                     />
                   </div>
