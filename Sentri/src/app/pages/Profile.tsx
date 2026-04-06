@@ -90,7 +90,7 @@ export function Profile() {
               <h1 className="text-3xl text-gray-900">My Profile</h1>
               <p className="text-gray-600 mt-1">Track your recovery journey</p>
             </div>
-            <UserProfile />
+           
           </div>
         </div>
       </header>

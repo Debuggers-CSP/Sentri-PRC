@@ -84,7 +84,7 @@ export function MeetingRecommender() {
               <h1 className="text-3xl text-gray-900">Meeting Preferences</h1>
               <p className="text-gray-600 mt-1">Help us find the right meetings for you</p>
             </div>
-            <UserProfile />
+            
           </div>
         </div>
       </header>

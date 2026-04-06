@@ -238,7 +238,7 @@ export function PRCGuide() {
               <h1 className="text-3xl text-gray-900">PRC Guide</h1>
               <p className="text-gray-600 mt-1">Let's find the right program for you</p>
             </div>
-            <UserProfile />
+           
           </div>
         </div>
       </header>
