@@ -9,8 +9,7 @@ export function Navbar() {
 
   // Helper functions for dynamic links
   const getProgramLink = () => {
-    const hasVisitedPrograms = localStorage.getItem("hasVisitedPrograms");
-    return (!hasVisitedPrograms && user) ? "/prc-guide" : "/programs";
+    return "/programs";
   };
 
   const getMeetingLink = () => {

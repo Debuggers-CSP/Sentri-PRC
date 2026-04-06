@@ -10,11 +10,6 @@ export function Home() {
   const { user } = useAuth();
 
   const getProgramLink = () => {
-    // Check if this is the first visit to programs page
-    const hasVisitedPrograms = localStorage.getItem("hasVisitedPrograms");
-    if (!hasVisitedPrograms && user) {
-      return "/prc-guide";
-    }
     return "/programs";
   };
 

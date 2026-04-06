@@ -30,10 +30,6 @@ export const router = createBrowserRouter(
       element: <Layout><MeetingRecommender/></Layout>, // Wrapped,
     },
     {
-      path: "/prc-guide",
-       element: <Layout><PRCGuide/></Layout>, // Wrapped,
-    },
-    {
       path: "/programs",
       element: <Layout><FindProgram /></Layout>, // Wrapped
     },
