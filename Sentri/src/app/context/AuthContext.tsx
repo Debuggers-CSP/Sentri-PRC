@@ -5,13 +5,15 @@ interface User {
   name: string;
   username?: string;
   email: string;
+  fname: string;   // <--- ADD THIS
+  lname: string;   // <--- ADD THIS
   hasCompletedRecommender: boolean;
   hasCompletedMeetingRecommender: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
-   login: (email: string, password: string, name: string, id: number) => void;
+   login: (email: string, password: string, name: string, id: number, fname: string, lname: string) => void;
   logout: () => void;
   completeRecommender: () => void;
   completeMeetingRecommender: () => void;
@@ -26,11 +28,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  const login = (email: string, password: string, name: string, id: number) => {
+  const login = (email: string, password: string, name: string, id: number, fname: string, lname: string) => {
     const userData = {
       id: id,
       name: name,
       email: email,
+      fname: fname.split(" ")[0] || "", // Extract first name
+      lname: lname.split(" ")[0] || "", // Extract last name (if exists)
       hasCompletedRecommender: false,
       hasCompletedMeetingRecommender: false,
     };

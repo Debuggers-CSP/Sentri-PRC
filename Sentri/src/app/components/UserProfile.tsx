@@ -13,25 +13,44 @@
   import { Avatar, AvatarFallback } from "./ui/avatar";
 
   export function UserProfile() {
-    const { user, logout } = useAuth();
-    const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
-    if (!user) {
-      console.log("No user found, not rendering profile dropdown");
-      return null;
-    }
+   // --- DEBUG START ---
+  console.log("%cDEBUG NAVBAR: Current User Object:", "color: cyan; font-weight: bold;");
+  console.log(user);
+  // --- DEBUG END ---
 
-    const initials = user.name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
+  // If no user is logged in, don't render anything
+  if (!user) {
+    return null;
+  }
 
-    const handleProfileClick = () => {
-      navigate("/profile");
-    };
+  /**
+   * INITIALS LOGIC
+   * 1. Tries to get the first letter of First Name and Last Name.
+   * 2. If those are missing (old test accounts), falls back to the first letter of the Username.
+   * 3. Final fallback is "U".
+   */
+  const firstInitial = user.fname?.[0] || "";
+  const lastInitial = user.lname?.[0] || "";
+   const initials = (firstInitial + lastInitial).toUpperCase();
 
+     // If initials is empty (meaning fname/lname are missing), fall back to username
+  const finalDisplay = initials.length > 0 
+    ? initials 
+    : (user.username?.[0] || "U").toUpperCase();
+
+  console.log(`DEBUG NAVBAR: Calculated Initials -> ${finalDisplay}`);
+
+  const handleProfileClick = () => {
+    navigate("/profile");
+  };
+
+  const handleLogoutClick = () => {
+    logout();           // Clear session in AuthContext
+    navigate("/login"); // Move to login page to prevent "split" crashes on protected pages
+  };
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

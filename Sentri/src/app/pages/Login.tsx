@@ -45,11 +45,15 @@ const [errorMessage, setErrorMessage] = useState("");
       const data = await response.json();
 
       if (response.ok) {
+          console.log("--- DEBUG STEP 2: FRONTEND LOGIN DATA ---");
+        console.log("User object from backend:", data.user);
+        console.log("Extracted fname:", data.user.fname);
+        console.log("Extracted lname:", data.user.lname);
         // --- UPDATED LOGIC ---
         // 1. We get the real email from data.user.email
         // 2. We pass it as the first argument so AuthContext stores it
         console.log("DEBUG 1: Backend response user object:", data.user);
-        login(data.user.email, loginPassword, data.user.username, data.user.id); 
+        login(data.user.email, loginPassword, data.user.username, data.user.id, data.user.fname, data.user.lname); // Pass real email,
         
         navigate("/"); 
       } else {
