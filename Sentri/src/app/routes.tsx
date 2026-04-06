@@ -9,15 +9,17 @@ import { PRCGuide } from "./pages/PRCGuide";
 import { Profile } from "./pages/Profile";
 import { ProgramDetail } from "./pages/ProgramDetail";
 
+import { Layout } from "./components/Layout"; 
+
 export const router = createBrowserRouter(
   [
     {
       path: "/",
-      element: <Home />,
+      element: <Layout><Home /></Layout>, // Wrapped
     },
     {
       path: "/login",
-      element: <Login />,
+      element: <Login />, // Leave alone for now (standard)
     },
     {
       path: "/recommender",
@@ -33,23 +35,22 @@ export const router = createBrowserRouter(
     },
     {
       path: "/programs",
-      element: <FindProgram />,
+      element: <Layout><FindProgram /></Layout>, // Wrapped
     },
     {
       path: "/programs/:programId",
-      element: <ProgramDetail />,
+      element: <Layout><ProgramDetail /></Layout>, // Wrapped
     },
     {
       path: "/meetings",
-      element: <FindMeeting />,
+      element: <Layout><FindMeeting /></Layout>, // Wrapped
     },
     {
       path: "/profile",
-      element: <Profile />,
+      element: <Layout><Profile /></Layout>, // Wrapped
     },
   ],
   {
-    /* ADD THIS SECOND ARGUMENT HERE */
     basename: "/", 
   }
 );
