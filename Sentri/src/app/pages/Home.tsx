@@ -29,34 +29,7 @@ export function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Heart className="w-10 h-10 text-blue-600" />
-              <div>
-                <h1 className="text-3xl font-semibold text-gray-900">Poway Recovery Center</h1>
-                <p className="text-sm text-gray-600">Your journey to wellness starts here</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center gap-2 text-gray-600">
-                <Phone className="w-4 h-4" />
-                <span>(858) 555-0123</span>
-              </div>
-              
-  {/* ADDED: Show Login button only if NOT logged in */}
-  {!user && (
-    <Button asChild variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
-      <Link to="/login">Sign In</Link>
-    </Button>
-  )}
-              <UserProfile />
-            </div>
-          </div>
-        </div>
-      </header>
+     
 
       {/* Hero Section */}
       <section className="relative h-[500px] overflow-hidden">

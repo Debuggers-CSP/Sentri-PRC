@@ -26,7 +26,7 @@ export function Navbar() {
           <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <Heart className="w-8 h-8 text-blue-600" />
             <div>
-              <h1 className="text-xl font-semibold text-gray-900 leading-none">Poway Recovery Center</h1>
+              <h1 className="text-3xl font-semibold text-gray-900 leading-none">Poway Recovery Center</h1>
               <p className="text-[10px] text-gray-500 mt-1 uppercase tracking-wider">Your journey to wellness starts here</p>
             </div>
           </Link>

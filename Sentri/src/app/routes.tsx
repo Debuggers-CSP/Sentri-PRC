@@ -27,11 +27,11 @@ export const router = createBrowserRouter(
     },
     {
       path: "/meeting-recommender",
-      element: <MeetingRecommender />,
+      element: <Layout><MeetingRecommender/></Layout>, // Wrapped,
     },
     {
       path: "/prc-guide",
-      element: <PRCGuide />,
+       element: <Layout><PRCGuide/></Layout>, // Wrapped,
     },
     {
       path: "/programs",
@@ -43,7 +43,7 @@ export const router = createBrowserRouter(
     },
     {
       path: "/meetings",
-      element: <Layout><FindMeeting /></Layout>, // Wrapped
+      element: <Layout><MeetingRecommender/></Layout>, // Wrapped
     },
     {
       path: "/profile",
