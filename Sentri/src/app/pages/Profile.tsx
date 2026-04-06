@@ -24,16 +24,31 @@ interface CommunityChat {
   timestamp: string;
 }
 
+interface DbUserDetails {
+  username: string;
+  email: string;
+  fname: string;
+  lname: string;
+}
+
 export function Profile() {
   const { user } = useAuth();
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [chatHistory, setChatHistory] = useState<CommunityChat[]>([]);
+  const [dbUser, setDbUser] = useState<DbUserDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!user?.id) return;
+      if (!user?.id) {
+        console.log("DEBUG: No User ID found in session. Fetching cancelled.");
+        return;
+      }
+
       try {
+        setLoading(true);
+        console.log(`DEBUG: Starting data fetch for User ID: ${user.id}`);
+
         // 1. Fetch Meetings
         const meetingRes = await fetch(`${pythonURI}/get-user-meetings?user_id=${user.id}`, fetchOptions);
         if (meetingRes.ok) {
@@ -41,14 +56,29 @@ export function Profile() {
           setMeetings(mData);
         }
 
-        // 2. Fetch Community Chat History (The actual messages from the DB)
+        // 2. Fetch Community Chat History
         const chatRes = await fetch(`${pythonURI}/get-user-community-chats?user_id=${user.id}`, fetchOptions);
         if (chatRes.ok) {
           const cData = await chatRes.json();
           setChatHistory(cData);
         }
+
+        // 3. Fetch Real User Details (fname, lname, etc.) from DB
+        const userRes = await fetch(`${pythonURI}/get-user-details?user_id=${user.id}`, fetchOptions);
+        if (userRes.ok) {
+          const uData = await userRes.json();
+          
+          // HIGH VISIBILITY LOG FOR YOU
+          console.log("%cDEBUG: REAL USER PACKET RECEIVED FROM DB:", "color: green; font-weight: bold; font-size: 12px;");
+          console.log(uData); 
+          
+          setDbUser(uData);
+        } else {
+          console.error("DEBUG: Failed to fetch user details. Status:", userRes.status);
+        }
+
       } catch (err) {
-        console.error("Error fetching profile data:", err);
+        console.error("DEBUG: Connection error during Profile fetch:", err);
       } finally {
         setLoading(false);
       }
@@ -59,13 +89,14 @@ export function Profile() {
 
   if (!user) return null;
 
+  // Logic to split meetings into Past and Upcoming
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const upcomingMeetings = meetings.filter(m => new Date(m.date) >= today);
   const pastMeetings = meetings.filter(m => new Date(m.date) < today);
 
-  // Helper to format SQLite timestamp (2026-04-01 05:50:...)
+  // Helper to format SQLite timestamp
   const formatDate = (ts: string) => {
     if (!ts) return "";
     return new Date(ts.replace(" ", "T") + "Z").toLocaleDateString('en-US', {
@@ -77,8 +108,18 @@ export function Profile() {
     });
   };
 
+  // Helper to get initials from dbUser (fname[0] + lname[0])
+  const getInitials = () => {
+    if (dbUser?.fname && dbUser?.lname) {
+      return (dbUser.fname[0] + dbUser.lname[0]).toUpperCase();
+    }
+    // Fallback if DB data hasn't arrived yet
+    return (user.username?.[0] || "U").toUpperCase();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      {/* Sub-navbar Header */}
       <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
@@ -90,22 +131,29 @@ export function Profile() {
               <h1 className="text-3xl text-gray-900">My Profile</h1>
               <p className="text-gray-600 mt-1">Track your recovery journey</p>
             </div>
-           
           </div>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* User Info Card */}
+        
+        {/* User Info Card - NOW USES DB DATA */}
         <Card className="mb-8 overflow-hidden">
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white">
             <div className="flex items-center gap-4">
+              {/* INITIALS: fname[0] + lname[0] */}
               <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-4xl font-bold">
-                {user.username?.[0]?.toUpperCase() || "U"}
+                {getInitials()}
               </div>
               <div>
-                <h2 className="text-3xl mb-1">{user.username || "User"}</h2>
-                <p className="text-blue-100">{user.email}</p>
+                {/* NAME: fname + lname */}
+                <h2 className="text-3xl mb-1">
+                  {dbUser ? `${dbUser.fname} ${dbUser.lname}` : (user.username || "Loading...")}
+                </h2>
+                {/* EMAIL: Fetched from DB */}
+                <p className="text-blue-100">
+                  {dbUser ? dbUser.email : user.email}
+                </p>
                 <div className="flex gap-2 mt-4">
                   <Badge className="bg-white/20 text-white border-white/30">Member</Badge>
                   <Badge className="bg-green-500/80 text-white border-none">Active Now</Badge>
@@ -158,7 +206,7 @@ export function Profile() {
             </CardContent>
           </Card>
 
-          {/* CHAT HISTORY SECTION */}
+          {/* Community Chat History SECTION */}
           <Card>
             <CardContent className="p-6">
               <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
