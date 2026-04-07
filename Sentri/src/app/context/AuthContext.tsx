@@ -8,7 +8,6 @@ interface User {
   fname: string;   // <--- ADD THIS
   lname: string;   // <--- ADD THIS
   hasCompletedRecommender: boolean;
-  hasCompletedMeetingRecommender: boolean;
 }
 
 interface AuthContextType {
@@ -16,7 +15,6 @@ interface AuthContextType {
    login: (email: string, password: string, name: string, id: number, fname: string, lname: string) => void;
   logout: () => void;
   completeRecommender: () => void;
-  completeMeetingRecommender: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,7 +34,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       fname: fname.split(" ")[0] || "", // Extract first name
       lname: lname.split(" ")[0] || "", // Extract last name (if exists)
       hasCompletedRecommender: false,
-      hasCompletedMeetingRecommender: false,
     };
 
     console.log("DEBUG 2: AuthContext saving userData:", userData); // <--- Add this
@@ -58,14 +55,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const completeMeetingRecommender = () => {
-    if (user) {
-      setUser({ ...user, hasCompletedMeetingRecommender: true });
-    }
-  };
-
   return (
-    <AuthContext.Provider value={{ user, login, logout, completeRecommender, completeMeetingRecommender }}>
+    <AuthContext.Provider value={{ user, login, logout, completeRecommender }}>
       {children}
     </AuthContext.Provider>
   );

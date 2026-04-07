@@ -4,7 +4,6 @@ import { FindProgram } from "./pages/FindProgram";
 import { FindMeeting } from "./pages/FindMeeting";
 import { Login } from "./pages/Login";
 import { ProgramRecommender } from "./pages/ProgramRecommender";
-import { MeetingRecommender } from "./pages/MeetingRecommender";
 import { PRCGuide } from "./pages/PRCGuide";
 import { Profile } from "./pages/Profile";
 import { ProgramDetail } from "./pages/ProgramDetail";
@@ -26,10 +25,6 @@ export const router = createBrowserRouter(
       element: <ProgramRecommender />,
     },
     {
-      path: "/meeting-recommender",
-      element: <Layout><MeetingRecommender/></Layout>, // Wrapped,
-    },
-    {
       path: "/programs",
       element: <Layout><FindProgram /></Layout>, // Wrapped
     },
@@ -39,7 +34,7 @@ export const router = createBrowserRouter(
     },
     {
       path: "/meetings",
-      element: <Layout><MeetingRecommender/></Layout>, // Wrapped
+      element: <Layout><FindMeeting /></Layout>, // Wrapped
     },
     {
       path: "/profile",

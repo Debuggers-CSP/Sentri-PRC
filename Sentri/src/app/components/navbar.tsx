@@ -7,14 +7,12 @@ import { Button } from "./ui/button";
 export function Navbar() {
   const { user } = useAuth();
 
-  // Helper functions for dynamic links
   const getProgramLink = () => {
     return "/programs";
   };
 
   const getMeetingLink = () => {
-    const hasVisitedMeetings = localStorage.getItem("hasVisitedMeetings");
-    return (!hasVisitedMeetings && user) ? "/meeting-recommender" : "/meetings";
+    return "/meetings";
   };
 
   return (

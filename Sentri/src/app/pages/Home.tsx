@@ -14,11 +14,6 @@ export function Home() {
   };
 
   const getMeetingLink = () => {
-    // Check if this is the first visit to meetings page
-    const hasVisitedMeetings = localStorage.getItem("hasVisitedMeetings");
-    if (!hasVisitedMeetings && user) {
-      return "/meeting-recommender";
-    }
     return "/meetings";
   };
 
