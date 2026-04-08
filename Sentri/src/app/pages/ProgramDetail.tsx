@@ -97,11 +97,6 @@ export function ProgramDetail() {
     return () => clearInterval(interval);
   }, [programId]);
 
-  // 3. Auto-scroll to bottom whenever new messages arrive
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatMessages]);
-
   const handleSendMessage = async () => {
     if (!message.trim()) return;
 
