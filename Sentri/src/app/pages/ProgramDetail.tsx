@@ -192,21 +192,6 @@ export function ProgramDetail() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Link to="/programs" className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-3">
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back to Programs</span>
-              </Link>
-              <h1 className="text-3xl text-gray-900">{program.name} - {program.fullName}</h1>
-            </div>
-            <UserProfile />
-          </div>
-        </div>
-      </header>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card className="mb-8 overflow-hidden">
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white">
