@@ -374,13 +374,6 @@ convert-fix:
 
 # --- Integrated Sentri + JAL Build Logic ---
 
-# Use this to start both in dev mode (Two servers, different ports)
-# This is what you'll use while CODING
-dev-integrated: 
-	@make stop
-	@make sentri-serve & 
-	@make dev
-
 # This starts the Sentri dev server in the background
 sentri-serve:
 	@echo "Starting Sentri Dev Server..."
