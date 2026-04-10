@@ -7,12 +7,22 @@ interface User {
   email: string;
   fname: string;   // <--- ADD THIS
   lname: string;   // <--- ADD THIS
+  joined_program?: string;
   hasCompletedRecommender: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
-   login: (email: string, password: string, name: string, id: number, fname: string, lname: string) => void;
+  login: (
+    email: string,
+    password: string,
+    name: string,
+    id: number,
+    fname: string,
+    lname: string,
+    joinedProgram?: string
+  ) => void;
+  updateJoinedProgram: (programId: string) => void;
   logout: () => void;
   completeRecommender: () => void;
 }
@@ -26,13 +36,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  const login = (email: string, password: string, name: string, id: number, fname: string, lname: string) => {
+  const login = (
+    email: string,
+    password: string,
+    name: string,
+    id: number,
+    fname: string,
+    lname: string,
+    joinedProgram?: string
+  ) => {
     const userData = {
       id: id,
       name: name,
+      username: name,
       email: email,
       fname: fname.split(" ")[0] || "", // Extract first name
       lname: lname.split(" ")[0] || "", // Extract last name (if exists)
+      joined_program: joinedProgram,
       hasCompletedRecommender: false,
     };
 
@@ -40,6 +60,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
+  };
+
+  const updateJoinedProgram = (programId: string) => {
+    setUser((prevUser) => {
+      if (!prevUser) return prevUser;
+      const updatedUser = { ...prevUser, joined_program: programId };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      return updatedUser;
+    });
   };
 
   const logout = () => {
@@ -56,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, completeRecommender }}>
+    <AuthContext.Provider value={{ user, login, updateJoinedProgram, logout, completeRecommender }}>
       {children}
     </AuthContext.Provider>
   );

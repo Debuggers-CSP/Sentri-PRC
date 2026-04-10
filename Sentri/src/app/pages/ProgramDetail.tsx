@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useParams } from "react-router";
-import { ArrowLeft, Calendar, Clock, MapPin, Send, Users } from "lucide-react";
+import { Calendar, Check, Clock, MapPin, Send, UserPlus, Users } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { UserProfile } from "../components/UserProfile";
@@ -61,10 +61,11 @@ function extractStartTime(timeRange: string): string {
 
 export function ProgramDetail() {
   const { programId } = useParams<{ programId: string }>();
-  const { user } = useAuth();
+  const { user, updateJoinedProgram } = useAuth();
   const [message, setMessage] = useState("");
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [selectedMeeting, setSelectedMeeting] = useState<any>(null); // ← NEW
+  const [isJoined, setIsJoined] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   
   const program = programId ? programsData[programId] : null;
@@ -75,6 +76,10 @@ export function ProgramDetail() {
       setSelectedMeeting(program.meetings[0]);
     }
   }, [programId]);
+
+  useEffect(() => {
+    setIsJoined(Boolean(programId && user?.joined_program === programId));
+  }, [programId, user?.joined_program]);
 
   // 1. Function to Fetch Chat History
   const fetchChatHistory = async () => {
@@ -179,6 +184,38 @@ export function ProgramDetail() {
     }
   };
 
+  const handleJoin = async () => {
+    if (!programId) return;
+
+    if (!user || !user.id) {
+      alert("Please log in first!");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${pythonURI}/join-program`, {
+        ...fetchOptions,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: user.id,
+          program_id: programId,
+        }),
+      });
+
+      if (response.ok) {
+        updateJoinedProgram(programId);
+        setIsJoined(true);
+      } else {
+        const errData = await response.json();
+        alert(errData.message || "Failed to join program.");
+      }
+    } catch (err) {
+      console.error("Join Error:", err);
+      alert("Connection Error: Could not join program.");
+    }
+  };
+
   if (!program) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center">
@@ -205,6 +242,26 @@ export function ProgramDetail() {
                   ))}
                 </div>
               </div>
+              <Button
+                onClick={handleJoin}
+                className={
+                  isJoined
+                    ? "bg-green-600 hover:bg-green-700 text-white border border-green-500"
+                    : "bg-white text-blue-700 hover:bg-blue-100 border border-white/30"
+                }
+              >
+                {isJoined ? (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    Joined
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Join Program
+                  </>
+                )}
+              </Button>
             </div>
           </div>
           <CardContent className="p-8">

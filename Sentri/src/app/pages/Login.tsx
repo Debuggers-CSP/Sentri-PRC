@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router";
+import { useNavigate } from "react-router";
 import { Heart } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader } from "../components/ui/card";
@@ -7,12 +7,10 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { useAuth } from "../context/AuthContext";
-import { pythonURI, javaURI, fetchOptions } from '../../../../assets/js/api/config.js';
-import { set } from "date-fns";
+import { pythonURI, fetchOptions } from '../../../../assets/js/api/config.js';
 
 export function Login() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { login } = useAuth();
   
   const [loginUsername, setLoginUsername] = useState("");
@@ -53,9 +51,21 @@ const [errorMessage, setErrorMessage] = useState("");
         // 1. We get the real email from data.user.email
         // 2. We pass it as the first argument so AuthContext stores it
         console.log("DEBUG 1: Backend response user object:", data.user);
-        login(data.user.email, loginPassword, data.user.username, data.user.id, data.user.fname, data.user.lname); // Pass real email,
-        
-        navigate("/"); 
+        login(
+          data.user.email,
+          loginPassword,
+          data.user.username,
+          data.user.id,
+          data.user.fname,
+          data.user.lname,
+          data.user.joined_program
+        );
+
+        if (data.user.joined_program) {
+          navigate(`/programs/${data.user.joined_program}`);
+        } else {
+          navigate("/");
+        }
       } else {
         setErrorMessage(data.message || "Invalid credentials");
       }
