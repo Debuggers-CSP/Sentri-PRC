@@ -7,8 +7,9 @@ import { ProgramRecommender } from "./pages/ProgramRecommender";
 import { PRCGuide } from "./pages/PRCGuide";
 import { Profile } from "./pages/Profile";
 import { ProgramDetail } from "./pages/ProgramDetail";
-
 import { Layout } from "./components/Layout"; 
+import HomeView from './App.jsx'; 
+
 
 export const router = createBrowserRouter(
   [
@@ -40,6 +41,10 @@ export const router = createBrowserRouter(
       path: "/profile",
       element: <Layout><Profile /></Layout>, // Wrapped
     },
+    {
+      path: "/tracker",
+      element:<HomeView/>, 
+    }
   ],
   {
     basename: "/", 

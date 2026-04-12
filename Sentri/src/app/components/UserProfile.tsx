@@ -1,4 +1,4 @@
-  import { User, LogOut } from "lucide-react";
+  import { User, LogOut, Sprout } from "lucide-react"; // Added Sprout here
   import { useAuth } from "../context/AuthContext";
   import { useNavigate } from "react-router";
   import { Button } from "./ui/button";
@@ -11,6 +11,7 @@
     DropdownMenuTrigger,
   } from "./ui/dropdown-menu";
   import { Avatar, AvatarFallback } from "./ui/avatar";
+  import { Link } from 'react-router-dom';
 
   export function UserProfile() {
   const { user, logout } = useAuth();
@@ -72,15 +73,23 @@
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          
+          {/* Existing Profile Link */}
           <DropdownMenuItem onClick={handleProfileClick}>
             <User className="mr-2 h-4 w-4" />
             <span>Profile</span>
           </DropdownMenuItem>
+
+          {/* NEW Recovery Garden Link */}
+          <DropdownMenuItem onClick={() => navigate("/tracker")}>
+            <Sprout className="mr-2 h-4 w-4 text-green-600" />
+            <span className="font-medium text-green-700">Recovery Garden</span>
+          </DropdownMenuItem>
+
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => {
-    logout();           // 1. Clear the user session in AuthContext
-    navigate("/login"); // 2. Immediately move away to prevent a crash
-}}>
+          
+          {/* Existing Logout Link */}
+          <DropdownMenuItem onClick={handleLogoutClick}>
             <LogOut className="mr-2 h-4 w-4" />
             <span>Log out</span>
           </DropdownMenuItem>

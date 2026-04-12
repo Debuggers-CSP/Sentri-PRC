@@ -119,22 +119,6 @@ export function Profile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      {/* Sub-navbar Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Link to="/" className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-3">
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back to Home</span>
-              </Link>
-              <h1 className="text-3xl text-gray-900">My Profile</h1>
-              <p className="text-gray-600 mt-1">Track your recovery journey</p>
-            </div>
-          </div>
-        </div>
-      </header>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         {/* User Info Card - NOW USES DB DATA */}
