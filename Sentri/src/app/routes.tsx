@@ -8,7 +8,7 @@ import { PRCGuide } from "./pages/PRCGuide";
 import { Profile } from "./pages/Profile";
 import { ProgramDetail } from "./pages/ProgramDetail";
 import { Layout } from "./components/Layout"; 
-import HomeView from './App.jsx'; 
+import TrackerMain from './components/tracker/TrackerMain';
 
 
 export const router = createBrowserRouter(
@@ -43,7 +43,7 @@ export const router = createBrowserRouter(
     },
     {
       path: "/tracker",
-      element:<HomeView/>, 
+      element: <Layout><TrackerMain /></Layout>,
     }
   ],
   {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
+function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did you stay sober today?" }) {
   const [formData, setFormData] = useState({
     mood_score: 5,
     stress_score: 5,
@@ -125,7 +125,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit }) {
               color: "#334155"
             }}
           >
-            Did you stay sober today?
+            {checkinLabel}
           </div>
 
           <div style={{ display: "flex", gap: "8px" }}>

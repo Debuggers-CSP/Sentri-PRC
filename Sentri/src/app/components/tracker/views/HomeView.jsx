@@ -1,4 +1,4 @@
-function HomeView({ dashboardData, pillStyle, smallCardStyle, setActiveView }) {
+function HomeView({ dashboardData, pillStyle, smallCardStyle, setActiveView, streakLabel = "Sobriety Streak" }) {
   const profile = dashboardData?.profile || {};
   const garden = dashboardData?.garden || {};
   const nextMilestone = dashboardData?.next_milestone || {};
@@ -215,7 +215,7 @@ function HomeView({ dashboardData, pillStyle, smallCardStyle, setActiveView }) {
         >
           <div style={{ ...smallCardStyle, padding: "12px 14px" }}>
             <div style={{ fontSize: "12px", color: "#70808e", marginBottom: "10px" }}>
-              Sobriety milestone timeline
+              {streakLabel} timeline
             </div>
 
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
@@ -251,7 +251,7 @@ function HomeView({ dashboardData, pillStyle, smallCardStyle, setActiveView }) {
 
           <div style={{ ...smallCardStyle, padding: "12px 14px" }}>
             <div style={{ fontSize: "12px", color: "#70808e" }}>
-              Next Sobriety Milestone
+              Next Milestone
             </div>
             <div
               style={{

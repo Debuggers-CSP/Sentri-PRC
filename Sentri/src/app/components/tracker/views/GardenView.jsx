@@ -5,6 +5,7 @@ function GardenView({ dashboardData, pillStyle, smallCardStyle }) {
   const gardenLevel = garden.level ?? 0;
   const xp = garden.xp ?? 0;
   const xpToNextLevel = garden.xp_to_next_level ?? 40;
+  const gardenImage = garden.image || "/assets/garden/stage-1.svg";
 
   const progressPercent =
     xpToNextLevel > 0 ? Math.min((xp / xpToNextLevel) * 100, 100) : 0;
@@ -85,7 +86,16 @@ function GardenView({ dashboardData, pillStyle, smallCardStyle }) {
               flexShrink: 0
             }}
           >
-            <div style={{ fontSize: "140px", lineHeight: 1 }}>
+            <img
+              src={gardenImage}
+              alt={gardenLabel}
+              style={{ width: "150px", height: "150px", objectFit: "contain" }}
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+                e.currentTarget.nextSibling.style.display = "block";
+              }}
+            />
+            <div style={{ fontSize: "140px", lineHeight: 1, display: "none" }}>
               {getGardenEmoji(gardenLevel)}
             </div>
           </div>
