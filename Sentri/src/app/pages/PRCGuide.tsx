@@ -3,10 +3,23 @@ import { Sparkles, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { Button } from "../components/ui/button";
 
+export interface GuideAnswers {
+  is_substance_abuse: number;
+  is_family_member: number;
+  has_trauma: number;
+  is_minor: number;
+  is_behavioral_issue: number;
+  focus_alcohol: number;
+  focus_drugs: number;
+  focus_cocaine: number;
+  focus_gambling: number;
+  focus_sex_rel: number;
+}
+
 interface PRCGuidePanelProps {
   isOpen: boolean;
   onClose: () => void;
-  onMatch: (programId: number) => void;
+  onMatch: (programId: number, answers: GuideAnswers) => void;
 }
 
 type DiscoveryStep = "who" | "me-heavy" | "substances" | "habits" | "others" | "adult" | "thinking";
@@ -17,7 +30,21 @@ interface Option {
   emoji: string;
   nextStep?: Exclude<DiscoveryStep, "thinking">;
   matchProgramId?: number;
+  featureUpdates?: Partial<GuideAnswers>;
 }
+
+const defaultAnswers: GuideAnswers = {
+  is_substance_abuse: 0,
+  is_family_member: 0,
+  has_trauma: 0,
+  is_minor: 0,
+  is_behavioral_issue: 0,
+  focus_alcohol: 0,
+  focus_drugs: 0,
+  focus_cocaine: 0,
+  focus_gambling: 0,
+  focus_sex_rel: 0
+};
 
 const stepPrompts: Record<Exclude<DiscoveryStep, "thinking">, string> = {
   who: "Who are we focusing on today?",
@@ -31,40 +58,84 @@ const stepPrompts: Record<Exclude<DiscoveryStep, "thinking">, string> = {
 const stepOptions: Record<Exclude<DiscoveryStep, "thinking">, Option[]> = {
   who: [
     { id: "me", title: "Me", emoji: "🧘", nextStep: "me-heavy" },
-    { id: "others", title: "Others", emoji: "❤️", nextStep: "others" }
+    {
+      id: "others",
+      title: "Others",
+      emoji: "❤️",
+      nextStep: "others",
+      featureUpdates: { is_family_member: 1 }
+    }
   ],
   "me-heavy": [
-    { id: "substances", title: "Substances", emoji: "💊", nextStep: "substances" },
-    { id: "habits", title: "Habits", emoji: "🎰", nextStep: "habits" },
-    { id: "past", title: "My Past", emoji: "🧸", matchProgramId: 2 }
+    {
+      id: "substances",
+      title: "Substances",
+      emoji: "💊",
+      nextStep: "substances",
+      featureUpdates: { is_substance_abuse: 1 }
+    },
+    {
+      id: "habits",
+      title: "Habits",
+      emoji: "🎰",
+      nextStep: "habits",
+      featureUpdates: { is_behavioral_issue: 1 }
+    },
+    { id: "past", title: "My Past", emoji: "🧸", matchProgramId: 2, featureUpdates: { has_trauma: 1 } }
   ],
   substances: [
-    { id: "alcohol", title: "Alcohol", emoji: "🍺", matchProgramId: 1 },
-    { id: "narcotics", title: "Narcotics", emoji: "💉", matchProgramId: 5 },
-    { id: "cocaine", title: "Cocaine", emoji: "❄️", matchProgramId: 6 }
+    { id: "alcohol", title: "Alcohol", emoji: "🍺", matchProgramId: 1, featureUpdates: { is_substance_abuse: 1, focus_alcohol: 1 } },
+    { id: "narcotics", title: "Narcotics", emoji: "💉", matchProgramId: 5, featureUpdates: { is_substance_abuse: 1, focus_drugs: 1 } },
+    { id: "cocaine", title: "Cocaine", emoji: "❄️", matchProgramId: 6, featureUpdates: { is_substance_abuse: 1, focus_cocaine: 1 } }
   ],
   habits: [
-    { id: "luck", title: "Luck/Money", emoji: "🎲", matchProgramId: 7 },
-    { id: "relationships", title: "Relationships", emoji: "🫂", matchProgramId: 8 }
+    { id: "luck", title: "Luck/Money", emoji: "🎲", matchProgramId: 7, featureUpdates: { is_behavioral_issue: 1, focus_gambling: 1 } },
+    { id: "relationships", title: "Relationships", emoji: "🫂", matchProgramId: 8, featureUpdates: { is_behavioral_issue: 1, focus_sex_rel: 1 } }
   ],
   others: [
-    { id: "teen", title: "Teen", emoji: "🎒", matchProgramId: 3 },
-    { id: "adult", title: "Adult", emoji: "🏠", nextStep: "adult" }
+    {
+      id: "teen",
+      title: "Teen",
+      emoji: "🎒",
+      matchProgramId: 3,
+      featureUpdates: { is_family_member: 1, is_minor: 1 }
+    },
+    {
+      id: "adult",
+      title: "Adult",
+      emoji: "🏠",
+      nextStep: "adult",
+      featureUpdates: { is_family_member: 1 }
+    }
   ],
   adult: [
-    { id: "dysfunctional-home", title: "Dysfunctional Home", emoji: "🏚️", matchProgramId: 2 },
-    { id: "drinking", title: "Loved one's drinking", emoji: "🍷", matchProgramId: 4 }
+    {
+      id: "dysfunctional-home",
+      title: "Dysfunctional Home",
+      emoji: "🏚️",
+      matchProgramId: 2,
+      featureUpdates: { is_family_member: 1, has_trauma: 1 }
+    },
+    {
+      id: "drinking",
+      title: "Loved one's drinking",
+      emoji: "🍷",
+      matchProgramId: 4,
+      featureUpdates: { is_family_member: 1, focus_alcohol: 1 }
+    }
   ]
 };
 
 export function PRCGuidePanel({ isOpen, onClose, onMatch }: PRCGuidePanelProps) {
   const [step, setStep] = useState<DiscoveryStep>("who");
   const [pendingMatchId, setPendingMatchId] = useState<number | null>(null);
+  const [answers, setAnswers] = useState<GuideAnswers>(defaultAnswers);
 
   useEffect(() => {
     if (!isOpen) {
       setStep("who");
       setPendingMatchId(null);
+      setAnswers(defaultAnswers);
     }
   }, [isOpen]);
 
@@ -74,14 +145,18 @@ export function PRCGuidePanel({ isOpen, onClose, onMatch }: PRCGuidePanelProps) 
     }
 
     const timeout = setTimeout(() => {
-      onMatch(pendingMatchId);
+      onMatch(pendingMatchId, answers);
       onClose();
     }, 2000);
 
     return () => clearTimeout(timeout);
-  }, [step, pendingMatchId, onMatch, onClose]);
+  }, [step, pendingMatchId, onMatch, onClose, answers]);
 
   const handleOptionClick = (option: Option) => {
+    if (option.featureUpdates) {
+      setAnswers((prev) => ({ ...prev, ...option.featureUpdates }));
+    }
+
     if (option.matchProgramId) {
       setPendingMatchId(option.matchProgramId);
       setStep("thinking");
