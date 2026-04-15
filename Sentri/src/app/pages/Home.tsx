@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router";
-import { Search, Users, Heart, Phone, MapPin, Clock, Leaf, Sparkles } from "lucide-react";
+import { Search, Users, Heart, Phone, MapPin, Clock, Leaf, Sparkles, Wind, Plus, MessageCircle } from "lucide-react"; 
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
@@ -11,43 +11,52 @@ export function Home() {
 
   // --- SCRATCH CARD LOGIC ---
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isRevealed, setIsRevealed] = useState(false);
-  
   const dailyQuotes = [
     "One day at a time.",
     "Your past does not define your future.",
     "Progress, not perfection.",
     "Believe you can and you're halfway there.",
     "Recovery is a journey, not a destination.",
-    "The secret of getting ahead is getting started.",
     "Small steps lead to big changes."
   ];
-
   const dailyQuote = dailyQuotes[new Date().getDate() % dailyQuotes.length];
 
-  // Initialize the Canvas "Paint" layer
+  // --- IDEA #10: GRATITUDE JAR LOGIC ---
+  const [gratitudeCount, setGratitudeCount] = useState(0);
+  const [gratitudeText, setGratitudeText] = useState("");
+  const [isJarOpen, setIsJarOpen] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const handleAddGratitude = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!gratitudeText.trim()) return;
+
+    setIsAnimating(true);
+    // Wait for animation to finish before adding to count
+    setTimeout(() => {
+      setGratitudeCount(prev => prev + 1);
+      setIsAnimating(false);
+      setGratitudeText("");
+      setIsJarOpen(false);
+    }, 1000);
+  };
+
   useEffect(() => {
+    // Canvas setup code for scratch card
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-
-    // Set canvas internal resolution to match displayed size
     const rect = canvas.getBoundingClientRect();
     canvas.width = rect.width;
     canvas.height = rect.height;
-
-    // Draw the green gradient "foil"
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, "#124627"); // Teammate's dark green
-    gradient.addColorStop(0.5, "#005A2C"); // Middle green
+    gradient.addColorStop(0, "#124627");
+    gradient.addColorStop(0.5, "#005A2C");
     gradient.addColorStop(1, "#124627");
-    
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Add instruction text directly to the canvas so it gets scratched away
-    ctx.fillStyle = "rgba(232, 245, 233, 0.6)"; // Light green text
+    ctx.fillStyle = "rgba(232, 245, 233, 0.6)";
     ctx.font = "bold 14px Inter, sans-serif";
     ctx.textAlign = "center";
     ctx.fillText("MOUSE OVER TO SCRATCH", canvas.width / 2, canvas.height / 2 + 5);
@@ -58,21 +67,91 @@ export function Home() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-
-    // This is the magic: 'destination-out' erases whatever is already drawn
     ctx.globalCompositeOperation = "destination-out";
     ctx.beginPath();
-    ctx.arc(x, y, 25, 0, Math.PI * 2); // 25 is the size of the "scratch" brush
+    ctx.arc(x, y, 30, 0, Math.PI * 2);
     ctx.fill();
   };
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#F8FAF5_0%,#F1F8EB_45%,#E8F5E9_100%)] text-[#1F3B2B]">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#F8FAF5_0%,#F1F8EB_45%,#E8F5E9_100%)] text-[#1F3B2B] overflow-x-hidden">
       
+      <style>{`
+        @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        @keyframes breathe { 0%, 100% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.6); opacity: 0.1; } }
+        @keyframes dropStar {
+          0% { transform: translateY(-200px) scale(0); opacity: 0; }
+          50% { transform: translateY(0) scale(1.2); opacity: 1; }
+          100% { transform: translateY(100px) scale(0.5); opacity: 0; }
+        }
+      `}</style>
+
+      {/* --- IDEA #8: THE BREATH PULSE --- */}
+      <div className="fixed bottom-8 right-8 z-50 flex flex-col items-center gap-3">
+        <div className="relative flex items-center justify-center">
+          <div className="absolute h-12 w-12 rounded-full bg-[#76B82A] animate-[breathe_4s_infinite_ease-in-out]" />
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[#005A2C] text-white shadow-lg"><Wind className="h-5 w-5" /></div>
+        </div>
+      </div>
+
+      {/* --- IDEA #10: THE GRATITUDE JAR WIDGET --- */}
+      <div className="fixed left-8 bottom-8 z-50">
+        {/* The Falling Star Animation */}
+        {isAnimating && (
+          <div className="absolute left-1/2 -translate-x-1/2 text-yellow-400 animate-[dropStar_1s_ease-in-out]">
+            <Sparkles className="h-8 w-8 fill-current" />
+          </div>
+        )}
+
+        <div className="group relative">
+          {/* Tooltip */}
+          <div className="absolute -top-12 left-0 w-max scale-0 rounded bg-[#124627] px-2 py-1 text-[10px] text-white transition-all group-hover:scale-100">
+            Gratitude Jar: {gratitudeCount} stars
+          </div>
+          
+          {/* The Jar Container */}
+          <div 
+            onClick={() => setIsJarOpen(!isJarOpen)}
+            className="relative h-20 w-16 cursor-pointer rounded-b-2xl rounded-t-lg border-2 border-white/40 bg-white/20 backdrop-blur-md shadow-lg transition-transform hover:scale-110 active:scale-95"
+          >
+            {/* The "Marbles" (Stars inside the jar) */}
+            <div className="flex h-full w-full flex-wrap-reverse content-start justify-center gap-1 p-2 overflow-hidden">
+              {[...Array(Math.min(gratitudeCount, 12))].map((_, i) => (
+                <div key={i} className="h-2 w-2 rounded-full bg-yellow-400 shadow-[0_0_5px_rgba(250,204,21,0.8)]" />
+              ))}
+            </div>
+            
+            {/* Jar Label */}
+            <div className="absolute -bottom-6 left-0 w-full text-center text-[8px] font-black uppercase tracking-tighter text-[#005A2C]">
+              Gratitude
+            </div>
+          </div>
+
+          {/* Gratitude Input Popover */}
+          {isJarOpen && (
+            <div className="absolute bottom-24 left-0 w-64 rounded-2xl border border-[#E0EADD] bg-white p-4 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+              <h4 className="mb-2 text-sm font-bold text-[#005A2C]">One nice thing today?</h4>
+              <form onSubmit={handleAddGratitude} className="flex flex-col gap-2">
+                <textarea 
+                  autoFocus
+                  value={gratitudeText}
+                  onChange={(e) => setGratitudeText(e.target.value)}
+                  className="w-full rounded-xl border-[#E0EADD] bg-[#F8FAF5] p-2 text-xs focus:ring-1 focus:ring-[#76B82A] outline-none"
+                  placeholder="Today I am thankful for..."
+                  rows={2}
+                />
+                <Button size="sm" type="submit" className="bg-[#005A2C] text-xs h-8">
+                  Add to Jar
+                </Button>
+              </form>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Hero Section */}
       <section className="relative h-[520px] overflow-hidden">
         <div className="absolute inset-0">
@@ -107,29 +186,13 @@ export function Home() {
             <h3 className="text-xs font-bold uppercase tracking-[0.2em]">Daily Focus Check-in</h3>
           </div>
           
-          {/* Card Container */}
           <div className="relative h-32 w-full max-w-xl overflow-hidden rounded-[28px] bg-white shadow-2xl transition-transform hover:scale-[1.01]">
-            
-            {/* BOTTOM LAYER: The Revealed Quote */}
             <div className="absolute inset-0 flex items-center justify-center p-6 text-center select-none">
-              <p className="text-xl font-medium italic text-[#005A2C]">
-                "{dailyQuote}"
-              </p>
+              <p className="text-xl font-medium italic text-[#005A2C]">"{dailyQuote}"</p>
             </div>
-
-            {/* TOP LAYER: The Interactive Canvas */}
-            <canvas 
-              ref={canvasRef}
-              onMouseMove={handleScratch}
-              className="absolute inset-0 z-10 cursor-crosshair"
-            />
-            
-            {/* Shiny border overlay to make it look premium */}
+            <canvas ref={canvasRef} onMouseMove={handleScratch} className="absolute inset-0 z-10 cursor-crosshair" />
             <div className="pointer-events-none absolute inset-0 rounded-[28px] border-2 border-white/20 z-20"></div>
           </div>
-          <p className="mt-3 text-[10px] uppercase tracking-widest text-[#43624D] opacity-60 font-bold">
-            Interact to reveal your supportive message
-          </p>
         </div>
       </section>
 
@@ -212,33 +275,6 @@ export function Home() {
             </div>
             <h3 className="mb-3 text-xl text-[#005A2C]">24/7 Availability</h3>
             <p className="text-[#43624D]">Round-the-clock support and crisis intervention when you need it most.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Section */}
-      <section className="bg-[linear-gradient(135deg,#005A2C_0%,#76B82A_100%)] py-16 text-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-12 md:grid-cols-2">
-            <div>
-              <h2 className="mb-6 text-3xl">Get Help Today</h2>
-              <p className="mb-8 text-[#E8F5E9]">
-                Taking the first step is often the hardest. Our admissions team is here to guide you
-                and answer any questions you may have.
-              </p>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3"><Phone className="h-5 w-5" /><span className="text-lg">(858) 555-0123</span></div>
-                <div className="flex items-center gap-3"><MapPin className="h-5 w-5" /><span>12345 Community Drive, Poway, CA 92064</span></div>
-                <div className="flex items-center gap-3"><Clock className="h-5 w-5" /><span>Open 24/7 for admissions</span></div>
-              </div>
-            </div>
-            <div className="flex items-center">
-              <div className="w-full rounded-[28px] border border-white/25 bg-white/12 p-8 backdrop-blur-sm">
-                <h3 className="mb-4 text-xl">Need Immediate Help?</h3>
-                <p className="mb-6 text-[#E8F5E9]">If you're in crisis, don't wait. Call our 24-hour hotline now.</p>
-                <Button size="lg" className="w-full bg-white text-[#005A2C]">Call Crisis Line: (858) 555-9999</Button>
-              </div>
-            </div>
           </div>
         </div>
       </section>
