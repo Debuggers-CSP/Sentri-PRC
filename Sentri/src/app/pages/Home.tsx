@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router";
 import { Search, Users, Heart, Phone, MapPin, Clock, Leaf, Sparkles } from "lucide-react";
 import { Button } from "../components/ui/button";
@@ -9,7 +9,8 @@ export function Home() {
   const getProgramLink = () => "/programs";
   const getMeetingLink = () => "/meetings";
 
-  // --- DAILY FOCUS LOGIC ---
+  // --- SCRATCH CARD LOGIC ---
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isRevealed, setIsRevealed] = useState(false);
   
   const dailyQuotes = [
@@ -19,22 +20,59 @@ export function Home() {
     "Believe you can and you're halfway there.",
     "Recovery is a journey, not a destination.",
     "The secret of getting ahead is getting started.",
-    "Be the change you wish to see in the world."
+    "Small steps lead to big changes."
   ];
 
-  // Pick a quote based on the current date
   const dailyQuote = dailyQuotes[new Date().getDate() % dailyQuotes.length];
+
+  // Initialize the Canvas "Paint" layer
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Set canvas internal resolution to match displayed size
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+
+    // Draw the green gradient "foil"
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, "#124627"); // Teammate's dark green
+    gradient.addColorStop(0.5, "#005A2C"); // Middle green
+    gradient.addColorStop(1, "#124627");
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Add instruction text directly to the canvas so it gets scratched away
+    ctx.fillStyle = "rgba(232, 245, 233, 0.6)"; // Light green text
+    ctx.font = "bold 14px Inter, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("MOUSE OVER TO SCRATCH", canvas.width / 2, canvas.height / 2 + 5);
+  }, []);
+
+  const handleScratch = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // This is the magic: 'destination-out' erases whatever is already drawn
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.beginPath();
+    ctx.arc(x, y, 25, 0, Math.PI * 2); // 25 is the size of the "scratch" brush
+    ctx.fill();
+  };
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#F8FAF5_0%,#F1F8EB_45%,#E8F5E9_100%)] text-[#1F3B2B]">
-      {/* Animation Styles */}
-      <style>{`
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-      `}</style>
-
+      
       {/* Hero Section */}
       <section className="relative h-[520px] overflow-hidden">
         <div className="absolute inset-0">
@@ -69,33 +107,29 @@ export function Home() {
             <h3 className="text-xs font-bold uppercase tracking-[0.2em]">Daily Focus Check-in</h3>
           </div>
           
-          <div 
-            onClick={() => setIsRevealed(true)}
-            className="relative h-32 w-full max-w-xl cursor-pointer overflow-hidden rounded-[28px] shadow-2xl transition-transform hover:scale-[1.01] active:scale-[0.99]"
-          >
-            {/* The revealed Quote (Bottom Layer) */}
-            <div className="absolute inset-0 flex items-center justify-center border-2 border-white/20 bg-white p-6 text-center shadow-inner">
+          {/* Card Container */}
+          <div className="relative h-32 w-full max-w-xl overflow-hidden rounded-[28px] bg-white shadow-2xl transition-transform hover:scale-[1.01]">
+            
+            {/* BOTTOM LAYER: The Revealed Quote */}
+            <div className="absolute inset-0 flex items-center justify-center p-6 text-center select-none">
               <p className="text-xl font-medium italic text-[#005A2C]">
                 "{dailyQuote}"
               </p>
             </div>
 
-            {/* The "Foil" Scratch Layer (Top Layer) */}
-            <div className={`absolute inset-0 z-10 flex items-center justify-center transition-all duration-700 ease-in-out
-              ${isRevealed ? "pointer-events-none translate-y-full opacity-0" : "translate-y-0 opacity-100"}
-              bg-gradient-to-br from-[#124627] via-[#005A2C] to-[#124627] border border-white/20`}
-            >
-              {/* Shimmer Effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_3s_infinite] pointer-events-none"></div>
-              
-              <div className="flex flex-col items-center gap-2 text-[#E8F5E9]">
-                <div className="rounded-full bg-white/10 p-2">
-                  <Leaf className="h-6 w-6 opacity-60" />
-                </div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-white/80">Click to reveal your focus</span>
-              </div>
-            </div>
+            {/* TOP LAYER: The Interactive Canvas */}
+            <canvas 
+              ref={canvasRef}
+              onMouseMove={handleScratch}
+              className="absolute inset-0 z-10 cursor-crosshair"
+            />
+            
+            {/* Shiny border overlay to make it look premium */}
+            <div className="pointer-events-none absolute inset-0 rounded-[28px] border-2 border-white/20 z-20"></div>
           </div>
+          <p className="mt-3 text-[10px] uppercase tracking-widest text-[#43624D] opacity-60 font-bold">
+            Interact to reveal your supportive message
+          </p>
         </div>
       </section>
 
