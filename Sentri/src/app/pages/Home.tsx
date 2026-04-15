@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router";
-import { Search, Users, Heart, Phone, MapPin, Clock, Leaf, Sparkles, Wind, Plus, MessageCircle } from "lucide-react"; 
+import { Search, Users, Heart, Phone, MapPin, Clock, Leaf, Sparkles, Wind, Star } from "lucide-react"; 
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
@@ -21,18 +21,27 @@ export function Home() {
   ];
   const dailyQuote = dailyQuotes[new Date().getDate() % dailyQuotes.length];
 
-  // --- IDEA #10: GRATITUDE JAR LOGIC ---
+  // --- IDEA #10: AESTHETIC GRATITUDE JAR LOGIC ---
   const [gratitudeCount, setGratitudeCount] = useState(0);
   const [gratitudeText, setGratitudeText] = useState("");
   const [isJarOpen, setIsJarOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+
+  // Audio setup
+  const playChime = () => {
+    const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2432/2432-preview.mp3");
+    audio.volume = 0.5;
+    audio.play();
+  };
 
   const handleAddGratitude = (e: React.FormEvent) => {
     e.preventDefault();
     if (!gratitudeText.trim()) return;
 
     setIsAnimating(true);
-    // Wait for animation to finish before adding to count
+    playChime();
+
+    // Wait for the star to "fall" before updating count and closing
     setTimeout(() => {
       setGratitudeCount(prev => prev + 1);
       setIsAnimating(false);
@@ -41,8 +50,8 @@ export function Home() {
     }, 1000);
   };
 
+  // Scratch Card Canvas Init
   useEffect(() => {
-    // Canvas setup code for scratch card
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -82,10 +91,16 @@ export function Home() {
       <style>{`
         @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
         @keyframes breathe { 0%, 100% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.6); opacity: 0.1; } }
+        
         @keyframes dropStar {
-          0% { transform: translateY(-200px) scale(0); opacity: 0; }
-          50% { transform: translateY(0) scale(1.2); opacity: 1; }
-          100% { transform: translateY(100px) scale(0.5); opacity: 0; }
+          0% { transform: translateY(-300px) scale(0) rotate(0deg); opacity: 0; filter: blur(5px); }
+          30% { transform: translateY(-150px) scale(1.5) rotate(180deg); opacity: 1; filter: blur(0px); }
+          100% { transform: translateY(20px) scale(0.5) rotate(360deg); opacity: 0; }
+        }
+
+        @keyframes jarJiggle {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05) rotate(2deg); }
         }
       `}</style>
 
@@ -97,54 +112,73 @@ export function Home() {
         </div>
       </div>
 
-      {/* --- IDEA #10: THE GRATITUDE JAR WIDGET --- */}
-      <div className="fixed left-8 bottom-8 z-50">
+      {/* --- IDEA #10: THE AESTHETIC MASON JAR WIDGET --- */}
+      <div className="fixed left-10 bottom-10 z-50">
+        
         {/* The Falling Star Animation */}
         {isAnimating && (
-          <div className="absolute left-1/2 -translate-x-1/2 text-yellow-400 animate-[dropStar_1s_ease-in-out]">
-            <Sparkles className="h-8 w-8 fill-current" />
+          <div className="absolute left-1/2 -translate-x-1/2 z-[60] text-yellow-300 animate-[dropStar_1s_ease-in-out] pointer-events-none">
+            <Star className="h-10 w-10 fill-current shadow-[0_0_20px_rgba(253,224,71,0.8)]" />
           </div>
         )}
 
         <div className="group relative">
-          {/* Tooltip */}
-          <div className="absolute -top-12 left-0 w-max scale-0 rounded bg-[#124627] px-2 py-1 text-[10px] text-white transition-all group-hover:scale-100">
+          {/* Tooltip Label */}
+          <div className="absolute -top-14 left-0 w-max scale-0 rounded-lg bg-[#005A2C] px-3 py-1.5 text-xs font-bold text-white shadow-xl transition-all group-hover:scale-100">
             Gratitude Jar: {gratitudeCount} stars
           </div>
           
-          {/* The Jar Container */}
+          {/* THE MASON JAR UI */}
           <div 
             onClick={() => setIsJarOpen(!isJarOpen)}
-            className="relative h-20 w-16 cursor-pointer rounded-b-2xl rounded-t-lg border-2 border-white/40 bg-white/20 backdrop-blur-md shadow-lg transition-transform hover:scale-110 active:scale-95"
+            className={`relative w-20 h-28 cursor-pointer transition-all hover:brightness-110 active:scale-95
+              ${isAnimating ? "animate-[jarJiggle_0.5s_ease-in-out_0.8s]" : ""}`}
           >
-            {/* The "Marbles" (Stars inside the jar) */}
-            <div className="flex h-full w-full flex-wrap-reverse content-start justify-center gap-1 p-2 overflow-hidden">
-              {[...Array(Math.min(gratitudeCount, 12))].map((_, i) => (
-                <div key={i} className="h-2 w-2 rounded-full bg-yellow-400 shadow-[0_0_5px_rgba(250,204,21,0.8)]" />
-              ))}
+            {/* Wooden Lid */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-14 h-4 bg-[#8B4513] rounded-t-md border-b-2 border-black/20 z-20 shadow-sm" />
+            
+            {/* Glass Body */}
+            <div className="absolute inset-0 top-3 rounded-b-[2rem] rounded-t-lg border-2 border-white/60 bg-white/10 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.1)] overflow-hidden">
+              
+              {/* Glass Reflection Shine */}
+              <div className="absolute top-2 left-2 w-4 h-16 bg-white/20 rounded-full blur-[2px] -rotate-12" />
+
+              {/* Glowing Stars Inside */}
+              <div className="flex h-full w-full flex-wrap-reverse content-start justify-center gap-1 p-3 pt-6 overflow-hidden">
+                {[...Array(Math.min(gratitudeCount, 15))].map((_, i) => (
+                  <Star 
+                    key={i} 
+                    className="h-3 w-3 text-yellow-300 fill-current animate-pulse" 
+                    style={{ animationDelay: `${i * 0.2}s` }}
+                  />
+                ))}
+              </div>
             </div>
             
-            {/* Jar Label */}
-            <div className="absolute -bottom-6 left-0 w-full text-center text-[8px] font-black uppercase tracking-tighter text-[#005A2C]">
-              Gratitude
+            {/* Paper Label on the Jar */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 bg-[#F5F5DC] border border-[#D2B48C] rotate-1 shadow-sm px-1 py-0.5">
+               <p className="text-[7px] font-bold text-[#5D4037] text-center uppercase tracking-tighter">My Gratitude</p>
             </div>
           </div>
 
           {/* Gratitude Input Popover */}
           {isJarOpen && (
-            <div className="absolute bottom-24 left-0 w-64 rounded-2xl border border-[#E0EADD] bg-white p-4 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
-              <h4 className="mb-2 text-sm font-bold text-[#005A2C]">One nice thing today?</h4>
-              <form onSubmit={handleAddGratitude} className="flex flex-col gap-2">
+            <div className="absolute bottom-32 left-0 w-72 rounded-[28px] border border-[#E0EADD] bg-white p-5 shadow-[0_20px_50px_rgba(0,0,0,0.2)] animate-in slide-in-from-bottom-6 duration-500 z-[70]">
+              <div className="flex items-center gap-2 mb-3">
+                <Heart className="h-4 w-4 text-[#76B82A] fill-current" />
+                <h4 className="text-sm font-bold text-[#005A2C]">Capture a moment of joy</h4>
+              </div>
+              <form onSubmit={handleAddGratitude} className="flex flex-col gap-3">
                 <textarea 
                   autoFocus
                   value={gratitudeText}
                   onChange={(e) => setGratitudeText(e.target.value)}
-                  className="w-full rounded-xl border-[#E0EADD] bg-[#F8FAF5] p-2 text-xs focus:ring-1 focus:ring-[#76B82A] outline-none"
-                  placeholder="Today I am thankful for..."
-                  rows={2}
+                  className="w-full rounded-2xl border-none bg-[#F8FAF5] p-3 text-sm text-[#43624D] placeholder-[#A5B9AD] focus:ring-2 focus:ring-[#76B82A] outline-none transition-all"
+                  placeholder="What are you thankful for today?"
+                  rows={3}
                 />
-                <Button size="sm" type="submit" className="bg-[#005A2C] text-xs h-8">
-                  Add to Jar
+                <Button type="submit" className="bg-[#005A2C] hover:bg-[#124627] text-white rounded-xl h-10 font-bold shadow-lg shadow-[#005A2C]/20">
+                  Drop into Jar
                 </Button>
               </form>
             </div>
