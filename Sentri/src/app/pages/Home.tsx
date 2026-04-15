@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Link } from "react-router";
-import { Search, Users, Heart, Phone, MapPin, Clock, Leaf } from "lucide-react";
+import { Search, Users, Heart, Phone, MapPin, Clock, Leaf, Sparkles } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
@@ -8,8 +9,33 @@ export function Home() {
   const getProgramLink = () => "/programs";
   const getMeetingLink = () => "/meetings";
 
+  // --- DAILY FOCUS LOGIC ---
+  const [isRevealed, setIsRevealed] = useState(false);
+  
+  const dailyQuotes = [
+    "One day at a time.",
+    "Your past does not define your future.",
+    "Progress, not perfection.",
+    "Believe you can and you're halfway there.",
+    "Recovery is a journey, not a destination.",
+    "The secret of getting ahead is getting started.",
+    "Be the change you wish to see in the world."
+  ];
+
+  // Pick a quote based on the current date
+  const dailyQuote = dailyQuotes[new Date().getDate() % dailyQuotes.length];
+
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#F8FAF5_0%,#F1F8EB_45%,#E8F5E9_100%)] text-[#1F3B2B]">
+      {/* Animation Styles */}
+      <style>{`
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+      `}</style>
+
+      {/* Hero Section */}
       <section className="relative h-[520px] overflow-hidden">
         <div className="absolute inset-0">
           <ImageWithFallback
@@ -35,13 +61,52 @@ export function Home() {
         </div>
       </section>
 
-      <section className="relative z-10 mx-auto -mt-16 max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* Daily Focus Scratch-Off Module */}
+      <section className="relative z-20 mx-auto -mt-12 mb-12 max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col items-center">
+          <div className="mb-4 flex items-center gap-2 text-white">
+            <Sparkles className="h-4 w-4" />
+            <h3 className="text-xs font-bold uppercase tracking-[0.2em]">Daily Focus Check-in</h3>
+          </div>
+          
+          <div 
+            onClick={() => setIsRevealed(true)}
+            className="relative h-32 w-full max-w-xl cursor-pointer overflow-hidden rounded-[28px] shadow-2xl transition-transform hover:scale-[1.01] active:scale-[0.99]"
+          >
+            {/* The revealed Quote (Bottom Layer) */}
+            <div className="absolute inset-0 flex items-center justify-center border-2 border-white/20 bg-white p-6 text-center shadow-inner">
+              <p className="text-xl font-medium italic text-[#005A2C]">
+                "{dailyQuote}"
+              </p>
+            </div>
+
+            {/* The "Foil" Scratch Layer (Top Layer) */}
+            <div className={`absolute inset-0 z-10 flex items-center justify-center transition-all duration-700 ease-in-out
+              ${isRevealed ? "pointer-events-none translate-y-full opacity-0" : "translate-y-0 opacity-100"}
+              bg-gradient-to-br from-[#124627] via-[#005A2C] to-[#124627] border border-white/20`}
+            >
+              {/* Shimmer Effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_3s_infinite] pointer-events-none"></div>
+              
+              <div className="flex flex-col items-center gap-2 text-[#E8F5E9]">
+                <div className="rounded-full bg-white/10 p-2">
+                  <Leaf className="h-6 w-6 opacity-60" />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-white/80">Click to reveal your focus</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Main CTA Cards */}
+      <section className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-6 md:grid-cols-2">
           <Link to={getProgramLink()} className="group block">
             <Card className="overflow-hidden rounded-[28px] border border-[#E0EADD] bg-white shadow-[0_14px_34px_rgba(0,90,44,0.11)] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_38px_rgba(0,90,44,0.16)]">
               <div className="h-52 overflow-hidden">
                 <ImageWithFallback
-                  src="https://images.unsplash.com/photo-1722094250550-4993fa28a51b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWxsbmVzcyUyMG1lZGl0YXRpb24lMjBwZWFjZWZ1bHxlbnwxfHx8fDE3NzM5ODM5MjF8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                  src="https://images.unsplash.com/photo-1722094250550-4993fa28a51b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzd2VsbG5lc3MlMjBtZWRpdGF0aW9uJTIwcGVhY2VmdWx8ZW58MXx8fHwxNzM5ODM5MjF8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
                   alt="Wellness programs"
                   className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
@@ -89,6 +154,7 @@ export function Home() {
         </div>
       </section>
 
+      {/* Features Section */}
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
         <h2 className="mb-12 text-center text-3xl text-[#005A2C]">Why Choose Poway Recovery Center</h2>
         <div className="grid gap-8 md:grid-cols-3">
@@ -116,6 +182,7 @@ export function Home() {
         </div>
       </section>
 
+      {/* Contact Section */}
       <section className="bg-[linear-gradient(135deg,#005A2C_0%,#76B82A_100%)] py-16 text-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-12 md:grid-cols-2">
@@ -135,7 +202,7 @@ export function Home() {
               <div className="w-full rounded-[28px] border border-white/25 bg-white/12 p-8 backdrop-blur-sm">
                 <h3 className="mb-4 text-xl">Need Immediate Help?</h3>
                 <p className="mb-6 text-[#E8F5E9]">If you're in crisis, don't wait. Call our 24-hour hotline now.</p>
-                <Button size="lg" className="w-full">Call Crisis Line: (858) 555-9999</Button>
+                <Button size="lg" className="w-full bg-white text-[#005A2C]">Call Crisis Line: (858) 555-9999</Button>
               </div>
             </div>
           </div>
