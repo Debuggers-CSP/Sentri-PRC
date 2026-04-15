@@ -3,6 +3,8 @@ import { Link } from "react-router";
 import { UserProfile } from "./UserProfile";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "./ui/button";
+import logo from "../../assets/PRC.png";
+
 
 export function Navbar() {
   const { user } = useAuth();
@@ -21,7 +23,7 @@ export function Navbar() {
         <div className="flex items-center justify-between">
           {/* Logo and Title */}
           <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <Heart className="w-8 h-8 text-[#005A2C]" />
+            <img src={logo} alt="Poway Recovery Center Logo" className="w-15 h-15 object-contain"/>
             <div>
               <h1 className="text-3xl font-semibold text-[#1F3B2B] leading-none">Poway Recovery Center</h1>
               <p className="text-[10px] text-[#6B7F70] mt-1 uppercase tracking-wider">Your journey to wellness starts here</p>
