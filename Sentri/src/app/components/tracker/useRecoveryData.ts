@@ -92,6 +92,7 @@ export function useRecoveryData(program: RecoveryProgram, isSubstanceProgram: bo
   const dashboardData = {
     profile: {
       current_streak_days: streak,
+      streak: streak,
       total_points: state.points,
     },
     ml_risk_level: "low",
@@ -104,10 +105,13 @@ export function useRecoveryData(program: RecoveryProgram, isSubstanceProgram: bo
     },
     recent_checkins: state.checkins,
     rewards: [],
+    next_milestone: null,
   };
 
   const submitCheckin = (formData: Record<string, unknown>) => {
-    const positive = Boolean(formData.stayed_sober_today);
+    const positive = isSubstanceProgram
+      ? Boolean(formData.stayed_sober_today)
+      : Boolean(formData.practiced_self_care_today);
 
     const newCheckin: CheckinEntry = {
       date: new Date().toISOString().slice(0, 10),

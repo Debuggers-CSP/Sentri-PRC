@@ -9,7 +9,7 @@ import { useRecoveryData, type RecoveryProgram } from "./useRecoveryData";
 type ViewKey = "home" | "checkin" | "garden" | "rewards" | "history";
 
 type TrackerMainProps = {
-  program?: RecoveryProgram;
+  program?: RecoveryProgram | string;
   userName?: string;
 };
 
@@ -45,14 +45,44 @@ const PROGRAM_LABELS: Record<
 
 const SUBSTANCE_PROGRAMS: RecoveryProgram[] = ["AA", "NA", "CA", "SA", "GA"];
 
-export default function TrackerMain({ program = "AA", userName = "Guest User" }: TrackerMainProps) {
+export default function TrackerMain({
+  program = "AA",
+  userName = "Guest User",
+}: TrackerMainProps) {
   const [activeView, setActiveView] = useState<ViewKey>("home");
-  const labels = PROGRAM_LABELS[program];
-  const isSubstanceProgram = SUBSTANCE_PROGRAMS.includes(program);
-  const { dashboardData, points, streak, submitCheckin, resetDemo } = useRecoveryData(
-    program,
-    isSubstanceProgram,
-  );
+
+  const normalizedProgram =
+    typeof program === "string" ? program.trim() : "AA";
+
+  const safeProgram: RecoveryProgram =
+    normalizedProgram in PROGRAM_LABELS
+      ? (normalizedProgram as RecoveryProgram)
+      : "AA";
+
+  const labels = PROGRAM_LABELS[safeProgram];
+  const isSubstanceProgram = SUBSTANCE_PROGRAMS.includes(safeProgram);
+
+  const { dashboardData, points, streak, submitCheckin, resetDemo } =
+    useRecoveryData(safeProgram, isSubstanceProgram);
+
+  const safeDashboardData = dashboardData ?? {
+    ml_risk_level: "low",
+    profile: {
+      current_streak_days: 0,
+      streak: 0,
+      total_points: 0,
+    },
+    garden: {
+      level: 1,
+      xp: 0,
+      xp_to_next_level: 100,
+      label: "Seedling",
+      image: "/assets/garden/stage-1.svg",
+    },
+    recent_checkins: [],
+    next_milestone: null,
+    rewards: [],
+  };
 
   const cardClass =
     "rounded-[24px] border border-[#E0EADD] bg-white p-4 shadow-[0_12px_26px_rgba(118,184,42,0.08)]";
@@ -86,10 +116,11 @@ export default function TrackerMain({ program = "AA", userName = "Guest User" }:
       { key: "rewards" as const, icon: "🌼", label: "Rewards" },
       { key: "history" as const, icon: "🍃", label: "History" },
     ],
-    [],
+    []
   );
 
-  const aiSupport = dashboardData.ml_risk_level?.replace("_", " ") ?? "low";
+  const aiSupport =
+    safeDashboardData.ml_risk_level?.replace("_", " ") ?? "low";
 
   const renderActive = () => {
     switch (activeView) {
@@ -106,17 +137,33 @@ export default function TrackerMain({ program = "AA", userName = "Guest User" }:
           />
         );
       case "garden":
-        return <GardenView dashboardData={dashboardData} pillStyle={pillStyle} smallCardStyle={smallCardStyle} />;
+        return (
+          <GardenView
+            dashboardData={safeDashboardData}
+            pillStyle={pillStyle}
+            smallCardStyle={smallCardStyle}
+          />
+        );
       case "rewards":
         return (
-          <RewardsView mockDashboardData={dashboardData} pillStyle={pillStyle} smallCardStyle={smallCardStyle} />
+          <RewardsView
+            mockDashboardData={safeDashboardData}
+            pillStyle={pillStyle}
+            smallCardStyle={smallCardStyle}
+          />
         );
       case "history":
-        return <HistoryView dashboardData={dashboardData} pillStyle={pillStyle} smallCardStyle={smallCardStyle} />;
+        return (
+          <HistoryView
+            dashboardData={safeDashboardData}
+            pillStyle={pillStyle}
+            smallCardStyle={smallCardStyle}
+          />
+        );
       default:
         return (
           <HomeView
-            dashboardData={dashboardData}
+            dashboardData={safeDashboardData}
             pillStyle={pillStyle}
             smallCardStyle={smallCardStyle}
             setActiveView={setActiveView}
@@ -133,25 +180,38 @@ export default function TrackerMain({ program = "AA", userName = "Guest User" }:
           <div className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-4">
             <div className={cardClass}>
               <p className="text-xs text-[#5A7462]">Program</p>
-              <p className="mt-1 text-xl font-bold text-[#005A2C]">{program}</p>
+              <p className="mt-1 text-xl font-bold text-[#005A2C]">
+                {safeProgram}
+              </p>
             </div>
+
             <div className={cardClass}>
               <p className="text-xs text-[#5A7462]">{labels.streak}</p>
-              <p className="mt-1 text-xl font-bold text-[#005A2C]">{streak}</p>
+              <p className="mt-1 text-xl font-bold text-[#005A2C]">
+                {streak ?? 0}
+              </p>
               <p className="text-xs text-[#5A7462]">{labels.days}</p>
             </div>
+
             <div className={cardClass}>
               <p className="text-xs text-[#5A7462]">Points</p>
-              <p className="mt-1 text-xl font-bold text-[#005A2C]">{points}</p>
+              <p className="mt-1 text-xl font-bold text-[#005A2C]">
+                {points ?? 0}
+              </p>
             </div>
+
             <div className={cardClass}>
               <p className="text-xs text-[#5A7462]">AI Support Level</p>
-              <p className="mt-1 text-xl font-bold capitalize text-[#005A2C]">{aiSupport}</p>
+              <p className="mt-1 text-xl font-bold capitalize text-[#005A2C]">
+                {aiSupport}
+              </p>
               <p className="text-xs text-[#5A7462]">Welcome, {userName}</p>
             </div>
           </div>
 
-          <div className="h-[calc(100vh-14rem)] min-h-[560px] overflow-auto pr-2">{renderActive()}</div>
+          <div className="h-[calc(100vh-14rem)] min-h-[560px] overflow-auto pr-2">
+            {renderActive()}
+          </div>
 
           <button
             onClick={resetDemo}

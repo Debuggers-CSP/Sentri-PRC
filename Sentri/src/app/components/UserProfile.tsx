@@ -80,12 +80,6 @@
             <span>Profile</span>
           </DropdownMenuItem>
 
-          {/* NEW Recovery Garden Link */}
-          <DropdownMenuItem onClick={() => navigate("/tracker")}>
-            <Sprout className="mr-2 h-4 w-4 text-green-600" />
-            <span className="font-medium text-green-700">Recovery Garden</span>
-          </DropdownMenuItem>
-
           <DropdownMenuSeparator />
           
           {/* Existing Logout Link */}
