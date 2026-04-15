@@ -151,7 +151,7 @@ export function FindMeeting() {
     setSelectedPrograms((previousPrograms) => {
       if (previousPrograms.includes(programId)) {
         return previousPrograms.filter((id) => id !== programId);
-      }
+}
       return [...previousPrograms, programId];
     });
   };
@@ -176,18 +176,18 @@ export function FindMeeting() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      <div className="min-h-screen bg-gradient-to-b from-[#F8FAF5] to-[#E8F5E9]">
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <aside className="lg:col-span-3">
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 sticky top-24 space-y-6">
+              <div className="bg-white border border-[#E0EADD] rounded-[24px] p-5 sticky top-24 space-y-6 shadow-[0_10px_24px_rgba(0,90,44,0.08)]">
                 <div>
-                  <h2 className="text-xl text-gray-900">Meeting Preferences</h2>
-                  <p className="text-sm text-gray-600 mt-1">Adjust filters to update the calendar instantly.</p>
+                  <h2 className="text-xl text-[#1F3B2B]">Meeting Preferences</h2>
+                  <p className="text-sm text-[#5A7462] mt-1">Adjust filters to update the calendar instantly.</p>
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Meeting Type</h3>
+                  <h3 className="text-sm font-semibold text-[#1F3B2B] mb-3">Meeting Type</h3>
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       { id: "open", label: "Open", description: "Anyone interested in recovery can attend, including family and professionals." },
@@ -199,15 +199,15 @@ export function FindMeeting() {
                         onClick={() => setSelectedMeetingType(option.id)}
                         className={`rounded-lg border px-3 py-2 text-sm font-medium flex items-center justify-center gap-1 transition-colors ${
                           selectedMeetingType === option.id
-                            ? "bg-blue-600 text-white border-blue-600"
-                            : "bg-white text-gray-700 border-gray-300 hover:border-blue-300"
+                            ? "bg-[#005A2C] text-white border-[#76B82A]"
+                            : "bg-white text-[#2D5138] border-gray-300 hover:border-[#A3D977]"
                         }`}
                       >
                         {option.label}
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span className="inline-flex" onClick={(event) => event.stopPropagation()}>
-                              <Info className={`w-3.5 h-3.5 ${selectedMeetingType === option.id ? "text-blue-100" : "text-gray-500"}`} />
+                              <Info className={`w-3.5 h-3.5 ${selectedMeetingType === option.id ? "text-[#E8F5E9]" : "text-[#6B7F70]"}`} />
                             </span>
                           </TooltipTrigger>
                           <TooltipContent side="top" className="max-w-[220px] text-xs leading-relaxed">
@@ -220,7 +220,7 @@ export function FindMeeting() {
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Programs</h3>
+                  <h3 className="text-sm font-semibold text-[#1F3B2B] mb-3">Programs</h3>
                   <div className="flex flex-wrap gap-2">
                     {programs.map((program) => {
                       const selected = selectedPrograms.includes(program.id);
@@ -231,8 +231,8 @@ export function FindMeeting() {
                           onClick={() => handleProgramToggle(program.id)}
                           className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                             selected
-                              ? "bg-blue-600 text-white border-blue-600"
-                              : "bg-white text-gray-700 border-gray-300 hover:border-blue-300"
+                              ? "bg-[#005A2C] text-white border-[#76B82A]"
+                              : "bg-white text-[#2D5138] border-gray-300 hover:border-[#A3D977]"
                           }`}
                           title={program.fullName}
                         >
@@ -246,15 +246,15 @@ export function FindMeeting() {
             </aside>
 
             <div className="lg:col-span-9">
-              <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+              <div className="bg-white rounded-[24px] border border-[#E0EADD] shadow-[0_10px_24px_rgba(0,90,44,0.08)] p-4 mb-6">
                 <div className="flex items-center justify-between">
                   <Button variant="outline" size="sm" onClick={handlePreviousWeek} className="flex items-center gap-1">
                     <ChevronLeft className="w-4 h-4" />
                   </Button>
 
                   <div className="flex items-center gap-4">
-                    <h2 className="text-lg font-medium text-gray-900">{formatDateRange(weekDates)}</h2>
-                    <Button variant="outline" size="sm" onClick={handleToday} className="bg-blue-600 text-white hover:bg-blue-700">
+                    <h2 className="text-lg font-medium text-[#1F3B2B]">{formatDateRange(weekDates)}</h2>
+                    <Button variant="outline" size="sm" onClick={handleToday} className="bg-[#005A2C] text-white hover:bg-[#124627]">
                       Today
                     </Button>
                   </div>
@@ -266,22 +266,22 @@ export function FindMeeting() {
               </div>
 
               {filteredMeetings.length === 0 ? (
-                <div className="bg-white rounded-lg shadow-lg border border-dashed border-gray-300 min-h-[400px] flex items-center justify-center px-6 text-center">
-                  <p className="text-gray-600">No meetings match these filters. Try selecting more programs or switching meeting types!</p>
+                <div className="bg-white rounded-lg shadow-lg border border-dashed border-[#DCEAD8] min-h-[400px] flex items-center justify-center px-6 text-center">
+                  <p className="text-[#5A7462]">No meetings match these filters. Try selecting more programs or switching meeting types!</p>
                 </div>
               ) : (
-                <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                  <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50">
+                <div className="bg-white rounded-[24px] border border-[#E0EADD] shadow-[0_10px_24px_rgba(0,90,44,0.08)] overflow-hidden">
+                  <div className="grid grid-cols-7 border-b border-[#E0EADD] bg-[#F1F8EB]">
                     {weekDates.map((date, index) => {
                       const isToday = date.toDateString() === new Date().toDateString();
                       return (
-                        <div key={index} className="p-4 text-center border-r border-gray-200 last:border-r-0">
-                          <div className="text-sm font-medium text-gray-600">{dayNames[date.getDay()]}</div>
+                        <div key={index} className="p-4 text-center border-r border-[#E0EADD] last:border-r-0">
+                          <div className="text-sm font-medium text-[#5A7462]">{dayNames[date.getDay()]}</div>
                           <div
                             className={`text-2xl mt-1 ${
                               isToday
-                                ? "bg-red-500 text-white rounded-full w-10 h-10 flex items-center justify-center mx-auto"
-                                : "text-gray-900"
+                                ? "bg-[#76B82A] text-white rounded-full w-10 h-10 flex items-center justify-center mx-auto"
+                                : "text-[#1F3B2B]"
                             }`}
                           >
                             {date.getDate()}
@@ -297,10 +297,10 @@ export function FindMeeting() {
                       const dayMeetings = filteredMeetings.filter((meeting) => meeting.day === dayOfWeek);
 
                       return (
-                        <div key={dayIndex} className="border-r border-gray-200 last:border-r-0 p-2 bg-white">
+                        <div key={dayIndex} className="border-r border-[#E0EADD] last:border-r-0 p-2 bg-white">
                           <div className="space-y-2">
                             {dayMeetings.map((meeting) => (
-                              <Card key={meeting.id} className="bg-blue-500 text-white hover:bg-blue-600 transition-colors cursor-pointer border-0">
+                              <Card key={meeting.id} className="bg-[#F1F8EB] text-[#1F3B2B] hover:bg-[#E8F5E9] transition-colors cursor-pointer border-0">
                                 <CardContent className="p-2">
                                   <div className="text-xs font-medium mb-1">{meeting.time}</div>
                                   <div className="text-xs leading-tight">{meeting.name}</div>

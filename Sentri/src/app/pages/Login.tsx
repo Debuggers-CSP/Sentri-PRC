@@ -86,6 +86,7 @@ const [errorMessage, setErrorMessage] = useState("");
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
                 username: registerName,
+
                 password: registerPassword,
                 email: registerEmail,
                 fname: firstName, // This key MUST be "fname"
@@ -111,20 +112,20 @@ const [errorMessage, setErrorMessage] = useState("");
     }
 };
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-[#F8FAF5] to-[#E8F5E9] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          <Heart className="w-10 h-10 text-blue-600" />
+          <Heart className="w-10 h-10 text-[#005A2C]" />
           <div className="text-center">
-            <h1 className="text-2xl font-semibold text-gray-900">Poway Recovery Center</h1>
+            <h1 className="text-2xl font-semibold text-[#1F3B2B]">Poway Recovery Center</h1>
           </div>
         </div>
 
         <Card>
           <CardHeader>  
-            <h2 className="text-2xl text-center text-gray-900">Welcome</h2>
-            <p className="text-center text-gray-600 text-sm">
+            <h2 className="text-2xl text-center text-[#1F3B2B]">Welcome</h2>
+            <p className="text-center text-[#5A7462] text-sm">
               Sign in or create an account to continue
             </p>
           </CardHeader>
@@ -174,7 +175,7 @@ const [errorMessage, setErrorMessage] = useState("");
                       required
                     />
                   </div>
-                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
+                  <Button type="submit" className="w-full bg-[#005A2C] hover:bg-[#124627]">
                     Sign In
                   </Button>
                 </form>
@@ -200,18 +201,6 @@ const [errorMessage, setErrorMessage] = useState("");
                       type="text"
                       placeholder="John"
                       value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="register-last-name">Last Name</Label>
-                    <Input
-                      id="register-last-name"
-                      type="text"
-                      placeholder="Doe"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
                       required
                     />
                   </div>
@@ -237,14 +226,14 @@ const [errorMessage, setErrorMessage] = useState("");
                       required
                     />
                   </div>
-                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
+                  <Button type="submit" className="w-full bg-[#005A2C] hover:bg-[#124627]">
                     Create Account
                   </Button>
                 </form>
               </TabsContent>
             </Tabs>
 
-            <div className="mt-6 text-center text-sm text-gray-600">
+            <div className="mt-6 text-center text-sm text-[#5A7462]">
               <p>All information is kept confidential and HIPAA-compliant</p>
             </div>
           </CardContent>

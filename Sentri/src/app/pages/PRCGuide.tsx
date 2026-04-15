@@ -149,6 +149,7 @@ export function PRCGuidePanel({ isOpen, onClose, onMatch }: PRCGuidePanelProps) 
       onClose();
     }, 2000);
 
+
     return () => clearTimeout(timeout);
   }, [step, pendingMatchId, onMatch, onClose, answers]);
 
@@ -174,7 +175,7 @@ export function PRCGuidePanel({ isOpen, onClose, onMatch }: PRCGuidePanelProps) 
     <AnimatePresence>
       {isOpen && (
         <motion.aside
-          className="fixed left-8 bottom-28 z-50 w-[min(90vw,26rem)] rounded-3xl border border-blue-100 bg-white shadow-2xl"
+          className="fixed left-8 bottom-28 z-50 w-[min(90vw,26rem)] rounded-[28px] border border-[#E0EADD] bg-white shadow-[0_10px_30px_rgba(0,90,44,0.1)]"
           initial={{ x: -40, y: 20, opacity: 0 }}
           animate={{ x: 0, y: 0, opacity: 1 }}
           exit={{ x: -40, y: 20, opacity: 0 }}
@@ -183,8 +184,8 @@ export function PRCGuidePanel({ isOpen, onClose, onMatch }: PRCGuidePanelProps) 
           <div className="p-5 sm:p-6">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-wider text-blue-600">Assistant</p>
-                <h2 className="text-xl text-slate-900">Program Discovery</h2>
+                <p className="text-xs uppercase tracking-wider text-[#76B82A]">Assistant</p>
+                <h2 className="text-xl text-[#005A2C]">Program Discovery</h2>
               </div>
               <Button variant="ghost" size="icon" onClick={onClose}>
                 <X className="h-4 w-4" />
@@ -199,7 +200,7 @@ export function PRCGuidePanel({ isOpen, onClose, onMatch }: PRCGuidePanelProps) 
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                 >
-                  <h3 className="mb-4 text-2xl text-slate-900">{stepPrompts[questionStep]}</h3>
+                  <h3 className="mb-4 text-2xl text-[#005A2C]">{stepPrompts[questionStep]}</h3>
                   <div className="space-y-3">
                     {stepOptions[questionStep].map((option, index) => (
                       <motion.button
@@ -209,9 +210,9 @@ export function PRCGuidePanel({ isOpen, onClose, onMatch }: PRCGuidePanelProps) 
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        className="w-full rounded-2xl border-2 border-blue-100 bg-white p-4 text-left shadow-sm transition hover:border-blue-400 hover:bg-blue-50"
+                        className="w-full rounded-[24px] border border-[#E0EADD] bg-white p-4 text-left shadow-[0_8px_22px_rgba(0,90,44,0.08)] transition hover:border-[#A3D977] hover:bg-[#E8F5E9]"
                       >
-                        <span className="flex items-center gap-3 text-lg text-slate-900">
+                        <span className="flex items-center gap-3 text-lg text-[#1F3B2B]">
                           <span className="text-3xl">{option.emoji}</span>
                           <span>{option.title}</span>
                         </span>
@@ -233,7 +234,7 @@ export function PRCGuidePanel({ isOpen, onClose, onMatch }: PRCGuidePanelProps) 
                     {[...Array(8)].map((_, i) => (
                       <motion.div
                         key={i}
-                        className="absolute h-3 w-3 rounded-full bg-blue-500"
+                        className="absolute h-3 w-3 rounded-full bg-[#76B82A]"
                         style={{
                           left: `${50 + 40 * Math.cos((i * Math.PI * 2) / 8)}%`,
                           top: `${50 + 40 * Math.sin((i * Math.PI * 2) / 8)}%`
@@ -247,10 +248,10 @@ export function PRCGuidePanel({ isOpen, onClose, onMatch }: PRCGuidePanelProps) 
                       animate={{ rotate: 360 }}
                       transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
                     >
-                      <Sparkles className="h-12 w-12 text-purple-600" />
+                      <Sparkles className="h-12 w-12 text-[#005A2C]" />
                     </motion.div>
                   </div>
-                  <h3 className="text-2xl text-slate-900">Analyzing your path...</h3>
+                  <h3 className="text-2xl text-[#005A2C]">Cultivating your path...</h3>
                 </motion.div>
               )}
             </AnimatePresence>

@@ -1,27 +1,41 @@
 <style>
 .capstone-container {
-    background-color: #0d1117;
-    color: #e6edf3;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    padding: 10px;
+    background: #F8FAF5;
+    color: #1F3B2B;
+    font-family: 'Plus Jakarta Sans', 'Quicksand', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    padding: 16px;
 }
 
 .top-info-box {
-    background-color: #0b0e14;
-    border: 1px solid #238636;
-    border-radius: 20px;
+    background: #ffffff;
+    border: 1px solid #E0EADD;
+    border-radius: 28px;
     padding: 30px;
     text-align: center;
     margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(0, 90, 44, 0.1);
+}
+
+.logo-wrap {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    background: linear-gradient(135deg, #E8F5E9 0%, #F8FAF5 100%);
+    border: 1px solid #DCEAD8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 56px;
 }
 
 .capstone-badge {
-    background-color: #569f5e;
-    color: white;
+    background-color: #A3D977;
+    color: #124627;
     padding: 8px 25px;
-    border-radius: 25px;
+    border-radius: 999px;
     font-size: 13px;
-    font-weight: bold;
+    font-weight: 700;
     text-transform: uppercase;
     display: inline-block;
     margin-bottom: 20px;
@@ -32,28 +46,29 @@
     line-height: 1.6;
     max-width: 900px;
     margin: 0 auto;
-    color: #c9d1d9;
+    color: #43624D;
 }
 
 .main-grid {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 20px;
-    background-color: #0b0e14;
-    border: 1px solid #30363d;
-    border-radius: 20px;
+    background-color: #ffffff;
+    border: 1px solid #E0EADD;
+    border-radius: 28px;
     padding: 40px;
+    box-shadow: 0 10px 30px rgba(0, 90, 44, 0.08);
 }
 
 .col-left {
     text-align: center;
-    border-right: 1px solid #30363d;
+    border-right: 1px solid #E0EADD;
     padding-right: 20px;
 }
 
 .col-mid {
     padding: 0 20px;
-    border-right: 1px solid #30363d;
+    border-right: 1px solid #E0EADD;
 }
 
 .col-right {
@@ -61,32 +76,34 @@
 }
 
 .art-container {
-    background: white;
-    border-radius: 15px;
-    padding: 30px;
+    background: #F8FAF5;
+    border: 1px solid #E0EADD;
+    border-radius: 24px;
+    padding: 24px;
     margin-bottom: 20px;
     display: inline-block;
 }
 
 .phase-badge {
-    background-color: #569f5e;
-    color: white;
+    background: linear-gradient(135deg, #76B82A 0%, #005A2C 100%);
+    color: #fff;
     padding: 8px 15px;
-    border-radius: 20px;
+    border-radius: 999px;
     font-size: 11px;
-    font-weight: bold;
+    font-weight: 700;
     display: inline-block;
     text-transform: uppercase;
 }
 
 .proj-title {
     font-size: 2.2em;
-    font-weight: bold;
+    font-weight: 800;
     margin: 0 0 10px 0;
+    color: #005A2C;
 }
 
 .proj-subtitle {
-    color: #8b949e;
+    color: #5A7462;
     font-size: 0.95em;
     font-weight: 600;
     margin-bottom: 25px;
@@ -95,13 +112,14 @@
 
 .section-header {
     font-size: 1.5em;
-    font-weight: bold;
+    font-weight: 700;
     margin-bottom: 15px;
-    border-bottom: 1px solid #30363d;
+    border-bottom: 1px solid #E0EADD;
     padding-bottom: 10px;
+    color: #005A2C;
 }
 
-.feature-item {
+.branch-item {
     margin-bottom: 12px;
     font-size: 0.9em;
     display: flex;
@@ -109,27 +127,27 @@
     line-height: 1.4;
 }
 
-.checkmark {
-    color: #569f5e;
-    font-weight: bold;
+.branch-icon {
+    color: #76B82A;
+    font-weight: 700;
     margin-right: 10px;
 }
 
 .about-text {
-    font-size: 0.85em;
+    font-size: 0.9em;
     line-height: 1.7;
-    color: #8b949e;
+    color: #43624D;
     margin-bottom: 25px;
 }
 
 .impact-card {
-    background-color: #0d1117;
-    border: 1px solid #238636;
-    padding: 15px;
-    border-radius: 10px;
-    font-size: 0.85em;
+    background: #F8FAF5;
+    border: 1px solid #DCEAD8;
+    padding: 16px;
+    border-radius: 24px;
+    font-size: 0.9em;
     line-height: 1.5;
-    color: #238636;
+    color: #124627;
     font-weight: 600;
 }
 
@@ -137,7 +155,7 @@
     .main-grid { grid-template-columns: 1fr; }
     .col-left, .col-mid {
         border-right: none;
-        border-bottom: 1px solid #30363d;
+        border-bottom: 1px solid #E0EADD;
         padding-bottom: 20px;
         padding-right: 0;
     }
@@ -147,13 +165,14 @@
 <div class="capstone-container">
 
 <div class="top-info-box">
-<div class="capstone-badge">Community Outreach Project</div>
+  <div class="logo-wrap" aria-label="PRC Tree Logo">🌳</div>
+  <div class="capstone-badge">Community-First</div>
 
-<p class="top-description">
-A digital outreach hub designed to support the <strong>Poway Recovery Center</strong> by helping residents 
-<strong>learn about recovery resources</strong>, <strong>find support meetings</strong>, and 
-<strong>volunteer or donate</strong> to strengthen addiction recovery efforts in the community.
-</p>
+  <p class="top-description">
+    A digital outreach sanctuary designed to support the <strong>Poway Recovery Center</strong> by helping residents
+    <strong>discover recovery resources</strong>, <strong>find support meetings</strong>, and
+    <strong>give back through volunteering and donations</strong>.
+  </p>
 </div>
 
 <div class="main-grid">
@@ -161,13 +180,13 @@ A digital outreach hub designed to support the <strong>Poway Recovery Center</st
 <div class="col-left">
 
 <div class="art-container">
-<span style="font-size:100px;">💙</span>
+<span style="font-size:100px;">🌿</span>
 </div>
 
 <br>
 
 <div class="phase-badge">
-Research & Awareness Phase
+Growth & Connection Phase
 </div>
 
 </div>
@@ -177,21 +196,16 @@ Research & Awareness Phase
 <h1 class="proj-title">Poway Recovery Hub</h1>
 
 <p class="proj-subtitle">
-Connecting the Community to<br>
-Recovery Resources
+Branching Community Support for<br>
+Recovery and Renewal
 </p>
 
-<div class="feature-item"><span class="checkmark">✓</span><span>Resource Directory: Easy access to recovery programs, counseling, and support services.</span></div>
-
-<div class="feature-item"><span class="checkmark">✓</span><span>Meeting Finder: Quickly locate recovery meetings and support groups in Poway.</span></div>
-
-<div class="feature-item"><span class="checkmark">✓</span><span>Volunteer Opportunities: Residents can sign up to help support community programs.</span></div>
-
-<div class="feature-item"><span class="checkmark">✓</span><span>Donation Portal: Centralized links to support recovery initiatives.</span></div>
-
-<div class="feature-item"><span class="checkmark">✓</span><span>Event Calendar: Track workshops, awareness events, and community meetings.</span></div>
-
-<div class="feature-item"><span class="checkmark">✓</span><span>Information Hub: Educational content about addiction recovery and community support.</span></div>
+<div class="branch-item"><span class="branch-icon">🌱</span><span>Resource Branch: Clear, guided access to local recovery programs and counseling options.</span></div>
+<div class="branch-item"><span class="branch-icon">🌿</span><span>Meeting Branch: Fast meeting discovery for individuals, families, and sponsors.</span></div>
+<div class="branch-item"><span class="branch-icon">🍃</span><span>Volunteer Branch: A welcoming path for neighbors to support care initiatives.</span></div>
+<div class="branch-item"><span class="branch-icon">🌼</span><span>Donation Branch: Trusted links that fund healing services and outreach.</span></div>
+<div class="branch-item"><span class="branch-icon">🌳</span><span>Events Branch: Community calendar for workshops, awareness nights, and support gatherings.</span></div>
+<div class="branch-item"><span class="branch-icon">🪴</span><span>Learning Branch: Education on addiction recovery, resilience, and compassionate support.</span></div>
 
 </div>
 
@@ -202,15 +216,14 @@ About
 </div>
 
 <p class="about-text">
-The Poway Recovery Hub is designed to make addiction recovery resources easier to find and access.
-Many people who need help struggle to locate reliable information or community support.
-This platform centralizes local recovery services, meetings, and volunteer opportunities in one place.
+The Poway Recovery Hub is designed to make support pathways easier to find, understand, and trust.
+Many families and individuals need clear direction during difficult moments. This platform brings local
+services, meetings, and ways to help into one calm, accessible space.
 
 <br><br>
 
-The system also demonstrates core AP CSP concepts such as structured data for resources,
-search and filtering algorithms for meetings, and conditional logic to recommend services
-based on user needs.
+The system also demonstrates AP CSP concepts with structured resource data, meeting search/filter logic,
+and conditional recommendation flows based on real user needs.
 </p>
 
 <div class="section-header">
@@ -218,9 +231,8 @@ Impact
 </div>
 
 <div class="impact-card">
-Improves awareness of recovery programs, strengthens community support networks,
-and helps connect individuals and families with the resources they need to begin
-and sustain recovery.
+Improves awareness of recovery programs, strengthens neighborhood support networks,
+and connects people and families to the care they need to begin and sustain long-term recovery.
 </div>
 
 </div>

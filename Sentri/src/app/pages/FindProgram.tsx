@@ -51,6 +51,7 @@ export function FindProgram() {
   const handleProgramClick = (programSlug: string) => navigate(`/programs/${programSlug}`);
 
   const handleGuideMatch = async (programId: number, answers: GuideAnswers) => {
+  
     setMatchedProgramId(null);
 
     try {
@@ -76,12 +77,12 @@ export function FindProgram() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-[#F8FAF5] to-[#E8F5E9]">
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 min-h-[600px]">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full">
           <div className="text-center mb-12">
-            <h2 className="text-4xl text-gray-900 mb-4">Explore Our Programs</h2>
-            <p className="text-gray-600 text-lg mb-4">Hover over each program to learn more</p>
+            <h2 className="text-4xl text-[#1F3B2B] mb-4">Explore Our Programs</h2>
+            <p className="text-[#5A7462] text-lg mb-4">Hover over each program to learn more</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -100,13 +101,13 @@ export function FindProgram() {
                   onMouseLeave={() => setHoveredProgram(null)}
                 >
                   <Card
-                    className={`overflow-hidden hover:shadow-2xl transition-all cursor-pointer h-full relative group ${isMatchedProgram ? "border-4 border-green-500 shadow-2xl ring-4 ring-green-200" : ""}`}
+                    className={`overflow-hidden border border-[#E0EADD] rounded-[24px] hover:shadow-2xl transition-all cursor-pointer h-full relative group ${isMatchedProgram ? "border-4 border-[#76B82A] shadow-2xl ring-4 ring-[#D4EEC0]" : ""}`}
                     onClick={() => handleProgramClick(program.slug)}
                   >
                     <CardContent className="p-6 h-full flex flex-col">
                       {isMatchedProgram && (
                         <div className="absolute top-3 right-3 z-10">
-                          <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg flex items-center gap-1">
+                          <div className="bg-gradient-to-r from-[#76B82A] to-[#005A2C] text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg flex items-center gap-1">
                             <span>Your Match!</span>
                             <span>🎉</span>
                           </div>
@@ -122,15 +123,15 @@ export function FindProgram() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-gradient-to-b from-blue-600/95 to-purple-600/95 p-6 flex flex-col justify-between text-white"
+                            className="absolute inset-0 bg-gradient-to-b from-[#005A2C]/95 to-[#2D6A37]/95 p-6 flex flex-col justify-between text-white"
                           >
                             <div>
                               <h3 className="text-2xl font-bold mb-2">{program.name}</h3>
-                              <p className="text-sm text-blue-100 mb-4">{program.fullName}</p>
+                              <p className="text-sm text-[#E8F5E9] mb-4">{program.fullName}</p>
                               <p className="text-sm leading-relaxed">{program.shortIntro}</p>
                             </div>
                             <div className="mt-4">
-                              <Button className="w-full mt-4 bg-white text-blue-600 hover:bg-blue-50">View Details →</Button>
+                              <Button className="w-full mt-4 bg-white text-[#005A2C] hover:bg-[#F1F8EB]">View Details →</Button>
                             </div>
                           </motion.div>
                         )}
@@ -150,16 +151,16 @@ export function FindProgram() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: [0, -4, 0] }}
             transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-            className="relative mb-4 max-w-[270px] rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm text-slate-700 shadow-xl"
+            className="relative mb-4 max-w-[270px] rounded-2xl border border-[#DCEAD8] bg-white px-4 py-3 text-sm text-[#2D5138] shadow-xl"
           >
             Hello! Click on me to find the right program for you.
-            <div className="absolute -bottom-2 left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 border-b border-r border-blue-100 bg-white" />
+            <div className="absolute -bottom-2 left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 border-b border-r border-[#DCEAD8] bg-white" />
           </motion.div>
         )}
 
         <motion.button
           type="button"
-          className="rounded-full bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white shadow-2xl"
+          className="rounded-full bg-gradient-to-r from-[#76B82A] to-[#005A2C] p-4 text-white shadow-2xl"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           animate={{ scale: [1, 1.06, 1] }}

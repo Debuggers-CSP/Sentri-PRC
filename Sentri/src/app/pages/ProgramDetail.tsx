@@ -21,8 +21,8 @@ type Aspect = { title: string; description: string; icon: LucideIcon };
 type Meeting = { day: string; time: string; location: string; type: string };
 
 const tagClasses = [
-  "bg-blue-100 text-blue-700 border-blue-300",
-  "bg-purple-100 text-purple-700 border-purple-300",
+  "bg-[#E8F5E9] text-[#005A2C] border-[#A3D977]",
+  "bg-[#EEF6EA] text-[#2D6A37] border-[#CDE6B7]",
   "bg-emerald-100 text-emerald-700 border-emerald-300",
   "bg-amber-100 text-amber-700 border-amber-300",
 ];
@@ -312,10 +312,10 @@ export function ProgramDetail() {
   if (!program) return <div className="min-h-screen flex items-center justify-center"><Link to="/programs"><Button>Back to Programs</Button></Link></div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-[#F8FAF5] to-[#E8F5E9]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card className="mb-8 overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white">
+          <div className="bg-gradient-to-r from-[#76B82A] to-[#005A2C] p-8 text-white">
             <div className="flex items-center gap-6">
               <img src={program.logo} alt={program.name} className="w-28 h-28 object-contain bg-white/10 rounded-lg p-3" />
               <div className="flex-1">
@@ -324,7 +324,7 @@ export function ProgramDetail() {
                   {program.focus.map((item, idx) => <Badge key={idx} className="bg-white/20 text-white border-white/30">{item}</Badge>)}
                 </div>
               </div>
-              <Button onClick={handleJoin} className={isJoined ? "bg-green-600 hover:bg-green-700 text-white" : "bg-white text-blue-700 hover:bg-blue-100"}>
+              <Button onClick={handleJoin} className={isJoined ? "bg-green-600 hover:bg-green-700 text-white" : "bg-white text-[#005A2C] hover:bg-[#E8F5E9]"}>
                 {isJoined ? <><Check className="w-4 h-4 mr-2" />Joined</> : <><UserPlus className="w-4 h-4 mr-2" />Join Program</>}
               </Button>
             </div>
@@ -339,22 +339,22 @@ export function ProgramDetail() {
                 <Tabs defaultValue="overview">
                   <TabsList className="grid grid-cols-3 mb-4"><TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="history">History</TabsTrigger><TabsTrigger value="philosophy">Philosophy/Principles</TabsTrigger></TabsList>
                   <TabsContent value="overview" className="space-y-4">
-                    <p className="text-gray-700 leading-relaxed">{program.description}</p>
+                    <p className="text-[#2D5138] leading-relaxed">{program.description}</p>
                     <div className="flex flex-wrap gap-2">{program.recoveryTypes.map((type, i) => <Badge key={type} className={tagClasses[i % tagClasses.length]}>{type}</Badge>)}</div>
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                       {program.keyAspects.map((aspect) => {
                         const Icon = aspect.icon;
                         return (
-                          <Card key={aspect.title}><CardContent className="p-4"><div className="flex items-start gap-2"><Icon className="w-4 h-4 mt-1 text-blue-600" /><div><h4 className="font-semibold text-sm">{aspect.title}</h4><p className="text-xs text-gray-600 mt-1">{aspect.description}</p></div></div></CardContent></Card>
+                          <Card key={aspect.title}><CardContent className="p-4"><div className="flex items-start gap-2"><Icon className="w-4 h-4 mt-1 text-[#005A2C]" /><div><h4 className="font-semibold text-sm">{aspect.title}</h4><p className="text-xs text-[#5A7462] mt-1">{aspect.description}</p></div></div></CardContent></Card>
                         );
                       })}
                     </div>
                     <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-2">
-                      {program.corePrinciples.map(({ label, icon: Icon }) => <div key={label} className="flex items-center gap-2 text-xs p-2 rounded bg-blue-50"><Icon className="w-4 h-4 text-blue-600" />{label}</div>)}
+                      {program.corePrinciples.map(({ label, icon: Icon }) => <div key={label} className="flex items-center gap-2 text-xs p-2 rounded bg-[#F1F8EB]"><Icon className="w-4 h-4 text-[#005A2C]" />{label}</div>)}
                     </div>
                   </TabsContent>
-                  <TabsContent value="history"><p className="text-gray-700 whitespace-pre-line leading-relaxed">{program.history}</p></TabsContent>
-                  <TabsContent value="philosophy" className="space-y-4"><p className="text-gray-700 whitespace-pre-line leading-relaxed">{program.philosophy}</p><p className="text-gray-700 whitespace-pre-line leading-relaxed">{program.principles}</p></TabsContent>
+                  <TabsContent value="history"><p className="text-[#2D5138] whitespace-pre-line leading-relaxed">{program.history}</p></TabsContent>
+                  <TabsContent value="philosophy" className="space-y-4"><p className="text-[#2D5138] whitespace-pre-line leading-relaxed">{program.philosophy}</p><p className="text-[#2D5138] whitespace-pre-line leading-relaxed">{program.principles}</p></TabsContent>
                 </Tabs>
               </CardContent>
             </Card>
@@ -362,31 +362,31 @@ export function ProgramDetail() {
             <Card>
               <CardHeader><CardTitle>Meeting Schedule</CardTitle></CardHeader>
               <CardContent>
-                {program.meetings.length === 0 ? <p className="text-gray-500">No scheduled meetings listed for this program.</p> : (
+                {program.meetings.length === 0 ? <p className="text-[#6B7F70]">No scheduled meetings listed for this program.</p> : (
                   <div className="space-y-3">{program.meetings.map((meeting, idx) => (
-                    <div key={idx} className={`flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer ${selectedMeeting === meeting ? "bg-blue-100 border-blue-400" : "bg-blue-50 border-transparent hover:bg-blue-100"}`} onClick={() => setSelectedMeeting(meeting)}>
+                    <div key={idx} className={`flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer ${selectedMeeting === meeting ? "bg-[#E8F5E9] border-[#76B82A]" : "bg-[#F1F8EB] border-transparent hover:bg-[#E8F5E9]"}`} onClick={() => setSelectedMeeting(meeting)}>
                       <div className="flex items-center gap-4"><div className="w-20 font-semibold">{meeting.day}</div><div className="flex items-center gap-1 text-sm"><Clock className="w-4 h-4" />{meeting.time}</div><div className="flex items-center gap-1 text-sm"><MapPin className="w-4 h-4" />{meeting.location}</div></div>
                       <div className="flex items-center gap-2"><Badge>{meeting.type}</Badge><Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); handleAddToCalendar(meeting); }}><Calendar className="w-3 h-3 mr-1" />Add</Button></div>
                     </div>
                   ))}</div>
                 )}
-                <Button onClick={() => handleAddToCalendar(selectedMeeting || undefined)} className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white" disabled={!selectedMeeting}><Calendar className="w-4 h-4 mr-2" />{selectedMeeting ? `Add ${selectedMeeting.day} Meeting` : "Select a Meeting Above"}</Button>
+                <Button onClick={() => handleAddToCalendar(selectedMeeting || undefined)} className="w-full mt-4 bg-[#005A2C] hover:bg-[#124627] text-white" disabled={!selectedMeeting}><Calendar className="w-4 h-4 mr-2" />{selectedMeeting ? `Add ${selectedMeeting.day} Meeting` : "Select a Meeting Above"}</Button>
               </CardContent>
             </Card>
           </div>
 
           <div>
             <Card className="h-[680px] flex flex-col">
-              <CardHeader><CardTitle className="flex items-center gap-2"><Users className="w-5 h-5 text-purple-600" />Community Chat</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="flex items-center gap-2"><Users className="w-5 h-5 text-[#2D6A37]" />Community Chat</CardTitle></CardHeader>
               <CardContent className="flex-1 flex flex-col overflow-hidden">
                 <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
-                  {chatMessages.length === 0 ? <p className="text-center text-gray-400 mt-10">No messages yet. Be the first to say hello!</p> : chatMessages.map((msg) => {
+                  {chatMessages.length === 0 ? <p className="text-center text-[#6B7F70] mt-10">No messages yet. Be the first to say hello!</p> : chatMessages.map((msg) => {
                     const isOwn = user && msg.user_id === user.id;
-                    return <div key={msg.id} className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}><div className={`max-w-[85%] rounded-lg p-3 ${isOwn ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-900"}`}>{!isOwn && <div className="text-xs font-bold mb-1 text-purple-600">{msg.username}</div>}<p className="text-sm whitespace-pre-wrap">{msg.message}</p></div></div>;
+                    return <div key={msg.id} className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}><div className={`max-w-[85%] rounded-lg p-3 ${isOwn ? "bg-[#005A2C] text-white" : "bg-[#EEF6EA] text-[#1F3B2B]"}`}>{!isOwn && <div className="text-xs font-bold mb-1 text-[#2D6A37]">{msg.username}</div>}<p className="text-sm whitespace-pre-wrap">{msg.message}</p></div></div>;
                   })}
                   <div ref={chatEndRef} />
                 </div>
-                <div className="border-t pt-4"><div className="flex gap-2"><Textarea placeholder={user ? "Type your message..." : "Log in to chat"} value={message} onChange={(e) => setMessage(e.target.value)} className="resize-none" rows={2} disabled={!user} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }} /><Button onClick={handleSendMessage} className="bg-blue-600 hover:bg-blue-700 text-white h-auto" disabled={!message.trim() || !user}><Send className="w-4 h-4" /></Button></div></div>
+                <div className="border-t pt-4"><div className="flex gap-2"><Textarea placeholder={user ? "Type your message..." : "Log in to chat"} value={message} onChange={(e) => setMessage(e.target.value)} className="resize-none" rows={2} disabled={!user} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }} /><Button onClick={handleSendMessage} className="bg-[#005A2C] hover:bg-[#124627] text-white h-auto" disabled={!message.trim() || !user}><Send className="w-4 h-4" /></Button></div></div>
               </CardContent>
             </Card>
           </div>

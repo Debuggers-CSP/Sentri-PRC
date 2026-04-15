@@ -55,36 +55,36 @@ export default function TrackerMain({ program = "AA", userName = "Guest User" }:
   );
 
   const cardClass =
-    "rounded-3xl border border-slate-200/80 bg-white/60 p-4 shadow-[0_8px_24px_rgba(96,122,133,0.05)] backdrop-blur";
+    "rounded-[24px] border border-[#E0EADD] bg-white p-4 shadow-[0_12px_26px_rgba(118,184,42,0.08)]";
 
   const pillStyle = {
     display: "inline-flex",
     alignItems: "center",
     gap: "8px",
-    padding: "8px 14px",
+    padding: "8px 16px",
     borderRadius: "999px",
-    background: "rgba(233, 240, 236, 0.95)",
-    border: "1px solid rgba(209, 222, 215, 0.9)",
+    background: "#E8F5E9",
+    border: "1px solid #DCEAD8",
     fontSize: "14px",
-    color: "#5b6f68",
-    fontWeight: "500",
+    color: "#005A2C",
+    fontWeight: "600",
   } as const;
 
   const smallCardStyle = {
-    background: "rgba(255,255,255,0.52)",
-    border: "1px solid rgba(214, 223, 230, 0.95)",
-    borderRadius: "22px",
+    background: "#ffffff",
+    border: "1px solid #E0EADD",
+    borderRadius: "24px",
     padding: "16px",
-    boxShadow: "0 8px 24px rgba(96, 122, 133, 0.05)",
+    boxShadow: "0 10px 30px rgba(0, 90, 44, 0.08)",
   } as const;
 
   const navItems = useMemo(
     () => [
       { key: "home" as const, icon: "🏠", label: "Dashboard" },
-      { key: "checkin" as const, icon: "📝", label: "Check-in" },
-      { key: "garden" as const, icon: "🌱", label: "Garden" },
-      { key: "rewards" as const, icon: "🎁", label: "Rewards" },
-      { key: "history" as const, icon: "📈", label: "History" },
+      { key: "checkin" as const, icon: "🌱", label: "Check-in" },
+      { key: "garden" as const, icon: "🌿", label: "Garden" },
+      { key: "rewards" as const, icon: "🌼", label: "Rewards" },
+      { key: "history" as const, icon: "🍃", label: "History" },
     ],
     [],
   );
@@ -127,27 +127,27 @@ export default function TrackerMain({ program = "AA", userName = "Guest User" }:
   };
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-[linear-gradient(180deg,#edf5f1_0%,#eef4f7_45%,#f4f6fb_100%)] p-6 text-slate-700">
+    <div className="min-h-screen w-full overflow-x-hidden bg-[linear-gradient(180deg,#F8FAF5_0%,#F1F8EB_48%,#E8F5E9_100%)] p-6 text-[#1F3B2B]">
       <div className="mx-auto flex max-w-7xl gap-4">
-        <div className="relative flex-1 rounded-[2rem] border border-white/70 bg-white/70 p-5 shadow-[0_20px_60px_rgba(80,108,119,0.12)] backdrop-blur-xl">
+        <div className="relative flex-1 rounded-[32px] border border-[#E0EADD] bg-[#F8FAF5]/90 p-5 shadow-[0_20px_60px_rgba(0,90,44,0.09)]">
           <div className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-4">
             <div className={cardClass}>
-              <p className="text-xs text-slate-500">Program</p>
-              <p className="mt-1 text-xl font-bold">{program}</p>
+              <p className="text-xs text-[#5A7462]">Program</p>
+              <p className="mt-1 text-xl font-bold text-[#005A2C]">{program}</p>
             </div>
             <div className={cardClass}>
-              <p className="text-xs text-slate-500">{labels.streak}</p>
-              <p className="mt-1 text-xl font-bold">{streak}</p>
-              <p className="text-xs text-slate-500">{labels.days}</p>
+              <p className="text-xs text-[#5A7462]">{labels.streak}</p>
+              <p className="mt-1 text-xl font-bold text-[#005A2C]">{streak}</p>
+              <p className="text-xs text-[#5A7462]">{labels.days}</p>
             </div>
             <div className={cardClass}>
-              <p className="text-xs text-slate-500">Points</p>
-              <p className="mt-1 text-xl font-bold">{points}</p>
+              <p className="text-xs text-[#5A7462]">Points</p>
+              <p className="mt-1 text-xl font-bold text-[#005A2C]">{points}</p>
             </div>
             <div className={cardClass}>
-              <p className="text-xs text-slate-500">AI Support Level</p>
-              <p className="mt-1 text-xl font-bold capitalize">{aiSupport}</p>
-              <p className="text-xs text-slate-500">Welcome, {userName}</p>
+              <p className="text-xs text-[#5A7462]">AI Support Level</p>
+              <p className="mt-1 text-xl font-bold capitalize text-[#005A2C]">{aiSupport}</p>
+              <p className="text-xs text-[#5A7462]">Welcome, {userName}</p>
             </div>
           </div>
 
@@ -155,7 +155,7 @@ export default function TrackerMain({ program = "AA", userName = "Guest User" }:
 
           <button
             onClick={resetDemo}
-            className="absolute right-5 top-5 rounded-2xl border border-slate-200 bg-white/80 px-4 py-2 text-sm"
+            className="absolute right-5 top-5 rounded-[24px] border border-[#DCEAD8] bg-white px-4 py-2 text-sm text-[#005A2C]"
           >
             Reset Demo
           </button>
@@ -167,10 +167,10 @@ export default function TrackerMain({ program = "AA", userName = "Guest User" }:
               key={item.key}
               title={item.label}
               onClick={() => setActiveView(item.key)}
-              className={`h-14 w-14 rounded-2xl border text-xl transition ${
+              className={`h-14 w-14 rounded-[24px] border text-xl transition ${
                 activeView === item.key
-                  ? "border-emerald-400 bg-gradient-to-b from-emerald-500 to-sky-500 text-white shadow-lg"
-                  : "border-slate-200 bg-white/70 text-slate-600"
+                  ? "border-[#76B82A] bg-[linear-gradient(135deg,#76B82A_0%,#005A2C_100%)] text-white shadow-[0_12px_26px_rgba(0,90,44,0.22)]"
+                  : "border-[#DCEAD8] bg-white text-[#5A7462]"
               }`}
             >
               {item.icon}
