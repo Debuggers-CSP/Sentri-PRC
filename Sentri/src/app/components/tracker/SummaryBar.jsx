@@ -30,7 +30,7 @@ function SummaryBar({ dashboardData, currentUser, summaryBarStyle, summaryCardSt
       </div>
 
       <div style={summaryCardStyle}>
-        <div style={{ fontSize: "13px", color: "#6b7280" }}>AI Support Level</div>
+        <div style={{ fontSize: "13px", color: "#6b7280" }}>Support Level</div>
         <div
           style={{
             fontSize: "22px",

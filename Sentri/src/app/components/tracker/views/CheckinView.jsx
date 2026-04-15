@@ -1,24 +1,47 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did you stay sober today?" }) {
+function CheckinView({
+  pillStyle,
+  smallCardStyle,
+  onSubmit,
+  checkinLabel = "Did you stay sober today?",
+  checkinField = "stayed_sober_today",
+}) {
   const [formData, setFormData] = useState({
     mood_score: 5,
     stress_score: 5,
     craving_score: 5,
     sleep_hours: 8,
     stayed_sober_today: true,
+    practiced_self_care_today: true,
     attended_meeting: false,
     exercise_done: false,
-    journal_note: ""
+    journal_note: "",
   });
 
   const [submitting, setSubmitting] = useState(false);
   const [localError, setLocalError] = useState("");
 
+  const selectedCheckValue = useMemo(() => {
+    return Boolean(formData[checkinField]);
+  }, [formData, checkinField]);
+
   const handleChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
+    }));
+  };
+
+  const handleCheckChoice = (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      stayed_sober_today:
+        checkinField === "stayed_sober_today" ? value : prev.stayed_sober_today,
+      practiced_self_care_today:
+        checkinField === "practiced_self_care_today"
+          ? value
+          : prev.practiced_self_care_today,
     }));
   };
 
@@ -39,7 +62,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did 
   const compactCardStyle = {
     ...smallCardStyle,
     padding: "10px 12px",
-    borderRadius: "18px"
+    borderRadius: "18px",
   };
 
   const inputStyle = {
@@ -51,10 +74,10 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did 
     fontSize: "14px",
     background: "rgba(255,255,255,0.78)",
     color: "#334155",
-    outline: "none"
+    outline: "none",
   };
 
-  const soberChoiceStyle = (selected) => ({
+  const choiceStyle = (selected) => ({
     flex: 1,
     padding: "10px 12px",
     borderRadius: "12px",
@@ -69,7 +92,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did 
     fontWeight: selected ? "700" : "500",
     cursor: "pointer",
     textAlign: "center",
-    transition: "all 0.16s ease"
+    transition: "all 0.16s ease",
   });
 
   return (
@@ -79,7 +102,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did 
         display: "flex",
         flexDirection: "column",
         height: "100%",
-        minHeight: 0
+        minHeight: 0,
       }}
     >
       <div>
@@ -90,7 +113,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did 
             margin: "10px 0 4px 0",
             lineHeight: 1.08,
             color: "#24323d",
-            letterSpacing: "-0.02em"
+            letterSpacing: "-0.02em",
           }}
         >
           How are you feeling today?
@@ -99,7 +122,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did 
           style={{
             margin: 0,
             color: "#667685",
-            fontSize: "clamp(14px, 1.2vw, 16px)"
+            fontSize: "clamp(14px, 1.2vw, 16px)",
           }}
         >
           Keep this quick, honest, and judgment-free.
@@ -113,7 +136,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did 
           gridTemplateColumns: "1fr 1fr",
           gap: "10px",
           alignContent: "start",
-          minHeight: 0
+          minHeight: 0,
         }}
       >
         <div style={{ ...compactCardStyle, gridColumn: "1 / span 2" }}>
@@ -122,7 +145,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did 
               marginBottom: "8px",
               fontWeight: "600",
               fontSize: "14px",
-              color: "#334155"
+              color: "#334155",
             }}
           >
             {checkinLabel}
@@ -131,16 +154,16 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did 
           <div style={{ display: "flex", gap: "8px" }}>
             <button
               type="button"
-              onClick={() => handleChange("stayed_sober_today", true)}
-              style={soberChoiceStyle(formData.stayed_sober_today === true)}
+              onClick={() => handleCheckChoice(true)}
+              style={choiceStyle(selectedCheckValue === true)}
             >
               Yes
             </button>
 
             <button
               type="button"
-              onClick={() => handleChange("stayed_sober_today", false)}
-              style={soberChoiceStyle(formData.stayed_sober_today === false)}
+              onClick={() => handleCheckChoice(false)}
+              style={choiceStyle(selectedCheckValue === false)}
             >
               No
             </button>
@@ -151,10 +174,10 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did 
               marginTop: "6px",
               fontSize: "12px",
               color: "#70808e",
-              lineHeight: 1.3
+              lineHeight: 1.3,
             }}
           >
-            This helps calculate your sobriety streak and tailor support more accurately.
+            This helps calculate your streak and tailor support more accurately.
           </div>
         </div>
 
@@ -165,7 +188,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did 
               marginBottom: "6px",
               fontWeight: "600",
               fontSize: "14px",
-              color: "#334155"
+              color: "#334155",
             }}
           >
             Mood Score
@@ -187,7 +210,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did 
               marginBottom: "6px",
               fontWeight: "600",
               fontSize: "14px",
-              color: "#334155"
+              color: "#334155",
             }}
           >
             Stress Score
@@ -209,7 +232,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did 
               marginBottom: "6px",
               fontWeight: "600",
               fontSize: "14px",
-              color: "#334155"
+              color: "#334155",
             }}
           >
             Craving Score
@@ -231,7 +254,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did 
               marginBottom: "6px",
               fontWeight: "600",
               fontSize: "14px",
-              color: "#334155"
+              color: "#334155",
             }}
           >
             Sleep Hours
@@ -255,7 +278,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did 
               alignItems: "center",
               fontSize: "14px",
               minHeight: "20px",
-              color: "#475569"
+              color: "#475569",
             }}
           >
             <input
@@ -275,7 +298,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did 
               alignItems: "center",
               fontSize: "14px",
               minHeight: "20px",
-              color: "#475569"
+              color: "#475569",
             }}
           >
             <input
@@ -294,7 +317,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did 
               marginBottom: "6px",
               fontWeight: "600",
               fontSize: "14px",
-              color: "#334155"
+              color: "#334155",
             }}
           >
             Journal Note
@@ -303,7 +326,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did 
             style={{
               display: "flex",
               gap: "10px",
-              alignItems: "flex-end"
+              alignItems: "flex-end",
             }}
           >
             <textarea
@@ -322,7 +345,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did 
                 minHeight: "64px",
                 maxHeight: "64px",
                 background: "rgba(255,255,255,0.78)",
-                color: "#334155"
+                color: "#334155",
               }}
             />
 
@@ -341,7 +364,7 @@ function CheckinView({ pillStyle, smallCardStyle, onSubmit, checkinLabel = "Did 
                 opacity: submitting ? 0.7 : 1,
                 boxShadow: "0 10px 22px rgba(109, 143, 151, 0.18)",
                 whiteSpace: "nowrap",
-                flexShrink: 0
+                flexShrink: 0,
               }}
             >
               {submitting ? "Submitting..." : "Submit Check-In"}

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CheckinView from "./views/CheckinView";
 import GardenView from "./views/GardenView";
 import HistoryView from "./views/HistoryView";
@@ -50,6 +50,7 @@ export default function TrackerMain({
   userName = "Guest User",
 }: TrackerMainProps) {
   const [activeView, setActiveView] = useState<ViewKey>("home");
+  const [showResetDemo, setShowResetDemo] = useState(false);
 
   const normalizedProgram =
     typeof program === "string" ? program.trim() : "AA";
@@ -65,8 +66,27 @@ export default function TrackerMain({
   const { dashboardData, points, streak, submitCheckin, resetDemo } =
     useRecoveryData(safeProgram, isSubstanceProgram);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === "d") {
+        event.preventDefault();
+        setShowResetDemo((prev) => !prev);
+      }
+
+      if (event.key === "Escape") {
+        setShowResetDemo(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const safeDashboardData = dashboardData ?? {
     ml_risk_level: "low",
+    ml_risk_score: 0,
+    ml_support_message: "Keep checking in daily.",
+    ml_suggested_action: "Open Check-In",
     profile: {
       current_streak_days: 0,
       streak: 0,
@@ -134,6 +154,7 @@ export default function TrackerMain({
               setActiveView("home");
             }}
             checkinLabel={labels.checkin}
+            checkinField={isSubstanceProgram ? "stayed_sober_today" : "practiced_self_care_today"}
           />
         );
       case "garden":
@@ -201,7 +222,7 @@ export default function TrackerMain({
             </div>
 
             <div className={cardClass}>
-              <p className="text-xs text-[#5A7462]">AI Support Level</p>
+              <p className="text-xs text-[#5A7462]">Support Level</p>
               <p className="mt-1 text-xl font-bold capitalize text-[#005A2C]">
                 {aiSupport}
               </p>
@@ -213,12 +234,14 @@ export default function TrackerMain({
             {renderActive()}
           </div>
 
-          <button
-            onClick={resetDemo}
-            className="absolute right-5 top-5 rounded-[24px] border border-[#DCEAD8] bg-white px-4 py-2 text-sm text-[#005A2C]"
-          >
-            Reset Demo
-          </button>
+          {showResetDemo && (
+            <button
+              onClick={resetDemo}
+              className="absolute right-5 top-5 rounded-[24px] border border-[#DCEAD8] bg-white px-4 py-2 text-sm text-[#005A2C] shadow-sm"
+            >
+              Reset Demo
+            </button>
+          )}
         </div>
 
         <aside className="flex w-16 flex-col items-center gap-3 pt-24">
