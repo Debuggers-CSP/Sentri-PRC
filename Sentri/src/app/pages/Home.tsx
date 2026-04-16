@@ -4,6 +4,7 @@ import { Search, Users, Heart, Phone, MapPin, Clock, Leaf, Sparkles, Wind, Star 
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import HeroSection from "../components/HeroSection";
 
 export function Home() {
   const getProgramLink = () => "/programs";
@@ -46,38 +47,82 @@ export function Home() {
     }, 1200); // Sequence takes 1.2s
   };
 
-  // Scratch Card Canvas Logic
-  useEffect(() => {
+ // --- SCRATCH CARD SCRATCHING LOGIC ---
+  const handleScratch = (e: any) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, "#124627");
-    gradient.addColorStop(0.5, "#005A2C");
-    gradient.addColorStop(1, "#124627");
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "rgba(232, 245, 233, 0.6)";
-    ctx.font = "bold 14px Inter, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("MOUSE OVER TO SCRATCH", canvas.width / 2, canvas.height / 2 + 5);
-  }, []);
 
-  const handleScratch = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    // Support for both Mouse and Touch
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
     ctx.globalCompositeOperation = "destination-out";
-    ctx.beginPath(); ctx.arc(x, y, 30, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x, y, 25, 0, Math.PI * 2); 
+    ctx.fill();
   };
+
+ // --- INITIALIZE CANVAS (The Green Layer + Instructions) ---
+  useEffect(() => {
+    const initCanvas = () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      // 1. FIX: Reset the composite operation to "source-over" (Normal Drawing)
+      // If we don't do this, the canvas might still be in "destination-out" (Erase mode)
+      ctx.globalCompositeOperation = "source-over";
+
+      // 2. Sizing logic
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return; // Prevent drawing if not ready
+
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+
+      // 3. Draw the Brand Green Gradient
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+      gradient.addColorStop(0, "#064e3b"); 
+      gradient.addColorStop(0.5, "#005A2C"); 
+      gradient.addColorStop(1, "#064e3b");
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // 4. Draw the Instruction Text
+      // Increased font size slightly and used a standard system stack
+      ctx.fillStyle = "#FFFFFF"; // Pure white for max visibility
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = "900 14px sans-serif"; // Heavier weight
+      
+      const text = "MOUSE OVER TO SCRATCH";
+      
+      // Draw text exactly in the center
+      ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+      // 5. Subtle shimmer border
+      ctx.strokeStyle = "rgba(255,255,255,0.2)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+    };
+
+    // Run initialization
+    initCanvas();
+
+    // Use a ResizeObserver to re-draw if the window changes size
+    const resizeObserver = new ResizeObserver(() => initCanvas());
+    if (canvasRef.current) resizeObserver.observe(canvasRef.current);
+
+    return () => resizeObserver.disconnect();
+  }, [dailyQuote]);
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#F8FAF5_0%,#F1F8EB_45%,#E8F5E9_100%)] text-[#1F3B2B] overflow-x-hidden">
@@ -170,35 +215,39 @@ export function Home() {
       </div>
 
       {/* HERO SECTION */}
-      <section className="relative h-[520px] overflow-hidden">
-        <div className="absolute inset-0">
-          <ImageWithFallback src="https://images.unsplash.com/photo-1586974175094-0a7259238613?fit=max&w=1080" alt="Peaceful" className="h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(0,90,44,0.86)_0%,rgba(118,184,42,0.72)_100%)]" />
-        </div>
-        <div className="relative mx-auto flex h-full max-w-7xl items-center px-4">
-          <div className="max-w-2xl text-white">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/35 bg-white/15 px-4 py-2 backdrop-blur-sm">
-              <Leaf className="h-4 w-4" />
-              <span className="text-sm font-semibold tracking-wide">Digital Wellness Sanctuary</span>
-            </div>
-            <h2 className="mb-6 text-5xl leading-tight font-bold">Hope. Healing. Recovery.</h2>
-            <p className="mb-8 text-xl text-[#E8F5E9]">Compassionate care for your journey toward wellness.</p>
-          </div>
-        </div>
-      </section>
+      <HeroSection />
 
-      {/* DAILY FOCUS SCRATCH CARD */}
-      <section className="relative z-20 mx-auto -mt-12 mb-12 max-w-7xl px-4 flex flex-col items-center">
-        <div className="mb-4 flex items-center gap-2 text-white">
-          <Sparkles className="h-4 w-4" />
-          <h3 className="text-xs font-bold uppercase tracking-[0.2em]">Daily Focus Check-in</h3>
+      {/* DAILY FOCUS SCRATCH CARD - GREEN ELEGANT VERSION */}
+      <section className="relative z-30 mx-auto -mt-10 mb-20 max-w-7xl px-4 flex flex-col items-center">
+        {/* Minimalist Label */}
+        <div className="mb-4 flex items-center gap-3 opacity-40">
+          <div className="h-[1px] w-8 bg-[#005A2C]/30" />
+          <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-[#005A2C]">
+            daily focus
+          </span>
+          <div className="h-[1px] w-8 bg-[#005A2C]/30" />
         </div>
-        <div className="relative h-32 w-full max-w-xl overflow-hidden rounded-[28px] bg-white shadow-2xl transition-transform hover:scale-[1.01]">
-          <div className="absolute inset-0 flex items-center justify-center p-6 text-center select-none">
-            <p className="text-xl font-medium italic text-[#005A2C]">"{dailyQuote}"</p>
+        
+        {/* Elegant Pill Shape */}
+        <div className="relative h-12 w-full max-w-sm overflow-hidden rounded-full bg-white shadow-[0_10px_40px_rgba(0,0,0,0.08)] border-2 border-white transition-all hover:scale-[1.01]">
+          
+          {/* Revealed Content (The Quote underneath) */}
+          <div className="absolute inset-0 flex items-center justify-center px-8 text-center select-none">
+            <p className="text-sm font-medium tracking-tight text-[#005A2C]">
+              "{dailyQuote}"
+            </p>
           </div>
-          <canvas ref={canvasRef} onMouseMove={handleScratch} className="absolute inset-0 z-10 cursor-crosshair" />
-          <div className="pointer-events-none absolute inset-0 rounded-[28px] border-2 border-white/20 z-20"></div>
+
+          {/* Scratch Layer (The Green Canvas) */}
+          <canvas 
+            ref={canvasRef} 
+            onMouseMove={handleScratch} 
+            onTouchMove={handleScratch}
+            className="absolute inset-0 z-10 cursor-crosshair touch-none w-full h-full" 
+          />
+
+          {/* Subtle Glass Highlight on top */}
+          <div className="pointer-events-none absolute inset-0 rounded-full border border-white/20 z-20 shadow-inner"></div>
         </div>
       </section>
 
