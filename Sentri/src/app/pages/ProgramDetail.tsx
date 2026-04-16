@@ -511,6 +511,7 @@ export function ProgramDetail() {
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [isJoined, setIsJoined] = useState(false);
+  const [isJoinHovered, setIsJoinHovered] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const program = programId ? programsData[programId] : null;
 
@@ -610,6 +611,29 @@ export function ProgramDetail() {
     }
   };
 
+  const handleLeave = async () => {
+    if (!programId || !user || !user.id) return alert("Please log in first!");
+
+    const confirmed = window.confirm("Are you sure you want to leave this program?");
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`${pythonURI}/leave-program`, {
+        ...fetchOptions,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user.id }),
+      });
+
+      if (response.ok) {
+        updateJoinedProgram(null);
+        setIsJoined(false);
+      }
+    } catch (err) {
+      console.error("Leave Error:", err);
+    }
+  };
+
   if (!program) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -651,11 +675,16 @@ export function ProgramDetail() {
               </div>
 
               <div className="flex gap-3">
-                <Button onClick={handleJoin} className={actionButtonClass}>
+                <Button
+                  onClick={isJoined ? handleLeave : handleJoin}
+                  onMouseEnter={() => setIsJoinHovered(true)}
+                  onMouseLeave={() => setIsJoinHovered(false)}
+                  className={`${actionButtonClass} cursor-pointer`}
+                >
                   {isJoined ? (
                     <>
                       <Check className="w-4 h-4 mr-2" />
-                      Joined
+                      {isJoinHovered ? "Leave Program" : "Joined"}
                     </>
                   ) : (
                     <>
