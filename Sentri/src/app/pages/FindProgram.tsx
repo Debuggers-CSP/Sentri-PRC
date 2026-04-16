@@ -7,6 +7,7 @@ import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
 import { PRCGuidePanel, type GuideAnswers } from "./PRCGuide";
 import { pythonURI } from "../../../../assets/js/api/config.js";
+
 import aaLogo from "../../assets/735899c7aa27fedc5bfff3f073c9492f49572a67.png";
 import acaLogo from "../../assets/054168f67c068da00639dd1c8048e86acf2571ca.png";
 import alateenLogo from "../../assets/2c91f86ad959487223d3461bd473cbc2855a8351.png";
@@ -51,7 +52,6 @@ export function FindProgram() {
   const handleProgramClick = (programSlug: string) => navigate(`/programs/${programSlug}`);
 
   const handleGuideMatch = async (programId: number, answers: GuideAnswers) => {
-  
     setMatchedProgramId(null);
 
     try {
@@ -62,16 +62,11 @@ export function FindProgram() {
         body: JSON.stringify(answers)
       });
 
-      if (!response.ok) {
-        throw new Error(`ML match request failed with status ${response.status}`);
-      }
-
       const data = (await response.json()) as Record<string, number>;
       const bestProgramName = Object.entries(data).sort((a, b) => b[1] - a[1])[0]?.[0];
-      const bestProgram = programs.find((program) => program.name === bestProgramName);
+      const bestProgram = programs.find((p) => p.name === bestProgramName);
       setMatchedProgramId(bestProgram?.id ?? programId);
-    } catch (error) {
-      console.error("Failed to fetch ML match result:", error);
+    } catch {
       setMatchedProgramId(programId);
     }
   };
@@ -123,15 +118,21 @@ export function FindProgram() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-gradient-to-b from-[#005A2C]/95 to-[#2D6A37]/95 p-6 flex flex-col justify-between text-white"
+                            className="absolute inset-0 bg-gradient-to-b from-[#005A2C]/95 to-[#2D6A37]/95 p-6 flex flex-col text-white"
                           >
-                            <div>
-                              <h3 className="text-2xl font-bold mb-2">{program.name}</h3>
-                              <p className="text-sm text-[#E8F5E9] mb-4">{program.fullName}</p>
-                              <p className="text-sm leading-relaxed">{program.shortIntro}</p>
-                            </div>
-                            <div className="mt-4">
-                              <Button className="w-full mt-4 bg-white text-[#005A2C] hover:bg-[#F1F8EB]">View Details →</Button>
+                            <div className="flex flex-col h-full">
+                              <div className="flex-1">
+                                <h3 className="text-2xl font-bold mb-2">{program.name}</h3>
+                                <p className="text-sm text-[#E8F5E9] mb-3">{program.fullName}</p>
+
+                                <p className="text-sm leading-relaxed line-clamp-3">
+                                  {program.shortIntro}
+                                </p>
+                              </div>
+
+                              <Button className="w-full mt-4 bg-white text-[#005A2C] hover:bg-[#F1F8EB]">
+                                View Details →
+                              </Button>
                             </div>
                           </motion.div>
                         )}
