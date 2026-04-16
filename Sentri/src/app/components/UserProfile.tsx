@@ -57,7 +57,7 @@
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full">
             <Avatar className="h-10 w-10">
-              <AvatarFallback className="bg-blue-600 text-white">
+              <AvatarFallback className="bg-[#005A2C] text-white">
                 {initials}
               </AvatarFallback>
             </Avatar>

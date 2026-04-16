@@ -13,8 +13,7 @@ function Avatar({
     <AvatarPrimitive.Root
       data-slot="avatar"
       className={cn(
-        // Using your exact green tone
-        "relative flex size-10 shrink-0 overflow-hidden rounded-full border border-[#7FAE55] bg-[#8FBF63] ring-2 ring-[#A6D37A] shadow-[0_8px_20px_rgba(60,100,40,0.25)]",
+        "relative flex size-10 shrink-0 overflow-hidden rounded-full bg-[#005A2C]",
         className,
       )}
       {...props}
@@ -44,7 +43,7 @@ function AvatarFallback({
       data-slot="avatar-fallback"
       className={cn(
         // Same color but slightly richer gradient
-        "flex size-full items-center justify-center rounded-full bg-[linear-gradient(135deg,#9DCC70_0%,#6FA94A_100%)] font-semibold text-white",
+        "flex size-full items-center justify-center rounded-full bg-[#005A2C] font-semibold text-white",
         className,
       )}
       {...props}
