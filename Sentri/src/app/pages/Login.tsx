@@ -8,6 +8,7 @@ import { Label } from "../components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { useAuth } from "../context/AuthContext";
 import { pythonURI, fetchOptions } from '../../../../assets/js/api/config.js';
+import logo from "../../assets/PRC.png";
 
 export function Login() {
   const navigate = useNavigate();
@@ -116,7 +117,7 @@ const [errorMessage, setErrorMessage] = useState("");
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          <Heart className="w-10 h-10 text-[#005A2C]" />
+          <img src={logo} alt="Poway Recovery Center Logo" className="w-15 h-15 object-contain"/>
           <div className="text-center">
             <h1 className="text-2xl font-semibold text-[#1F3B2B]">Poway Recovery Center</h1>
           </div>
@@ -201,8 +202,20 @@ const [errorMessage, setErrorMessage] = useState("");
                       type="text"
                       placeholder="John"
                       value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
                       required
                     />
+                  <div className="space-y-2">
+                    <Label htmlFor="register-last-name">Last Name</Label>
+                    <Input
+                      id="register-last-name"
+                      type="text"
+                      placeholder="Doe"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      required
+                    />
+                  </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="register-email">Email</Label>
