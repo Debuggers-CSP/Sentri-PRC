@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import {
   Calendar,
   CheckCircle,
-  Leaf,
   History,
   LayoutDashboard,
+  Leaf,
   Sprout,
+  Users,
 } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { useAuth } from "../context/AuthContext";
@@ -38,18 +39,22 @@ interface DbUserDetails {
   joined_program?: string | null;
 }
 
+type MainTab = "dashboard" | "tracker" | "programs" | "meetings";
+type DashboardView = "home" | "meetings" | "community";
+
 export function Profile() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"dashboard" | "tracker">("dashboard");
+  const [activeTab, setActiveTab] = useState<MainTab>("dashboard");
+  const [dashboardView, setDashboardView] = useState<DashboardView>("home");
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [chatHistory, setChatHistory] = useState<CommunityChat[]>([]);
   const [dbUser, setDbUser] = useState<DbUserDetails | null>(null);
   const [, setLoading] = useState(true);
+  const [contentVisible, setContentVisible] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       if (!user?.id) {
-        console.log("DEBUG: No User ID found in session. Fetching cancelled.");
         setLoading(false);
         return;
       }
@@ -79,8 +84,6 @@ export function Profile() {
         );
         if (userRes.ok) {
           setDbUser(await userRes.json());
-        } else {
-          console.error("Failed to fetch user details");
         }
       } catch (error) {
         console.error("Error fetching profile data:", error);
@@ -92,8 +95,17 @@ export function Profile() {
     fetchData();
   }, [user?.id]);
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  useEffect(() => {
+    setContentVisible(false);
+    const fadeInTimer = window.setTimeout(() => setContentVisible(true), 130);
+    return () => window.clearTimeout(fadeInTimer);
+  }, [activeTab, dashboardView]);
+
+  const today = useMemo(() => {
+    const dt = new Date();
+    dt.setHours(0, 0, 0, 0);
+    return dt;
+  }, []);
 
   const upcomingMeetings = meetings.filter((m) => new Date(m.date) >= today);
   const pastMeetings = meetings.filter((m) => new Date(m.date) < today);
@@ -109,207 +121,333 @@ export function Profile() {
     });
   };
 
-  const getInitials = () => {
-    if (dbUser?.fname && dbUser?.lname) {
-      return (dbUser.fname[0] + dbUser.lname[0]).toUpperCase();
-    }
-    return (user.username?.[0] || "U").toUpperCase();
-  };
-
   const joinedProgram = dbUser?.joined_program?.trim() || "No Program Joined";
+  const fullName = dbUser ? `${dbUser.fname} ${dbUser.lname}` : user.username || "Member";
+  const email = dbUser?.email || user.email || "";
 
-  return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#F8FAF5_0%,#F1F8EB_55%,#E8F5E9_100%)]">
-      <div className="mx-auto flex max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:px-8">
-        <aside className="sticky top-6 h-fit w-full self-start rounded-[24px] border border-[#DCEAD8] bg-white/95 p-3 shadow-[0_12px_30px_rgba(0,90,44,0.08)] backdrop-blur-sm md:w-[250px]">
-          <nav className="space-y-2">
-            <button
-              type="button"
-              onClick={() => setActiveTab("dashboard")}
-              className={`flex w-full items-center gap-3 rounded-[14px] border px-4 py-3 text-left text-sm font-medium transition-all duration-200 ${
-                activeTab === "dashboard"
-                  ? "border-[#A3D977] bg-[#E8F5E9] text-[#005A2C] shadow-[inset_3px_0_0_0_#76B82A]"
-                  : "border-transparent text-[#355844] hover:border-[#DCEAD8] hover:bg-[#F8FAF5]"
-              }`}
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              Dashboard
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("tracker")}
-              className={`flex w-full items-center gap-3 rounded-[14px] border px-4 py-3 text-left text-sm font-medium transition-all duration-200 ${
-                activeTab === "tracker"
-                  ? "border-[#A3D977] bg-[#E8F5E9] text-[#005A2C] shadow-[inset_3px_0_0_0_#76B82A]"
-                  : "border-transparent text-[#355844] hover:border-[#DCEAD8] hover:bg-[#F8FAF5]"
-              }`}
-            >
-              <Sprout className="h-4 w-4" />
-              Recovery Tracker
-            </button>
-          </nav>
-        </aside>
+  const supportLevel = useMemo(() => {
+    const chatSignal = chatHistory.length >= 10 ? "high" : chatHistory.length >= 4 ? "medium" : "low";
+    return {
+      label: `Support need: ${chatSignal}`,
+      className:
+        chatSignal === "high"
+          ? "border-[#F6CF9F] bg-[#FFF5EC] text-[#8D4C08]"
+          : chatSignal === "medium"
+          ? "border-[#C9E59D] bg-[#F2F7E9] text-[#356020]"
+          : "border-[#A3D977] bg-[#E8F5E9] text-[#005A2C]",
+    };
+  }, [chatHistory.length]);
 
-        <div className="min-w-0 flex-1 transition-all duration-300">
-          {activeTab === "dashboard" ? (
-            <>
-              <Card className="mb-8 overflow-hidden rounded-[30px] border border-[#E0EADD] shadow-[0_14px_34px_rgba(0,90,44,0.10)]">
-                <div className="bg-[linear-gradient(135deg,#76B82A_0%,#005A2C_100%)] p-8 text-white">
-                  <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex h-24 w-24 items-center justify-center rounded-full border border-white/35 bg-white/20 text-4xl font-bold backdrop-blur-sm">
-                      {getInitials()}
-                    </div>
-                    <div>
-                      <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
-                        <Leaf className="h-3.5 w-3.5" /> Wellness Profile
-                      </div>
-                      <h2 className="mb-1 text-3xl">
-                        {dbUser
-                          ? `${dbUser.fname} ${dbUser.lname}`
-                          : user.username || "Loading..."}
-                      </h2>
-                      <p className="text-[#E8F5E9]">{dbUser ? dbUser.email : user.email}</p>
-                      <div className="mt-4 flex gap-2">
-                        <Badge className="border-white/30 bg-white/20 text-white">
-                          Community Member
-                        </Badge>
-                        <Badge className="border-none bg-[#A3D977] text-[#124627]">
-                          Active Now
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
+  const cardShell =
+    "rounded-[30px] border border-[#E0EADD] bg-white shadow-[0_12px_30px_rgba(0,90,44,0.09)]";
+
+  const dashboardSubNav = [
+    { key: "home" as const, icon: "🏠", label: "Home" },
+    { key: "meetings" as const, icon: "📅", label: "Meetings" },
+    { key: "community" as const, icon: "💬", label: "Community" },
+  ];
+
+  const renderUpcomingMeetingsCard = () => (
+    <Card className={cardShell}>
+      <CardContent className="p-6">
+        <h3 className="mb-5 flex items-center gap-2 text-xl font-semibold text-[#1F3B2B]">
+          <Calendar className="h-5 w-5 text-[#005A2C]" /> Upcoming Meetings
+        </h3>
+        <div className="space-y-4">
+          {upcomingMeetings.length > 0 ? (
+            upcomingMeetings.map((meeting) => (
+              <div
+                key={meeting.id}
+                className="rounded-[20px] border border-[#DCEAD8] bg-[#F1F8EB] p-4"
+              >
+                <div className="font-semibold text-[#1F3B2B]">{meeting.name}</div>
+                <div className="text-xs text-[#5A7462]">
+                  {meeting.date} at {meeting.time} • {meeting.location}
                 </div>
-              </Card>
-
-              <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
-                <Card className="rounded-[24px] border border-[#E0EADD] shadow-[0_10px_24px_rgba(0,90,44,0.08)]">
-                  <CardContent className="p-6">
-                    <div className="mb-4 w-fit rounded-[16px] bg-[#E8F5E9] p-3 text-[#005A2C]">
-                      <Calendar />
-                    </div>
-                    <div className="text-3xl font-bold text-[#1F3B2B]">
-                      {upcomingMeetings.length}
-                    </div>
-                    <div className="text-sm text-[#5A7462]">Upcoming Meetings</div>
-                  </CardContent>
-                </Card>
-
-                <Card className="rounded-[24px] border border-[#E0EADD] shadow-[0_10px_24px_rgba(0,90,44,0.08)]">
-                  <CardContent className="p-6">
-                    <div className="mb-4 w-fit rounded-[16px] bg-[#E8F5E9] p-3 text-[#2D6A37]">
-                      <CheckCircle />
-                    </div>
-                    <div className="text-3xl font-bold text-[#1F3B2B]">
-                      {pastMeetings.length}
-                    </div>
-                    <div className="text-sm text-[#5A7462]">Past Meetings</div>
-                  </CardContent>
-                </Card>
-
-                <Card className="rounded-[24px] border border-[#E0EADD] shadow-[0_10px_24px_rgba(0,90,44,0.08)]">
-                  <CardContent className="p-6">
-                    <div className="mb-4 w-fit rounded-[16px] bg-[#E8F5E9] p-3 text-[#2D6A37]">
-                      <Sprout />
-                    </div>
-                    <div className="text-xl font-bold text-[#1F3B2B] break-words">
-                      {joinedProgram}
-                    </div>
-                    <div className="text-sm text-[#5A7462]">Joined Program</div>
-                  </CardContent>
-                </Card>
               </div>
-
-              <div className="grid gap-8 lg:grid-cols-2">
-                <Card className="rounded-[24px] border border-[#E0EADD] shadow-[0_10px_24px_rgba(0,90,44,0.08)]">
-                  <CardContent className="p-6">
-                    <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold text-[#1F3B2B]">
-                      <Calendar className="text-[#005A2C]" /> Upcoming Meetings
-                    </h3>
-                    <div className="space-y-4">
-                      {upcomingMeetings.length > 0 ? (
-                        upcomingMeetings.map((m) => (
-                          <div
-                            key={m.id}
-                            className="rounded-[18px] border border-[#DCEAD8] bg-[#F1F8EB] p-4"
-                          >
-                            <div className="font-semibold text-[#1F3B2B]">{m.name}</div>
-                            <div className="text-xs text-[#5A7462]">
-                              {m.date} at {m.time} • {m.location}
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-center text-sm text-[#6B7F70]">
-                          No upcoming meetings yet. Add one from a program page.
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="rounded-[24px] border border-[#E0EADD] shadow-[0_10px_24px_rgba(0,90,44,0.08)]">
-                  <CardContent className="p-6">
-                    <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold text-[#1F3B2B]">
-                      <History className="text-[#2D6A37]" /> Community Chat History
-                    </h3>
-                    <div className="max-h-[400px] space-y-4 overflow-y-auto pr-2">
-                      {chatHistory.length > 0 ? (
-                        chatHistory.map((chat) => (
-                          <div
-                            key={chat.id}
-                            className="rounded-[18px] border border-[#DCEAD8] bg-[#F8FAF5] p-4"
-                          >
-                            <div className="mb-2 flex items-center justify-between">
-                              <Badge className="bg-[#E8F5E9] text-[#005A2C] hover:bg-[#E8F5E9] uppercase text-[10px]">
-                                {chat.program_id} Room
-                              </Badge>
-                              <span className="text-[10px] text-[#6B7F70]">
-                                {formatDate(chat.timestamp)}
-                              </span>
-                            </div>
-                            <p className="text-sm italic text-[#2D5138]">
-                              "{chat.message}"
-                            </p>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="py-10 text-center">
-                          <p className="text-sm text-[#6B7F70]">
-                            No community chats found.
-                          </p>
-                          <Link
-                            to="/programs"
-                            className="mt-2 inline-block text-xs font-medium text-[#005A2C] hover:underline"
-                          >
-                            Join a room
-                          </Link>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </>
+            ))
           ) : (
-            <div className="rounded-[24px] border border-[#E0EADD] bg-white p-4 shadow-[0_10px_24px_rgba(0,90,44,0.08)] transition-opacity duration-300">
-              <TrackerMain
-                program={
-                  (dbUser?.joined_program as
-                    | "AA"
-                    | "NA"
-                    | "CA"
-                    | "SA"
-                    | "GA"
-                    | "ACA"
-                    | "Al-Anon"
-                    | "Alateen") || "AA"
-                }
-                userName={dbUser?.fname || user.username || "Guest User"}
-              />
+            <p className="text-center text-sm text-[#6B7F70]">
+              No upcoming meetings yet. Add one from a program page.
+            </p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderCommunityCard = () => (
+    <Card className={cardShell}>
+      <CardContent className="p-6">
+        <h3 className="mb-5 flex items-center gap-2 text-xl font-semibold text-[#1F3B2B]">
+          <History className="h-5 w-5 text-[#2D6A37]" /> Community Chat History
+        </h3>
+        <div className="max-h-[520px] space-y-4 overflow-y-auto pr-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {chatHistory.length > 0 ? (
+            chatHistory.map((chat) => (
+              <div
+                key={chat.id}
+                className="rounded-[18px] border border-[#DCEAD8] bg-[#F8FAF5] p-4"
+              >
+                <div className="mb-2 flex items-center justify-between">
+                  <Badge className="bg-[#E8F5E9] text-[#005A2C] uppercase text-[10px] hover:bg-[#E8F5E9]">
+                    {chat.program_id} Room
+                  </Badge>
+                  <span className="text-[10px] text-[#6B7F70]">{formatDate(chat.timestamp)}</span>
+                </div>
+                <p className="text-sm italic text-[#2D5138]">"{chat.message}"</p>
+              </div>
+            ))
+          ) : (
+            <div className="py-8 text-center">
+              <p className="text-sm text-[#6B7F70]">No community chats found.</p>
+              <Link
+                to="/programs"
+                className="mt-2 inline-block text-xs font-medium text-[#005A2C] hover:underline"
+              >
+                Join a room
+              </Link>
             </div>
           )}
         </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderDashboardHome = () => (
+    <div className="flex min-h-full flex-col gap-4">
+      <Card className={`${cardShell} bg-[linear-gradient(135deg,#ffffff_0%,#F5FBF1_100%)]`}>
+        <CardContent className="p-6">
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#DCEAD8] bg-[#E8F5E9] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#005A2C]">
+            <Leaf className="h-3.5 w-3.5" /> Wellness Profile
+          </div>
+          <h1 className="text-[clamp(28px,3vw,40px)] leading-[1.08] tracking-[-0.02em] text-[#005A2C]">
+            Welcome back, {fullName}
+          </h1>
+          <p className="mt-1 text-sm text-[#5A7462]">{email}</p>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
+        <Card className={cardShell}>
+          <CardContent className="p-5">
+            <p className="text-xs text-[#5A7462]">Upcoming Meetings</p>
+            <p className="mt-1 text-3xl font-bold text-[#005A2C]">{upcomingMeetings.length}</p>
+          </CardContent>
+        </Card>
+
+        <Card className={cardShell}>
+          <CardContent className="p-5">
+            <p className="text-xs text-[#5A7462]">Past Meetings</p>
+            <p className="mt-1 text-3xl font-bold text-[#005A2C]">{pastMeetings.length}</p>
+          </CardContent>
+        </Card>
+
+        <Card className={cardShell}>
+          <CardContent className="p-5">
+            <p className="text-xs text-[#5A7462]">Current Program</p>
+            <p className="mt-1 line-clamp-2 text-lg font-bold text-[#005A2C]">{joinedProgram}</p>
+          </CardContent>
+        </Card>
+
+        <Card className={cardShell}>
+          <CardContent className="p-5">
+            <p className="text-xs text-[#5A7462]">Support Level</p>
+            <Badge className={`mt-2 border ${supportLevel.className}`}>{supportLevel.label}</Badge>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_260px_minmax(300px,360px)]">
+        <div />
+
+        <Card className={`${cardShell} bg-[radial-gradient(circle_at_center,#ffffff_0%,#F3F9EE_58%,#E8F5E9_100%)]`}>
+          <CardContent className="flex h-full min-h-[320px] items-center justify-center p-4">
+            <div className="flex aspect-square w-[200px] flex-col items-center justify-center rounded-full border-[8px] border-[#E8F5E9] bg-white p-4 text-center shadow-[0_12px_30px_rgba(0,90,44,0.1)]">
+              <div className="mb-1 text-4xl">🌱</div>
+              <div className="text-sm text-[#5A7462]">Garden Level</div>
+              <div className="text-2xl font-bold text-[#005A2C]">Young Sprout</div>
+              <div className="mt-2 text-xs text-[#5A7462]">XP 24 / 100</div>
+              <div className="mt-2 h-2 w-[70%] overflow-hidden rounded-full bg-[#E8F5E9]">
+                <div className="h-full w-[24%] rounded-full bg-[linear-gradient(90deg,#76B82A_0%,#005A2C_100%)]" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid min-h-0 grid-rows-[auto_auto_auto] gap-3">
+          <Card className={cardShell}>
+            <CardContent className="p-4">
+              <p className="mb-3 text-xs text-[#5A7462]">Sobriety Streak timeline</p>
+              <div className="flex flex-wrap gap-2">
+                {[1, 3, 7, 14, 30, 60].map((milestone) => (
+                  <span
+                    key={milestone}
+                    className="rounded-full border border-[#DCEAD8] bg-[#EEF6EA] px-3 py-1 text-sm font-semibold text-[#5A7462]"
+                  >
+                    {milestone}d
+                  </span>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className={cardShell}>
+            <CardContent className="p-4">
+              <p className="text-xs text-[#5A7462]">Next Milestone</p>
+              <p className="mt-1 text-2xl font-bold text-[#005A2C]">30 days</p>
+              <p className="mt-1 text-sm text-[#5A7462]">6 days to go</p>
+            </CardContent>
+          </Card>
+
+          <Card className={cardShell}>
+            <CardContent className="p-4">
+              <p className="text-xs text-[#5A7462]">AI Support Insight</p>
+              <p className="mt-1 text-sm text-[#2D5138]">
+                Keep the same rhythm this week. A short reflection entry can improve trend stability.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderCenterContent = () => {
+    if (activeTab === "tracker") {
+      return (
+        <div className="rounded-[30px] border border-[#E0EADD] bg-white p-2 shadow-[0_12px_30px_rgba(0,90,44,0.09)]">
+          <TrackerMain
+            program={
+              (dbUser?.joined_program as
+                | "AA"
+                | "NA"
+                | "CA"
+                | "SA"
+                | "GA"
+                | "ACA"
+                | "Al-Anon"
+                | "Alateen") || "AA"
+            }
+            userName={dbUser?.fname || user.username || "Guest User"}
+          />
+        </div>
+      );
+    }
+
+    if (activeTab === "programs") {
+      return (
+        <Card className={cardShell}>
+          <CardContent className="space-y-4 p-6">
+            <h2 className="text-2xl font-bold text-[#005A2C]">Programs</h2>
+            <p className="text-[#5A7462]">Browse available programs and update your joined recovery track.</p>
+            <Link
+              to="/programs"
+              className="inline-flex rounded-full border border-[#A3D977] bg-[#E8F5E9] px-4 py-2 text-sm font-semibold text-[#005A2C]"
+            >
+              Open Programs Directory
+            </Link>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (activeTab === "meetings") {
+      return (
+        <div className="space-y-4">
+          {renderUpcomingMeetingsCard()}
+          <Card className={cardShell}>
+            <CardContent className="p-6">
+              <Link
+                to="/meetings"
+                className="inline-flex rounded-full border border-[#A3D977] bg-[#E8F5E9] px-4 py-2 text-sm font-semibold text-[#005A2C]"
+              >
+                Find More Meetings
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    if (dashboardView === "meetings") return renderUpcomingMeetingsCard();
+    if (dashboardView === "community") return renderCommunityCard();
+    return renderDashboardHome();
+  };
+
+  return (
+    <div className="h-[calc(100vh-97px)] w-full overflow-hidden bg-[linear-gradient(180deg,#F8FAF5_0%,#F1F8EB_55%,#E8F5E9_100%)]">
+      <div className="grid h-full w-full grid-cols-[260px_minmax(0,1fr)_80px] gap-4 p-4">
+        <aside className="h-full rounded-[30px] border border-[#DCEAD8] bg-white/95 p-3 shadow-[0_12px_30px_rgba(0,90,44,0.08)]">
+          <nav className="space-y-2">
+            {[
+              { key: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
+              { key: "tracker", label: "Recovery Tracker", icon: <Sprout className="h-4 w-4" /> },
+              { key: "programs", label: "Programs", icon: <Leaf className="h-4 w-4" /> },
+              { key: "meetings", label: "Meetings", icon: <Calendar className="h-4 w-4" /> },
+            ].map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => setActiveTab(item.key as MainTab)}
+                className={`flex w-full items-center gap-3 rounded-[14px] border px-4 py-3 text-left text-sm font-medium transition-all duration-200 ${
+                  activeTab === item.key
+                    ? "border-[#A3D977] bg-[#E8F5E9] text-[#005A2C] shadow-[inset_3px_0_0_0_#76B82A]"
+                    : "border-transparent text-[#355844] hover:border-[#DCEAD8] hover:bg-[#F8FAF5]"
+                }`}
+              >
+                {item.icon}
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        </aside>
+
+        <section className="min-h-0 overflow-hidden rounded-[30px] border border-[#DCEAD8]/70 bg-[#F8FAF5]/50 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+          <div
+            className={`h-full overflow-y-auto pr-2 transition-opacity duration-300 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+              contentVisible ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            {renderCenterContent()}
+          </div>
+        </section>
+
+        <aside className="h-full rounded-[30px] border border-[#DCEAD8] bg-white/90 p-2 shadow-[0_12px_30px_rgba(0,90,44,0.06)]">
+          <div className="flex h-full flex-col items-center gap-3 pt-2">
+            {(activeTab === "dashboard"
+              ? dashboardSubNav
+              : [
+                  { key: "a", icon: "🧭", label: "Quick" },
+                  { key: "b", icon: "📌", label: "Pins" },
+                  { key: "c", icon: "👥", label: "Community" },
+                ]
+            ).map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                title={item.label}
+                onClick={() => {
+                  if (activeTab === "dashboard") {
+                    setDashboardView(item.key as DashboardView);
+                  }
+                }}
+                className={`flex h-14 w-14 items-center justify-center rounded-full border text-xl transition ${
+                  activeTab === "dashboard" && dashboardView === item.key
+                    ? "border-[#76B82A] bg-[linear-gradient(135deg,#76B82A_0%,#005A2C_100%)] text-white shadow-[0_12px_26px_rgba(0,90,44,0.22)]"
+                    : "border-[#DCEAD8] bg-white text-[#5A7462]"
+                } ${activeTab !== "dashboard" ? "cursor-default" : "cursor-pointer"}`}
+              >
+                {item.icon}
+              </button>
+            ))}
+
+            <div className="mt-auto pb-2 text-center text-[10px] text-[#6B7F70]">
+              <Users className="mx-auto mb-1 h-4 w-4" />
+              Sub-Views
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
   );
