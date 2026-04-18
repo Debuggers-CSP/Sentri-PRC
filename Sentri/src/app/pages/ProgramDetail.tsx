@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useParams } from "react-router";
 import {
   BookOpen,
@@ -255,8 +255,7 @@ const programsData: Record<string, ProgramInfo> = {
       },
       {
         title: "Anonymity",
-        description:
-          "Confidentiality enables open, stigma-free sharing.",
+        description: "Confidentiality enables open, stigma-free sharing.",
         icon: Shield,
       },
       {
@@ -305,8 +304,7 @@ const programsData: Record<string, ProgramInfo> = {
       },
       {
         title: "Anonymity",
-        description:
-          "Members share openly with safety and privacy.",
+        description: "Members share openly with safety and privacy.",
         icon: Shield,
       },
       {
@@ -504,24 +502,52 @@ function extractStartTime(timeRange: string): string {
   return timeRange.split(" - ")[0].trim();
 }
 
+function parseJoinedPrograms(rawJoinedProgram: unknown): string[] {
+  if (!rawJoinedProgram) return [];
+
+  if (Array.isArray(rawJoinedProgram)) {
+    return rawJoinedProgram.map((value) => String(value).trim()).filter(Boolean);
+  }
+
+  const raw = String(rawJoinedProgram).trim();
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed.map((value) => String(value).trim()).filter(Boolean);
+    }
+  } catch {
+    // fall back to comma-separated string
+  }
+
+  return raw
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
 export function ProgramDetail() {
   const { programId } = useParams<{ programId: string }>();
   const { user, updateJoinedProgram } = useAuth();
   const [message, setMessage] = useState("");
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
-  const [isJoined, setIsJoined] = useState(false);
   const [isJoinHovered, setIsJoinHovered] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const program = programId ? programsData[programId] : null;
 
+  const joinedProgramIds = useMemo(() => {
+    return parseJoinedPrograms(user?.joined_program);
+  }, [user?.joined_program]);
+
+  const isJoined = useMemo(() => {
+    return Boolean(programId && joinedProgramIds.includes(programId));
+  }, [programId, joinedProgramIds]);
+
   useEffect(() => {
     if (program?.meetings.length) setSelectedMeeting(program.meetings[0]);
   }, [programId, program]);
-
-  useEffect(() => {
-    setIsJoined(Boolean(programId && user?.joined_program === programId));
-  }, [programId, user?.joined_program]);
 
   const fetchChatHistory = async () => {
     if (!programId) return;
@@ -538,6 +564,10 @@ export function ProgramDetail() {
     const interval = setInterval(fetchChatHistory, 5000);
     return () => clearInterval(interval);
   }, [programId]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages]);
 
   const handleSendMessage = async () => {
     if (!message.trim()) return;
@@ -602,10 +632,16 @@ export function ProgramDetail() {
         body: JSON.stringify({ user_id: user.id, program_id: programId }),
       });
 
-      if (response.ok) {
-        updateJoinedProgram(programId);
-        setIsJoined(true);
+      if (!response.ok) {
+        alert("Failed to join program.");
+        return;
       }
+
+      const data = await response.json();
+      const updatedJoinedPrograms = data?.joined_program ?? "";
+
+      updateJoinedProgram(updatedJoinedPrograms);
+      window.dispatchEvent(new Event("sentri-programs-updated"));
     } catch (err) {
       console.error("Join Error:", err);
     }
@@ -622,13 +658,22 @@ export function ProgramDetail() {
         ...fetchOptions,
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: user.id }),
+        body: JSON.stringify({
+          user_id: user.id,
+          program_id: programId,
+        }),
       });
 
-      if (response.ok) {
-        updateJoinedProgram(null);
-        setIsJoined(false);
+      if (!response.ok) {
+        alert("Failed to leave program.");
+        return;
       }
+
+      const data = await response.json();
+      const updatedJoinedPrograms = data?.joined_program ?? "";
+
+      updateJoinedProgram(updatedJoinedPrograms);
+      window.dispatchEvent(new Event("sentri-programs-updated"));
     } catch (err) {
       console.error("Leave Error:", err);
     }
@@ -644,7 +689,7 @@ export function ProgramDetail() {
     );
   }
 
-  const actionButtonClass = isJoined
+  const joinButtonClass = isJoined
     ? "bg-green-600 hover:bg-green-700 text-white"
     : "bg-white text-[#005A2C] hover:bg-[#E8F5E9]";
 
@@ -679,7 +724,7 @@ export function ProgramDetail() {
                   onClick={isJoined ? handleLeave : handleJoin}
                   onMouseEnter={() => setIsJoinHovered(true)}
                   onMouseLeave={() => setIsJoinHovered(false)}
-                  className={`${actionButtonClass} cursor-pointer`}
+                  className={`${joinButtonClass} cursor-pointer`}
                 >
                   {isJoined ? (
                     <>
@@ -695,7 +740,10 @@ export function ProgramDetail() {
                 </Button>
 
                 {program.resourceLink && (
-                  <Button asChild className={actionButtonClass}>
+                  <Button
+                    asChild
+                    className="bg-white text-[#005A2C] hover:bg-[#E8F5E9]"
+                  >
                     <a href={program.resourceLink} target="_blank" rel="noopener noreferrer">
                       <Globe className="w-4 h-4 mr-2" />
                       Resources

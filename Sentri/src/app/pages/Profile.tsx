@@ -2,15 +2,23 @@ import { useEffect, useMemo, useState } from "react";
 import { Calendar, LayoutDashboard, Leaf, Sprout } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { useAuth } from "../context/AuthContext";
-import { Badge } from "../components/ui/badge";
 import { pythonURI, fetchOptions } from "../../../../assets/js/api/config.js";
 import TrackerMain from "../components/tracker/TrackerMain";
 import { FindProgram } from "./FindProgram";
 import { FindMeeting } from "./FindMeeting";
 import sproutGif from "../../assets/garden/sprout.gif";
+import aaLogo from "../../assets/735899c7aa27fedc5bfff3f073c9492f49572a67.png";
+import acaLogo from "../../assets/054168f67c068da00639dd1c8048e86acf2571ca.png";
+import alateenLogo from "../../assets/2c91f86ad959487223d3461bd473cbc2855a8351.png";
+import alanonLogo from "../../assets/3c35ee6fefb6bfce531c22f63b9380fedac4d6a6.png";
+import naLogo from "../../assets/2115c4842bd36bd47cd1708c3d26e2e14999ef8a.png";
+import caLogo from "../../assets/58e3f4b9794493f73bea7d751b9df8993b8c105f.png";
+import gaLogo from "../../assets/675121813725057c96f90900dde1cdb27e6a8031.png";
+import saLogo from "../../assets/50593eb25097566896b0e6a4b491eabb700c98a6.png";
 
 interface Meeting {
   id: number;
+  program_id?: string;
   name: string;
   date: string;
   time: string;
@@ -18,11 +26,13 @@ interface Meeting {
   type: string;
 }
 
-interface CommunityChat {
-  id: number;
+interface DashboardProgram {
   program_id: string;
-  message: string;
-  timestamp: string;
+  fullName: string;
+  last_message: {
+    text: string;
+    timestamp: string | null;
+  };
 }
 
 interface DbUserDetails {
@@ -35,11 +45,54 @@ interface DbUserDetails {
 
 type MainTab = "dashboard" | "tracker" | "programs" | "meetings";
 
+const programVisuals: Record<string, { logo: string; name: string }> = {
+  aa: { logo: aaLogo, name: "Alcoholics Anonymous" },
+  aca: { logo: acaLogo, name: "Adult Children of Alcoholics" },
+  alateen: { logo: alateenLogo, name: "Alateen Support Group" },
+  alanon: { logo: alanonLogo, name: "Al-Anon Family Groups" },
+  na: { logo: naLogo, name: "Narcotics Anonymous" },
+  ca: { logo: caLogo, name: "Cocaine Anonymous" },
+  ga: { logo: gaLogo, name: "Gamblers Anonymous" },
+  sa: { logo: saLogo, name: "Sexaholics Anonymous" },
+};
+
+const formatMessageTimestamp = (timestamp: string | null) => {
+  if (!timestamp) return "";
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const now = new Date();
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+
+  const yesterdayStart = new Date(todayStart);
+  yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+
+  if (date >= todayStart) {
+    return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  }
+
+  if (date >= yesterdayStart && date < todayStart) {
+    return "Yesterday";
+  }
+
+  return date.toLocaleDateString([], { month: "short", day: "numeric" });
+};
+
+const isUnreadMessage = (timestamp: string | null) => {
+  if (!timestamp) return false;
+  const created = new Date(timestamp);
+  if (Number.isNaN(created.getTime())) return false;
+
+  const twoHoursMs = 2 * 60 * 60 * 1000;
+  return Date.now() - created.getTime() <= twoHoursMs;
+};
+
 export function Profile() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<MainTab>("dashboard");
   const [meetings, setMeetings] = useState<Meeting[]>([]);
-  const [chatHistory, setChatHistory] = useState<CommunityChat[]>([]);
+  const [dashboardPrograms, setDashboardPrograms] = useState<DashboardProgram[]>([]);
   const [dbUser, setDbUser] = useState<DbUserDetails | null>(null);
   const [, setLoading] = useState(true);
   const [contentVisible, setContentVisible] = useState(true);
@@ -54,17 +107,22 @@ export function Profile() {
       try {
         setLoading(true);
 
-        const meetingRes = await fetch(
-          `${pythonURI}/get-user-meetings?user_id=${user.id}`,
+        const summaryRes = await fetch(
+          `${pythonURI}/get-dashboard-summary/${user.id}`,
           fetchOptions
         );
-        if (meetingRes.ok) setMeetings(await meetingRes.json());
 
-        const chatRes = await fetch(
-          `${pythonURI}/get-user-community-chats?user_id=${user.id}`,
-          fetchOptions
-        );
-        if (chatRes.ok) setChatHistory(await chatRes.json());
+        if (summaryRes.ok) {
+          const summary = await summaryRes.json();
+          setDashboardPrograms(summary.programs || []);
+          setMeetings(summary.meetings || []);
+        } else {
+          const meetingRes = await fetch(
+            `${pythonURI}/get-user-meetings?user_id=${user.id}`,
+            fetchOptions
+          );
+          if (meetingRes.ok) setMeetings(await meetingRes.json());
+        }
 
         const userRes = await fetch(
           `${pythonURI}/get-user-details?user_id=${user.id}`,
@@ -87,30 +145,48 @@ export function Profile() {
     return () => window.clearTimeout(fadeInTimer);
   }, [activeTab]);
 
-  const today = useMemo(() => {
-    const dt = new Date();
-    dt.setHours(0, 0, 0, 0);
-    return dt;
-  }, []);
+  const joinedProgramIds = useMemo(() => {
+    const raw = dbUser?.joined_program || "";
+    if (!raw.trim()) return [];
 
-  const upcomingMeetings = meetings.filter((m) => new Date(m.date) >= today);
-  const recentChats = chatHistory.slice(0, 4);
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed.map((value) => String(value).trim()).filter(Boolean);
+    } catch {
+      return raw
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean);
+    }
 
-  const joinedProgram = dbUser?.joined_program?.trim() || "No Program Joined";
+    return [];
+  }, [dbUser?.joined_program]);
+
+  const displayedPrograms = useMemo(() => {
+    return dashboardPrograms.filter((program) =>
+      joinedProgramIds.includes(program.program_id)
+    );
+  }, [dashboardPrograms, joinedProgramIds]);
+
+  const sortedMeetings = useMemo(() => {
+    const parseMeetingDate = (meeting: Meeting) => {
+      const [startTime] = (meeting.time || "").split("-");
+      return new Date(`${meeting.date} ${startTime.trim() || "00:00"}`).getTime();
+    };
+
+    return [...meetings].sort((a, b) => parseMeetingDate(a) - parseMeetingDate(b));
+  }, [meetings]);
+
   const fullName = dbUser ? `${dbUser.fname} ${dbUser.lname}` : user.username || "Member";
   const email = dbUser?.email || user.email || "";
-  const supportLevel =
-    chatHistory.length >= 10 ? "High" : chatHistory.length >= 4 ? "Medium" : "Low";
 
   const cardShell =
-    "rounded-[30px] border border-[#E0EADD] bg-white shadow-[0_12px_30px_rgba(0,90,44,0.09)]";
-
-  const zoneShell = "rounded-[24px] border border-[#DCEAD8] bg-[#F8FAF5] p-4";
+    "h-full rounded-[30px] border border-[#E0EADD] bg-white shadow-[0_12px_30px_rgba(0,90,44,0.09)]";
 
   const renderDashboardHome = () => (
     <Card className={cardShell}>
-      <CardContent className="space-y-5 p-6">
-        <div className="inline-flex items-center gap-2 rounded-full border border-[#DCEAD8] bg-[#E8F5E9] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#005A2C]">
+      <CardContent className="flex h-full flex-col gap-5 p-5">
+        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#DCEAD8] bg-[#E8F5E9] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#005A2C]">
           <LayoutDashboard className="h-3.5 w-3.5" /> Dashboard
         </div>
 
@@ -121,96 +197,103 @@ export function Profile() {
           <p className="mt-1 text-sm text-[#5A7462]">{email}</p>
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-3">
-          <section className={zoneShell}>
-            <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-[#355844]">
-              Programs
+        <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+          <section className="flex min-h-0 flex-col rounded-[24px] border border-[#DCEAD8] bg-[#F8FAF5] p-3">
+            <h2 className="mb-2 px-2 text-sm font-bold uppercase tracking-wide text-[#355844]">
+              Program Zone
             </h2>
 
-            <div className="mb-3 rounded-[16px] border border-[#E0EADD] bg-white p-3">
-              <p className="text-xs text-[#5A7462]">Joined Program</p>
-              <p className="mt-1 text-lg font-bold text-[#005A2C]">{joinedProgram}</p>
-              <Badge className="mt-2 border border-[#A3D977] bg-[#E8F5E9] text-[#005A2C]">
-                Support: {supportLevel}
-              </Badge>
-            </div>
+            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1 [scrollbar-width:thin]">
+              {displayedPrograms.length > 0 ? (
+                displayedPrograms.map((program) => {
+                  const visual = programVisuals[program.program_id];
+                  const messagePreview = program.last_message?.text || "No messages yet";
+                  const timeLabel = formatMessageTimestamp(program.last_message?.timestamp ?? null);
+                  const unread = isUnreadMessage(program.last_message?.timestamp ?? null);
 
-            <div className="rounded-[16px] border border-[#E0EADD] bg-white p-3">
-              <p className="mb-2 text-xs text-[#5A7462]">Community Chat</p>
-              <div className="space-y-2">
-                {recentChats.length > 0 ? (
-                  recentChats.map((chat) => (
-                    <p
-                      key={chat.id}
-                      className="line-clamp-1 rounded-md bg-[#F1F8EB] px-2 py-1 text-xs text-[#2D5138]"
+                  return (
+                    <button
+                      key={program.program_id}
+                      type="button"
+                      onClick={() =>
+                        console.log("Program modal placeholder:", {
+                          programId: program.program_id,
+                          fullName: program.fullName,
+                        })
+                      }
+                      className="flex w-full items-center gap-3 rounded-[18px] border border-[#DFE9DD] bg-white px-3 py-3 text-left transition hover:border-[#B8D7A9] hover:bg-[#F6FBF1]"
                     >
-                      {chat.message}
-                    </p>
-                  ))
-                ) : (
-                  <p className="text-xs text-[#6B7F70]">No recent chat history.</p>
-                )}
-              </div>
+                      <img
+                        src={visual?.logo}
+                        alt={`${program.fullName} logo`}
+                        className="h-12 w-12 flex-none rounded-full border border-[#DCEAD8] object-cover"
+                      />
+
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-[#173723]">
+                          {visual?.name || program.fullName}
+                        </p>
+                        <p className="truncate text-xs text-[#617765]">{messagePreview}</p>
+                      </div>
+
+                      <div className="ml-2 flex flex-col items-end gap-1">
+                        <span className="text-[11px] text-[#6A7F70]">{timeLabel}</span>
+                        {unread && <span className="h-2.5 w-2.5 rounded-full bg-[#22C55E]" />}
+                      </div>
+                    </button>
+                  );
+                })
+              ) : (
+                <p className="px-2 py-5 text-sm text-[#6B7F70]">
+                  Join programs to view your conversations here.
+                </p>
+              )}
             </div>
           </section>
 
-          <section className={zoneShell}>
-            <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-[#355844]">
-              Meetings
-            </h2>
-            <div className="space-y-3">
-              <div className="rounded-[16px] border border-[#E0EADD] bg-white p-3">
-                <p className="text-xs text-[#5A7462]">Next Meeting</p>
-                <p className="mt-1 text-sm font-semibold text-[#1F3B2B]">
-                  {upcomingMeetings[0]?.name || "No upcoming meetings scheduled"}
-                </p>
-              </div>
-
-              <div className="rounded-[16px] border border-[#E0EADD] bg-white p-3">
-                <p className="text-xs text-[#5A7462]">Upcoming count</p>
-                <p className="text-3xl font-bold text-[#005A2C]">
-                  {upcomingMeetings.length}
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <section className={zoneShell}>
-            <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-[#355844]">
-              Recovery Tracker
+          <section className="flex min-h-0 flex-col rounded-[24px] border border-[#DCEAD8] bg-[#F8FAF5] p-3">
+            <h2 className="mb-2 px-2 text-sm font-bold uppercase tracking-wide text-[#355844]">
+              Meetings Zone
             </h2>
 
-            <div className="mb-3 rounded-[16px] border border-[#E0EADD] bg-white p-4 text-center">
-              <img
-                src={sproutGif}
-                alt="Garden preview"
-                className="mx-auto h-36 w-36 object-contain"
-                style={{ imageRendering: "pixelated" }}
-              />
-              <p className="mt-2 text-xs text-[#5A7462]">Garden Preview</p>
-              <p className="text-xl font-bold text-[#005A2C]">Young Sprout</p>
-              <div className="mx-auto mt-3 h-2 w-[70%] overflow-hidden rounded-full bg-[#E8F5E9]">
-                <div className="h-full w-[30%] rounded-full bg-[linear-gradient(90deg,#76B82A_0%,#005A2C_100%)]" />
-              </div>
-            </div>
-
-            <div className="grid gap-3">
-              <div className="rounded-[16px] border border-[#E0EADD] bg-white p-3">
-                <p className="text-xs text-[#5A7462]">Current Sobriety Streak</p>
-                <p className="text-2xl font-bold text-[#005A2C]">
-                  {Math.max(1, upcomingMeetings.length)} days
-                </p>
-              </div>
-
-              <div className="rounded-[16px] border border-[#E0EADD] bg-white p-3">
-                <p className="text-xs text-[#5A7462]">Milestone Progress</p>
-                <p className="text-sm font-semibold text-[#1F3B2B]">
-                  Keep checking in to unlock your next garden stage.
-                </p>
-              </div>
+            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1 [scrollbar-width:thin]">
+              {sortedMeetings.length > 0 ? (
+                sortedMeetings.map((meeting) => (
+                  <div
+                    key={meeting.id}
+                    className="rounded-[16px] border border-[#DFE9DD] bg-white px-3 py-2.5"
+                  >
+                    <p className="truncate text-sm font-semibold text-[#173723]">{meeting.name}</p>
+                    <div className="mt-1 grid grid-cols-2 gap-1 text-xs text-[#5F7565]">
+                      <span>Day: {meeting.date}</span>
+                      <span>Time: {meeting.time}</span>
+                      <span className="col-span-2 truncate">Location: {meeting.location || "TBD"}</span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="px-2 py-5 text-sm text-[#6B7F70]">No upcoming meetings scheduled.</p>
+              )}
             </div>
           </section>
         </div>
+
+        <section className="rounded-[20px] border border-[#DCEAD8] bg-[#F8FAF5] p-3">
+          <div className="flex items-center gap-3">
+            <img
+              src={sproutGif}
+              alt="Garden preview"
+              className="h-12 w-12 object-contain"
+              style={{ imageRendering: "pixelated" }}
+            />
+            <div>
+              <p className="text-xs text-[#5A7462]">Recovery Tracker</p>
+              <p className="text-sm font-semibold text-[#005A2C]">
+                Keep checking in to unlock your next garden stage.
+              </p>
+            </div>
+          </div>
+        </section>
       </CardContent>
     </Card>
   );
@@ -218,7 +301,7 @@ export function Profile() {
   const renderCenterContent = () => {
     if (activeTab === "tracker") {
       return (
-        <div className="rounded-[30px] border border-[#E0EADD] bg-white p-2 shadow-[0_12px_30px_rgba(0,90,44,0.09)]">
+        <div className="h-full rounded-[30px] border border-[#E0EADD] bg-white p-2 shadow-[0_12px_30px_rgba(0,90,44,0.09)]">
           <TrackerMain userName={dbUser?.fname || user.username || "Guest User"} />
         </div>
       );
@@ -227,7 +310,7 @@ export function Profile() {
     if (activeTab === "programs") {
       return (
         <Card className={cardShell}>
-          <CardContent className="p-4">
+          <CardContent className="h-full p-4">
             <FindProgram embedded />
           </CardContent>
         </Card>
@@ -237,7 +320,7 @@ export function Profile() {
     if (activeTab === "meetings") {
       return (
         <Card className={cardShell}>
-          <CardContent className="p-4">
+          <CardContent className="h-full p-4">
             <FindMeeting embedded />
           </CardContent>
         </Card>
@@ -268,7 +351,7 @@ export function Profile() {
                 label: "Meetings",
                 icon: <Calendar className="h-4 w-4" />,
               },
-                            {
+              {
                 key: "tracker",
                 label: "Recovery Tracker",
                 icon: <Sprout className="h-4 w-4" />,
@@ -293,7 +376,7 @@ export function Profile() {
 
         <section className="min-h-0 overflow-hidden rounded-[30px] border border-[#DCEAD8]/70 bg-[#F8FAF5]/50 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
           <div
-            className={`h-full overflow-y-auto pr-2 transition-opacity duration-300 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+            className={`h-full transition-opacity duration-300 ${
               contentVisible ? "opacity-100" : "opacity-0"
             }`}
           >
