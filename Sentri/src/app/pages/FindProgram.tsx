@@ -28,7 +28,7 @@ const programs = [
   { id: 8, slug: "sa", name: "SA", fullName: "Sexaholics Anonymous", logo: saLogo, logoStyle: { width: "180px", height: "180px", objectFit: "contain" as const }, shortIntro: "Fellowship for achieving sexual sobriety and healthy relationships." }
 ];
 
-export function FindProgram() {
+export function FindProgram({ embedded = false }: { embedded?: boolean } = {}) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [hoveredProgram, setHoveredProgram] = useState<number | null>(null);
@@ -72,15 +72,16 @@ export function FindProgram() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F8FAF5] to-[#E8F5E9]">
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 min-h-[600px]">
+    <div className={embedded ? "min-h-0" : "min-h-screen bg-gradient-to-b from-[#F8FAF5] to-[#E8F5E9]"}>
+      <section className={embedded ? "w-full min-h-0" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 min-h-[600px]"}>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl text-[#1F3B2B] mb-4">Explore Our Programs</h2>
-            <p className="text-[#5A7462] text-lg mb-4">Hover over each program to learn more</p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {!embedded && (
+            <div className="text-center mb-12">
+              <h2 className="text-4xl text-[#1F3B2B] mb-4">Explore Our Programs</h2>
+              <p className="text-[#5A7462] text-lg mb-4">Hover over each program to learn more</p>
+            </div>
+          )}
+          <div className={`grid grid-cols-1 sm:grid-cols-2 ${embedded ? "xl:grid-cols-3" : "lg:grid-cols-4"} gap-6`}>
             {programs.map((program, idx) => {
               const isHovered = hoveredProgram === program.id;
               const isMatchedProgram = matchedProgramId === program.id;
@@ -146,6 +147,7 @@ export function FindProgram() {
         </motion.div>
       </section>
 
+      {!embedded && (
       <div className="fixed bottom-8 left-8 z-40 flex flex-col items-center">
         {!isGuideOpen && (
           <motion.div
@@ -171,7 +173,9 @@ export function FindProgram() {
           <Bot className="h-7 w-7" />
         </motion.button>
       </div>
-
+      )}
+      
+      {!embedded && <PRCGuidePanel isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} onMatch={handleGuideMatch} />}
       <PRCGuidePanel isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} onMatch={handleGuideMatch} />
     </div>
   );

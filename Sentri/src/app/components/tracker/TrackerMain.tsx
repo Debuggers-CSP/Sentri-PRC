@@ -49,7 +49,7 @@ export default function TrackerMain({
   program = "AA",
   userName = "Guest User",
 }: TrackerMainProps) {
-  const [activeView, setActiveView] = useState<ViewKey>("home");
+  const [activeView, setActiveView] = useState<ViewKey>("garden");
   const [showResetDemo, setShowResetDemo] = useState(false);
 
   const normalizedProgram =

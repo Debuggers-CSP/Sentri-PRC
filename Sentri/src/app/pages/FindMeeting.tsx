@@ -94,7 +94,7 @@ function formatDateRange(dates: Date[]) {
   return `${start.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} - ${end.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
 }
 
-export function FindMeeting() {
+export function FindMeeting({ embedded = false }: { embedded?: boolean } = {}) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [currentWeekStart, setCurrentWeekStart] = useState(new Date());
@@ -176,11 +176,11 @@ export function FindMeeting() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-b from-[#F8FAF5] to-[#E8F5E9]">
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className={embedded ? "min-h-0" : "min-h-screen bg-gradient-to-b from-[#F8FAF5] to-[#E8F5E9]"}>
+        <section className={embedded ? "w-full" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"}>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <aside className="lg:col-span-3">
-              <div className="bg-white border border-[#E0EADD] rounded-[24px] p-5 sticky top-24 space-y-6 shadow-[0_10px_24px_rgba(0,90,44,0.08)]">
+              <div className={`bg-white border border-[#E0EADD] rounded-[24px] p-5 space-y-6 shadow-[0_10px_24px_rgba(0,90,44,0.08)] ${embedded ? "" : "sticky top-24"}`}>
                 <div>
                   <h2 className="text-xl text-[#1F3B2B]">Meeting Preferences</h2>
                   <p className="text-sm text-[#5A7462] mt-1">Adjust filters to update the calendar instantly.</p>
@@ -266,7 +266,7 @@ export function FindMeeting() {
               </div>
 
               {filteredMeetings.length === 0 ? (
-                <div className="bg-white rounded-lg shadow-lg border border-dashed border-[#DCEAD8] min-h-[400px] flex items-center justify-center px-6 text-center">
+                <div className={`bg-white rounded-lg shadow-lg border border-dashed border-[#DCEAD8] ${embedded ? "min-h-[320px]" : "min-h-[400px]"} flex items-center justify-center px-6 text-center`}>                  
                   <p className="text-[#5A7462]">No meetings match these filters. Try selecting more programs or switching meeting types!</p>
                 </div>
               ) : (
@@ -291,7 +291,7 @@ export function FindMeeting() {
                     })}
                   </div>
 
-                  <div className="grid grid-cols-7 min-h-[500px]">
+                  <div className={`grid grid-cols-7 ${embedded ? "min-h-[420px]" : "min-h-[500px]"}`}>
                     {weekDates.map((date, dayIndex) => {
                       const dayOfWeek = date.getDay();
                       const dayMeetings = filteredMeetings.filter((meeting) => meeting.day === dayOfWeek);

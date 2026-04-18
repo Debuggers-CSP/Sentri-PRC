@@ -19,13 +19,13 @@ function GardenView({ dashboardData, pillStyle, smallCardStyle }) {
 
   const nextUnlockLabel =
     gardenLevel >= 4
-      ? "Your sanctuary tree is thriving"
+      ? "Tree thriving"
       : gardenLevel >= 3
-      ? "Full tree growth"
+      ? "Full tree"
       : gardenLevel >= 2
-      ? "Blooming flower"
+      ? "Bloom"
       : gardenLevel >= 1
-      ? "Larger healthy plant"
+      ? "Larger plant"
       : "First sprout";
 
   return (
@@ -34,106 +34,82 @@ function GardenView({ dashboardData, pillStyle, smallCardStyle }) {
         <div style={pillStyle}>🌼 Garden</div>
         <h1
           style={{
-            fontSize: "34px",
-            margin: "18px 0 8px 0",
+            fontSize: "clamp(28px,3vw,36px)",
+            margin: "14px 0 2px 0",
             color: "#005A2C",
-            letterSpacing: "-0.02em"
+            letterSpacing: "-0.02em",
           }}
         >
-          Your recovery garden
+          Growth Center
         </h1>
-        <p style={{ margin: 0, color: "#5A7462", fontSize: "17px" }}>
-          Every check-in nourishes a new branch of growth.
-        </p>
       </div>
 
       <div
         style={{
-          flex: 1,
-          marginTop: "22px",
-          display: "grid",
-          gridTemplateColumns: "1.05fr 0.95fr",
-          gap: "20px",
-          minHeight: 0
+          ...smallCardStyle,
+          marginTop: "14px",
+          padding: "16px",
+          background: "radial-gradient(circle at center, #ffffff 0%, #f3f9ee 60%, #e8f5e9 100%)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.75), 0 14px 30px rgba(0, 90, 44, 0.08)",
+          minHeight: "min(72vh, 700px)",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          overflow: "hidden",
         }}
       >
-        <div
-          style={{
-            ...smallCardStyle,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            textAlign: "center",
-            background: "radial-gradient(circle at center, #ffffff 0%, #f3f9ee 58%, #e8f5e9 100%)",
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7), 0 12px 28px rgba(0, 90, 44, 0.09)"
-          }}
-        >
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flex: 1, minHeight: 0 }}>
           <div
             style={{
-              width: "min(100%, 260px)",
-              aspectRatio: "1 / 1",
-              borderRadius: "50%",
-              border: "8px solid #E8F5E9",
+              width: "min(100%, 620px)",
+              height: "100%",
               display: "flex",
-              alignItems: "center",
               justifyContent: "center",
-              background: "#ffffff",
-              boxShadow: "0 12px 30px rgba(0, 90, 44, 0.1)",
-              flexShrink: 0
+              alignItems: "center",
             }}
           >
             <img
               src={gardenImage}
               alt={gardenLabel}
-              style={{ width: "150px", height: "150px", objectFit: "contain" }}
+              style={{ width: "min(92%, 540px)", height: "min(92%, 540px)", objectFit: "contain" }}
               onError={(e) => {
                 e.currentTarget.style.display = "none";
                 e.currentTarget.nextSibling.style.display = "block";
               }}
             />
-            <div style={{ fontSize: "140px", lineHeight: 1, display: "none" }}>{getGardenEmoji(gardenLevel)}</div>
+            <div style={{ fontSize: "220px", lineHeight: 1, display: "none" }}>{getGardenEmoji(gardenLevel)}</div>
           </div>
-
-          <div style={{ marginTop: "14px", color: "#5A7462", fontSize: "14px" }}>Level {gardenLevel} garden</div>
         </div>
 
-        <div style={{ display: "grid", gap: "16px" }}>
-          <div style={smallCardStyle}>
-            <div style={{ fontSize: "14px", color: "#5A7462" }}>Current Stage</div>
-            <div
-              style={{
-                fontSize: "30px",
-                fontWeight: "700",
-                marginTop: "8px",
-                color: "#005A2C"
-              }}
-            >
-              {gardenLabel}
-            </div>
-            <div style={{ color: "#5A7462", marginTop: "6px" }}>Level {gardenLevel}</div>
+        <div
+          style={{
+            borderRadius: "18px",
+            border: "1px solid #DCEAD8",
+            background: "rgba(255,255,255,0.88)",
+            backdropFilter: "blur(4px)",
+            padding: "12px",
+            display: "grid",
+            gap: "10px",
+            gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))",
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <span style={{ fontSize: "11px", color: "#5A7462" }}>🌱 Stage</span>
+            <span style={{ fontWeight: "700", color: "#005A2C" }}>{gardenLabel}</span>
           </div>
 
-          <div style={smallCardStyle}>
-            <div style={{ fontSize: "14px", color: "#5A7462" }}>Growth Progress</div>
-            <div
-              style={{
-                marginTop: "10px",
-                color: "#1F3B2B",
-                fontWeight: "600"
-              }}
-            >
-              XP {xp} / {xpToNextLevel}
-            </div>
-
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <span style={{ fontSize: "11px", color: "#5A7462" }}>⭐ Progress</span>
+            <span style={{ fontWeight: "600", color: "#1F3B2B" }}>
+              {xp} / {xpToNextLevel} XP
+            </span>
             <div
               style={{
                 width: "100%",
-                height: "10px",
+                height: "8px",
                 borderRadius: "999px",
                 background: "#E8F5E9",
-                marginTop: "12px",
-                overflow: "hidden"
+                overflow: "hidden",
               }}
             >
               <div
@@ -141,28 +117,16 @@ function GardenView({ dashboardData, pillStyle, smallCardStyle }) {
                   width: `${progressPercent}%`,
                   height: "100%",
                   background: "linear-gradient(90deg, #76B82A 0%, #005A2C 100%)",
-                  borderRadius: "999px"
+                  borderRadius: "999px",
                 }}
               />
             </div>
-
-            <div style={{ marginTop: "10px", color: "#5A7462", fontSize: "13px" }}>
-              Earn XP by checking in, staying sober, and completing healthy habits.
-            </div>
           </div>
 
-          <div style={smallCardStyle}>
-            <div style={{ fontSize: "14px", color: "#5A7462" }}>Next Unlock</div>
-            <div
-              style={{
-                marginTop: "10px",
-                fontSize: "18px",
-                fontWeight: "600",
-                color: "#005A2C"
-              }}
-            >
-              {nextUnlockLabel}
-            </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <span style={{ fontSize: "11px", color: "#5A7462" }}>🔓 Next Unlock</span>
+            <span style={{ fontWeight: "700", color: "#005A2C" }}>{nextUnlockLabel}</span>
+            <span style={{ fontSize: "12px", color: "#5A7462" }}>Level {gardenLevel + 1}</span>
           </div>
         </div>
       </div>
