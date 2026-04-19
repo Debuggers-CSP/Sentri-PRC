@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import sproutGif from "../../../../assets/garden/sprout.gif";
 import pottedPlantGif from "../../../../assets/garden/potted-plant.gif";
 import leavesGif from "../../../../assets/garden/leaves.gif";
@@ -6,8 +7,57 @@ import treeGif from "../../../../assets/garden/tree.gif";
 import watercanGif from "../../../../assets/garden/watercan.gif";
 
 function GardenView({ dashboardData, pillStyle, smallCardStyle, onOpenCheckin }) {
-  const garden = dashboardData?.garden || {};
+  const [isAdmin, setIsAdmin] = useState(false);
 
+  // Keyboard shortcut listener: Just press "R"
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't trigger if user is typing in an input or textarea
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+
+      if (e.key.toLowerCase() === "r") {
+        setIsAdmin((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const handleResetDemo = () => {
+    if (
+      window.confirm(
+        "ADMIN: Reset tracker progress? This wipes check-ins and points but KEEPS you logged in."
+      )
+    ) {
+      // List of keywords that indicate a key is related to login/identity
+      const authKeywords = ["auth", "user", "session", "token", "sb-", "profile"];
+
+      // Get all keys currently in localStorage
+      const allKeys = Object.keys(localStorage);
+
+      allKeys.forEach((key) => {
+        // Check if the key contains any of our auth keywords
+        const isAuthKey = authKeywords.some((keyword) =>
+          key.toLowerCase().includes(keyword)
+        );
+
+        // ONLY remove the key if it is NOT related to authentication
+        if (!isAuthKey) {
+          localStorage.removeItem(key);
+        }
+      });
+
+      // Also clear specific keys that might not match the filter but need to go
+      localStorage.removeItem("checkins");
+      localStorage.removeItem("recent_checkins");
+      localStorage.removeItem("garden_data");
+
+      // Reload to show the fresh, empty state
+      window.location.reload();
+    }
+  };
+
+  const garden = dashboardData?.garden || {};
   const gardenLabel = garden.label || "Young Sprout";
   const gardenLevel = garden.level ?? 1;
   const xp = garden.xp ?? 0;
@@ -37,7 +87,19 @@ function GardenView({ dashboardData, pillStyle, smallCardStyle, onOpenCheckin })
 
   return (
     <div className="flex h-full flex-col gap-3">
-      <div style={pillStyle}>Garden Sanctuary</div>
+      <div className="flex items-center justify-between">
+        <div style={pillStyle}>Garden Sanctuary</div>
+        
+        {/* Secret Admin Button - Toggled by 'R' */}
+        {isAdmin && (
+          <button
+            onClick={handleResetDemo}
+            className="rounded-md bg-red-600 px-3 py-1 font-mono text-[10px] font-bold uppercase text-white shadow-lg hover:bg-red-700 transition-all active:scale-95"
+          >
+            ⚠️ Reset Demo Data
+          </button>
+        )}
+      </div>
 
       <div
         style={{
