@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useParams } from "react-router";
 import {
   BookOpen,
@@ -14,6 +14,9 @@ import {
   Sparkles,
   UserPlus,
   Users,
+  Pin,
+  Plus,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
@@ -255,7 +258,8 @@ const programsData: Record<string, ProgramInfo> = {
       },
       {
         title: "Anonymity",
-        description: "Confidentiality enables open, stigma-free sharing.",
+        description:
+          "Confidentiality enables open, stigma-free sharing.",
         icon: Shield,
       },
       {
@@ -304,7 +308,8 @@ const programsData: Record<string, ProgramInfo> = {
       },
       {
         title: "Anonymity",
-        description: "Members share openly with safety and privacy.",
+        description:
+          "Members share openly with safety and privacy.",
         icon: Shield,
       },
       {
@@ -502,57 +507,243 @@ function extractStartTime(timeRange: string): string {
   return timeRange.split(" - ")[0].trim();
 }
 
-function parseJoinedPrograms(rawJoinedProgram: unknown): string[] {
-  if (!rawJoinedProgram) return [];
+type ProgramReview = {
+  id: number;
+  username: string;
+  rating: number;
+  comment: string;
+  timestamp?: string;
+};
 
-  if (Array.isArray(rawJoinedProgram)) {
-    return rawJoinedProgram.map((value) => String(value).trim()).filter(Boolean);
-  }
+type BulletinNote = {
+  id: number;
+  username: string;
+  message: string;
+  color: string;
+  timestamp?: string;
+};
 
-  const raw = String(rawJoinedProgram).trim();
-  if (!raw) return [];
+const fallbackBulletinNotes: Record<string, BulletinNote[]> = {
+  aa: [
+    { id: 1, username: "Guide", message: "One day at a time!", color: "#fef08a" },
+    { id: 2, username: "Guide", message: "Keep growing!", color: "#bbf7d0" },
+  ],
+  default: [
+    { id: 3, username: "Guide", message: "Progress over perfection.", color: "#bfdbfe" },
+    { id: 4, username: "Guide", message: "You’re not alone.", color: "#fbcfe8" },
+  ],
+};
 
-  try {
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      return parsed.map((value) => String(value).trim()).filter(Boolean);
-    }
-  } catch {
-    // fall back to comma-separated string
-  }
+function BulletinBoard({
+  programId,
+  userId,
+  username,
+  isJoined,
+}: {
+  programId: string;
+  userId?: number;
+  username?: string;
+  isJoined: boolean;
+}) {
+  const [notes, setNotes] = useState<BulletinNote[]>([]);
+  const [showInput, setShowInput] = useState(false);
+  const [draftMessage, setDraftMessage] = useState("");
+  const [isStamping, setIsStamping] = useState(false);
 
-  return raw
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean);
+  useEffect(() => {
+    const fetchNotes = async () => {
+      try {
+        const res = await fetch(
+          `${pythonURI}/get-program-bulletin-notes?program_id=${programId}`,
+          fetchOptions
+        );
+
+        if (res.ok) {
+          const data = await res.json();
+          setNotes(data);
+          return;
+        }
+      } catch (error) {
+        console.error("Error fetching bulletin notes:", error);
+      }
+
+      setNotes(fallbackBulletinNotes[programId] || fallbackBulletinNotes.default);
+    };
+
+    fetchNotes();
+  }, [programId]);
+
+  const addNote = async () => {
+    if (!draftMessage.trim() || !isJoined) return;
+
+    setIsStamping(true);
+
+    const payload = {
+      program_id: programId,
+      user_id: userId,
+      username: username || "Anonymous",
+      message: draftMessage.trim(),
+      color: ["#fef08a", "#bbf7d0", "#bfdbfe", "#fbcfe8"][Math.floor(Math.random() * 4)],
+    };
+
+    // Delay to allow the "stamping" visual to play out
+    setTimeout(async () => {
+        try {
+          const response = await fetch(`${pythonURI}/add-program-bulletin-note`, {
+            ...fetchOptions,
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+    
+          if (response.ok) {
+            const created = await response.json();
+            setNotes((prev) => [created, ...prev]);
+          } else {
+            setNotes((prev) => [{ id: Date.now(), ...payload }, ...prev]);
+          }
+        } catch {
+          setNotes((prev) => [{ id: Date.now(), ...payload }, ...prev]);
+        }
+    
+        setDraftMessage("");
+        setShowInput(false);
+        setIsStamping(false);
+    }, 600);
+  };
+
+  return (
+    <Card className="border-[#4a3728] bg-[#5d4037] shadow-xl overflow-hidden relative">
+      <CardHeader className="pb-3 border-b-4 border-[#3e2723] bg-[#6d4c41]">
+        <CardTitle className="text-[#fdf5e6] flex items-center gap-2">
+          <Pin className="w-5 h-5 text-red-600 fill-red-600" />
+          Community Bulletin Board
+        </CardTitle>
+      </CardHeader>
+      
+      <CardContent className="p-0 relative group">
+        {/* The Board Background (Cork Texture) */}
+        <div 
+          className={`min-h-[350px] p-6 transition-all duration-500 ease-in-out bg-[#dcb382] 
+            ${showInput ? "blur-[2px]" : "group-hover:blur-[1px]"}
+            [background-image:radial-gradient(#c4a484_1px,transparent_0)] [background-size:16px_16px]`}
+        >
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            {notes.map((note, idx) => (
+              <div
+                key={note.id}
+                className="relative p-4 pt-6 shadow-lg border-t border-black/5 min-h-[120px] transition-transform hover:scale-105 hover:z-10"
+                style={{ 
+                    backgroundColor: note.color || "#fef08a",
+                    transform: `rotate(${(idx % 2 === 0 ? 1 : -1) * (idx % 3 + 1)}deg)` 
+                }}
+              >
+                {/* Push Pin */}
+                <div className="absolute top-1 left-1/2 -translate-x-1/2">
+                   <div className="w-3 h-3 rounded-full bg-red-600 shadow-sm border border-red-800" />
+                </div>
+                <p className="mb-1 line-clamp-4 text-xs font-semibold text-slate-800 italic">"{note.message}"</p>
+                <p className="text-[10px] text-slate-500 text-right font-bold uppercase tracking-wider">- {note.username}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Hover Overlay */}
+        {!showInput && isJoined && (
+          <div 
+            onClick={() => setShowInput(true)}
+            className="absolute inset-0 z-20 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer bg-black/10"
+          >
+            <div className="bg-white/90 p-4 rounded-full shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-300">
+                <Plus className="w-8 h-8 text-[#5d4037]" />
+            </div>
+            <span className="mt-2 text-white font-bold text-lg drop-shadow-md">Add a Note</span>
+          </div>
+        )}
+
+        {/* Sticky Note Pop-up Input Modal */}
+        {showInput && isJoined && (
+           <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-black/40">
+                <div 
+                className={`w-full max-w-[300px] aspect-square bg-[#fff9c4] shadow-2xl p-6 relative transition-all duration-500
+                    ${isStamping ? "scale-90 translate-y-4 rotate-3 opacity-0" : "scale-100 rotate-0 opacity-100"}
+                `}
+                >
+                <button 
+                    onClick={() => setShowInput(false)}
+                    className="absolute top-2 right-2 text-slate-400 hover:text-slate-600"
+                >
+                    <X className="w-4 h-4" />
+                </button>
+                
+                <div className="w-full h-full flex flex-col">
+                    <label className="text-xs font-bold text-slate-400 uppercase mb-2">New Note</label>
+                    <Textarea
+                        autoFocus
+                        rows={4}
+                        value={draftMessage}
+                        onChange={(e) => setDraftMessage(e.target.value)}
+                        placeholder="Write something encouraging..."
+                        className="flex-1 bg-transparent border-none resize-none focus-visible:ring-0 text-lg text-slate-800 p-0 placeholder:text-slate-300"
+                    />
+                    <Button
+                        onClick={addNote}
+                        disabled={!draftMessage.trim() || isStamping}
+                        className="mt-4 bg-[#5d4037] hover:bg-[#3e2723] text-white rounded-none w-full shadow-md"
+                    >
+                        {isStamping ? "Stamping..." : <><Send className="w-4 h-4 mr-2" /> Pin Note</>}
+                    </Button>
+                </div>
+                </div>
+            </div>
+        )}
+      </CardContent>
+      <div className="h-4 bg-[#4a3728] border-t border-[#3e2723]" />
+    </Card>
+  );
 }
 
-export function ProgramDetail() {
-  const { programId } = useParams<{ programId: string }>();
+export function ProgramDetail({
+  programIdOverride,
+  embeddedModal = false,
+}: {
+  programIdOverride?: string;
+  embeddedModal?: boolean;
+} = {}) {
+  const { programId: routeProgramId } = useParams<{ programId: string }>();
   const { user, updateJoinedProgram } = useAuth();
   const [message, setMessage] = useState("");
   const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<ProgramReview[]>([]);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
+  const [isJoined, setIsJoined] = useState(false);
   const [isJoinHovered, setIsJoinHovered] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const program = programId ? programsData[programId] : null;
-
-  const joinedProgramIds = useMemo(() => {
-    return parseJoinedPrograms(user?.joined_program);
-  }, [user?.joined_program]);
-
-  const isJoined = useMemo(() => {
-    return Boolean(programId && joinedProgramIds.includes(programId));
-  }, [programId, joinedProgramIds]);
+  const activeProgramIdRaw = programIdOverride || routeProgramId || "";
+  const activeProgramId = activeProgramIdRaw === "alanon" ? "al-anon" : activeProgramIdRaw;
+  const program = activeProgramId ? programsData[activeProgramId] : null;
 
   useEffect(() => {
     if (program?.meetings.length) setSelectedMeeting(program.meetings[0]);
-  }, [programId, program]);
+  }, [activeProgramId, program]);
+
+  useEffect(() => {
+    const raw = user?.joined_program || "";
+    const joinedIds = raw
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean)
+      .map((value) => (value === "alanon" ? "al-anon" : value));
+    setIsJoined(Boolean(activeProgramId && joinedIds.includes(activeProgramId)));
+  }, [activeProgramId, user?.joined_program]);
 
   const fetchChatHistory = async () => {
-    if (!programId) return;
+    if (!activeProgramId) return;
     try {
-      const response = await fetch(`${pythonURI}/get-chat-history/${programId}`, fetchOptions);
+      const response = await fetch(`${pythonURI}/get-chat-history/${activeProgramId}`, fetchOptions);
       if (response.ok) setChatMessages(await response.json());
     } catch (err) {
       console.error("Error fetching chat:", err);
@@ -563,11 +754,43 @@ export function ProgramDetail() {
     fetchChatHistory();
     const interval = setInterval(fetchChatHistory, 5000);
     return () => clearInterval(interval);
-  }, [programId]);
+  }, [activeProgramId]);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatMessages]);
+    if (!activeProgramId) return;
+    const fetchReviews = async () => {
+      try {
+        const response = await fetch(
+          `${pythonURI}/get-program-reviews?program_id=${activeProgramId}`,
+          fetchOptions
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setReviews(data);
+          return;
+        }
+      } catch (error) {
+        console.error("Error fetching reviews:", error);
+      }
+
+      setReviews([
+        {
+          id: 9001,
+          username: "RecoveryMember",
+          rating: 5,
+          comment: "This program gave me structure and community when I needed it most.",
+        },
+        {
+          id: 9002,
+          username: "FormerParticipant",
+          rating: 4,
+          comment: "The shared stories helped me stay accountable and hopeful.",
+        },
+      ]);
+    };
+
+    fetchReviews();
+  }, [activeProgramId]);
 
   const handleSendMessage = async () => {
     if (!message.trim()) return;
@@ -579,7 +802,7 @@ export function ProgramDetail() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          program_id: programId,
+          program_id: activeProgramId,
           user_id: user.id,
           username: user.username || user.name || "Anonymous",
           message: message.trim(),
@@ -622,33 +845,28 @@ export function ProgramDetail() {
   };
 
   const handleJoin = async () => {
-    if (!programId || !user || !user.id) return alert("Please log in first!");
+    if (!activeProgramId || !user || !user.id) return alert("Please log in first!");
 
     try {
       const response = await fetch(`${pythonURI}/join-program`, {
         ...fetchOptions,
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: user.id, program_id: programId }),
+        body: JSON.stringify({ user_id: user.id, program_id: activeProgramId }),
       });
 
-      if (!response.ok) {
-        alert("Failed to join program.");
-        return;
+      if (response.ok) {
+        const updated = await response.json();
+        updateJoinedProgram(updated.joined_program || activeProgramId);
+        setIsJoined(true);
       }
-
-      const data = await response.json();
-      const updatedJoinedPrograms = data?.joined_program ?? "";
-
-      updateJoinedProgram(updatedJoinedPrograms);
-      window.dispatchEvent(new Event("sentri-programs-updated"));
     } catch (err) {
       console.error("Join Error:", err);
     }
   };
 
   const handleLeave = async () => {
-    if (!programId || !user || !user.id) return alert("Please log in first!");
+    if (!activeProgramId || !user || !user.id) return alert("Please log in first!");
 
     const confirmed = window.confirm("Are you sure you want to leave this program?");
     if (!confirmed) return;
@@ -658,25 +876,50 @@ export function ProgramDetail() {
         ...fetchOptions,
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: user.id,
-          program_id: programId,
-        }),
+        body: JSON.stringify({ user_id: user.id, program_id: activeProgramId }),
       });
 
-      if (!response.ok) {
-        alert("Failed to leave program.");
-        return;
+      if (response.ok) {
+        const updated = await response.json();
+        updateJoinedProgram(updated.joined_program || null);
+        setIsJoined(false);
       }
-
-      const data = await response.json();
-      const updatedJoinedPrograms = data?.joined_program ?? "";
-
-      updateJoinedProgram(updatedJoinedPrograms);
-      window.dispatchEvent(new Event("sentri-programs-updated"));
     } catch (err) {
       console.error("Leave Error:", err);
     }
+  };
+
+  const handleAddReview = async () => {
+    if (!user?.id || !activeProgramId || !reviewComment.trim()) return;
+
+    const payload = {
+      program_id: activeProgramId,
+      user_id: user.id,
+      username: user.username || user.name || "Anonymous",
+      rating: reviewRating,
+      comment: reviewComment.trim(),
+    };
+
+    try {
+      const response = await fetch(`${pythonURI}/add-program-review`, {
+        ...fetchOptions,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        const created = await response.json();
+        setReviews((prev) => [created, ...prev]);
+      } else {
+        setReviews((prev) => [{ id: Date.now(), ...payload }, ...prev]);
+      }
+    } catch {
+      setReviews((prev) => [{ id: Date.now(), ...payload }, ...prev]);
+    }
+
+    setReviewComment("");
+    setReviewRating(5);
   };
 
   if (!program) {
@@ -689,13 +932,13 @@ export function ProgramDetail() {
     );
   }
 
-  const joinButtonClass = isJoined
+  const actionButtonClass = isJoined
     ? "bg-green-600 hover:bg-green-700 text-white"
     : "bg-white text-[#005A2C] hover:bg-[#E8F5E9]";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F8FAF5] to-[#E8F5E9]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-5 lg:px-6 py-4">
+    <div className={embeddedModal ? "h-full overflow-y-auto bg-white" : "min-h-screen bg-gradient-to-b from-[#F8FAF5] to-[#E8F5E9]"}>
+      <div className={embeddedModal ? "mx-auto max-w-6xl px-4 py-4" : "max-w-7xl mx-auto px-4 sm:px-5 lg:px-6 py-4"}>
         <Card className="mb-4 overflow-hidden">
           <div className="bg-gradient-to-r from-[#76B82A] to-[#005A2C] p-5 text-white">
             <div className="flex items-center gap-4">
@@ -724,7 +967,7 @@ export function ProgramDetail() {
                   onClick={isJoined ? handleLeave : handleJoin}
                   onMouseEnter={() => setIsJoinHovered(true)}
                   onMouseLeave={() => setIsJoinHovered(false)}
-                  className={`${joinButtonClass} cursor-pointer`}
+                  className={`${actionButtonClass} cursor-pointer`}
                 >
                   {isJoined ? (
                     <>
@@ -740,10 +983,7 @@ export function ProgramDetail() {
                 </Button>
 
                 {program.resourceLink && (
-                  <Button
-                    asChild
-                    className="bg-white text-[#005A2C] hover:bg-[#E8F5E9]"
-                  >
+                  <Button asChild className={actionButtonClass}>
                     <a href={program.resourceLink} target="_blank" rel="noopener noreferrer">
                       <Globe className="w-4 h-4 mr-2" />
                       Resources
@@ -759,7 +999,7 @@ export function ProgramDetail() {
           <div className="lg:col-span-2 space-y-4">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle>Program Guide</CardTitle>
+                <CardTitle>{isJoined ? "Member Hub" : "Public Guide"}</CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <Tabs defaultValue="overview">
@@ -834,140 +1074,208 @@ export function ProgramDetail() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle>Meeting Schedule</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                {program.meetings.length === 0 ? (
-                  <p className="text-[#6B7F70]">No scheduled meetings listed for this program.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {program.meetings.map((meeting, idx) => (
-                      <div
-                        key={idx}
-                        className={`flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer ${
-                          selectedMeeting === meeting
-                            ? "bg-[#E8F5E9] border-[#76B82A]"
-                            : "bg-[#F1F8EB] border-transparent hover:bg-[#E8F5E9]"
-                        }`}
-                        onClick={() => setSelectedMeeting(meeting)}
-                      >
-                        <div className="flex items-center gap-4 flex-wrap">
-                          <div className="w-20 font-semibold">{meeting.day}</div>
-                          <div className="flex items-center gap-1 text-sm">
-                            <Clock className="w-4 h-4" />
-                            {meeting.time}
-                          </div>
-                          <div className="flex items-center gap-1 text-sm">
-                            <MapPin className="w-4 h-4" />
-                            {meeting.location}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Badge>{meeting.type}</Badge>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleAddToCalendar(meeting);
-                            }}
-                          >
-                            <Calendar className="w-3 h-3 mr-1" />
-                            Add
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <Button
-                  onClick={() => handleAddToCalendar(selectedMeeting || undefined)}
-                  className="w-full mt-3 bg-[#005A2C] hover:bg-[#124627] text-white"
-                  disabled={!selectedMeeting}
-                >
-                  <Calendar className="w-4 h-4 mr-2" />
-                  {selectedMeeting ? `Add ${selectedMeeting.day} Meeting` : "Select a Meeting Above"}
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div>
-            <Card className="h-[560px] xl:h-[600px] flex flex-col">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-[#2D6A37]" />
-                  Community Chat
-                </CardTitle>
-              </CardHeader>
-
-              <CardContent className="flex-1 flex flex-col overflow-hidden pt-0">
-                <div className="flex-1 overflow-y-auto space-y-3 mb-3 pr-2">
-                  {chatMessages.length === 0 ? (
-                    <p className="text-center text-[#6B7F70] mt-10">
-                      No messages yet. Be the first to say hello!
-                    </p>
-                  ) : (
-                    chatMessages.map((msg) => {
-                      const isOwn = user && msg.user_id === user.id;
-                      return (
-                        <div
-                          key={msg.id}
-                          className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}
-                        >
+            {isJoined ? (
+              <>
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle>Meeting Schedule</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    {program.meetings.length === 0 ? (
+                      <p className="text-[#6B7F70]">No scheduled meetings listed for this program.</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {program.meetings.map((meeting, idx) => (
                           <div
-                            className={`max-w-[85%] rounded-lg p-3 ${
-                              isOwn
-                                ? "bg-[#005A2C] text-white"
-                                : "bg-[#EEF6EA] text-[#1F3B2B]"
+                            key={idx}
+                            className={`flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer ${
+                              selectedMeeting === meeting
+                                ? "bg-[#E8F5E9] border-[#76B82A]"
+                                : "bg-[#F1F8EB] border-transparent hover:bg-[#E8F5E9]"
                             }`}
+                            onClick={() => setSelectedMeeting(meeting)}
                           >
-                            {!isOwn && (
-                              <div className="text-xs font-bold mb-1 text-[#2D6A37]">
-                                {msg.username}
+                            <div className="flex items-center gap-4 flex-wrap">
+                              <div className="w-20 font-semibold">{meeting.day}</div>
+                              <div className="flex items-center gap-1 text-sm">
+                                <Clock className="w-4 h-4" />
+                                {meeting.time}
                               </div>
-                            )}
-                            <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                  <div ref={chatEndRef} />
-                </div>
+                              <div className="flex items-center gap-1 text-sm">
+                                <MapPin className="w-4 h-4" />
+                                {meeting.location}
+                              </div>
+                            </div>
 
-                <div className="border-t pt-3">
-                  <div className="flex gap-2">
+                            <div className="flex items-center gap-2">
+                              <Badge>{meeting.type}</Badge>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddToCalendar(meeting);
+                                }}
+                              >
+                                <Calendar className="w-3 h-3 mr-1" />
+                                Add
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <Button
+                      onClick={() => handleAddToCalendar(selectedMeeting || undefined)}
+                      className="w-full mt-3 bg-[#005A2C] hover:bg-[#124627] text-white"
+                      disabled={!selectedMeeting}
+                    >
+                      <Calendar className="w-4 h-4 mr-2" />
+                      {selectedMeeting ? `Add ${selectedMeeting.day} Meeting` : "Select a Meeting Above"}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <BulletinBoard
+                  programId={activeProgramId}
+                  userId={user?.id}
+                  username={user?.username}
+                  isJoined={isJoined}
+                />
+              </>
+            ) : (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle>Member Reviews</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 pt-0">
+                  <div className="space-y-2">
+                    {reviews.length > 0 ? (
+                      reviews.map((review) => (
+                        <div key={review.id} className="rounded-lg border border-[#DCEAD8] bg-[#F8FAF5] p-3">
+                          <div className="mb-1 flex items-center justify-between">
+                            <p className="text-sm font-semibold text-[#1F3B2B]">{review.username}</p>
+                            <p className="text-xs text-[#5A7462]">{"★".repeat(Math.max(1, Math.round(review.rating)))}</p>
+                          </div>
+                          <p className="text-sm text-[#2D5138]">{review.comment}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-[#6B7F70]">No reviews yet.</p>
+                    )}
+                  </div>
+
+                  <div className="rounded-lg border border-[#DCEAD8] bg-white p-3">
+                    <p className="mb-2 text-sm font-semibold text-[#1F3B2B]">Leave a Review</p>
+                    <div className="mb-2">
+                      <label className="mb-1 block text-xs text-[#5A7462]">Rating</label>
+                      <select
+                        className="w-full rounded border border-[#DCEAD8] p-2 text-sm"
+                        value={reviewRating}
+                        onChange={(e) => setReviewRating(Number(e.target.value))}
+                      >
+                        {[5, 4, 3, 2, 1].map((value) => (
+                          <option key={value} value={value}>
+                            {value} Star{value > 1 ? "s" : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                     <Textarea
-                      placeholder={user ? "Type your message..." : "Log in to chat"}
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      className="resize-none"
-                      rows={2}
+                      rows={3}
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      placeholder={user ? "Share your experience..." : "Log in to leave a review"}
                       disabled={!user}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSendMessage();
-                        }
-                      }}
                     />
                     <Button
-                      onClick={handleSendMessage}
-                      className="bg-[#005A2C] hover:bg-[#124627] text-white h-auto"
-                      disabled={!message.trim() || !user}
+                      onClick={handleAddReview}
+                      disabled={!user || !reviewComment.trim()}
+                      className="mt-2 bg-[#005A2C] text-white hover:bg-[#124627]"
                     >
-                      <Send className="w-4 h-4" />
+                      Submit Review
                     </Button>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </div>
+
+          {isJoined && (
+            <div>
+              <Card className="h-[560px] xl:h-[600px] flex flex-col">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-[#2D6A37]" />
+                    Live Community Chat
+                  </CardTitle>
+                </CardHeader>
+
+                <CardContent className="flex-1 flex flex-col overflow-hidden pt-0">
+                  <div className="flex-1 overflow-y-auto space-y-3 mb-3 pr-2">
+                    {chatMessages.length === 0 ? (
+                      <p className="text-center text-[#6B7F70] mt-10">
+                        No messages yet. Be the first to say hello!
+                      </p>
+                    ) : (
+                      chatMessages.map((msg) => {
+                        const isOwn = user && msg.user_id === user.id;
+                        return (
+                          <div
+                            key={msg.id}
+                            className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}
+                          >
+                            <div
+                              className={`max-w-[85%] rounded-lg p-3 ${
+                                isOwn
+                                  ? "bg-[#005A2C] text-white"
+                                  : "bg-[#EEF6EA] text-[#1F3B2B]"
+                              }`}
+                            >
+                              {!isOwn && (
+                                <div className="text-xs font-bold mb-1 text-[#2D6A37]">
+                                  {msg.username}
+                                </div>
+                              )}
+                              <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                    <div ref={chatEndRef} />
+                  </div>
+
+                  <div className="border-t pt-3">
+                    <div className="flex gap-2">
+                      <Textarea
+                        placeholder={user ? "Type your message..." : "Log in to chat"}
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        className="resize-none"
+                        rows={2}
+                        disabled={!user}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSendMessage();
+                          }
+                        }}
+                      />
+                      <Button
+                        onClick={handleSendMessage}
+                        className="bg-[#005A2C] hover:bg-[#124627] text-white h-auto"
+                        disabled={!message.trim() || !user}
+                      >
+                        <Send className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
     </div>
