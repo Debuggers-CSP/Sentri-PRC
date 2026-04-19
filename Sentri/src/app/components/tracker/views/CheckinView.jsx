@@ -152,21 +152,6 @@ function CheckinView({
           </div>
 
           <div style={{ display: "flex", gap: "8px" }}>
-            <button
-              type="button"
-              onClick={() => handleCheckChoice(true)}
-              style={choiceStyle(selectedCheckValue === true)}
-            >
-              Yes
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleCheckChoice(false)}
-              style={choiceStyle(selectedCheckValue === false)}
-            >
-              No
-            </button>
           </div>
 
           <div
@@ -177,7 +162,6 @@ function CheckinView({
               lineHeight: 1.3,
             }}
           >
-            This helps calculate your streak and tailor support more accurately.
           </div>
         </div>
 
