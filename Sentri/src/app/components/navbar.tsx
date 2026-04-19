@@ -46,13 +46,7 @@ export function Navbar() {
               <span className="text-sm font-medium">(858) 555-0123</span>
             </div>
 
-            {!user ? (
-              <Button asChild variant="outline" className="border-[#76B82A] text-[#005A2C] hover:bg-[#F1F8EB]">
-                <Link to="/login">Sign In</Link>
-              </Button>
-            ) : (
-              <UserProfile />
-            )}
+            
           </div>
         </div>
       </div>

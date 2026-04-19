@@ -78,9 +78,7 @@ export default function HeroSection() {
       {/* CONTENT LAYER */}
       <div className="relative z-20 mx-auto flex min-h-[60vh] max-w-7xl items-center px-4 sm:px-6 lg:px-8 pb-12">
         <div className="max-w-2xl text-left">
-          <div className="mb-5 inline-flex items-center rounded-full border border-slate-200 bg-white/40 px-4 py-2 backdrop-blur-md">
-            <span className="text-sm font-semibold tracking-wide text-slate-700">Digital Wellness Sanctuary</span>
-          </div>
+         
           <h1 className="mb-6 text-5xl font-extrabold leading-tight text-slate-900 sm:text-7xl">
             Hope. Healing. <br/>Recovery.
           </h1>
