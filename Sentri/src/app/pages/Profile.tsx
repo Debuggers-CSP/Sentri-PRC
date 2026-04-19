@@ -190,6 +190,7 @@ const handleSetDate = (e: React.FormEvent) => {
   const [dashboardPrograms, setDashboardPrograms] = useState<DashboardProgram[]>([]);
   const [dbUser, setDbUser] = useState<DbUserDetails | null>(null);
   const [activeProgramModalId, setActiveProgramModalId] = useState<string | null>(null);
+  const [activeProgramModalSource, setActiveProgramModalSource] = useState<"dashboard" | "programs" | null>(null);
   const [hoveredProgramId, setHoveredProgramId] = useState<number | null>(null);
   const [, setLoading] = useState(true);
   const [contentVisible, setContentVisible] = useState(true);
@@ -372,7 +373,10 @@ const handleSetDate = (e: React.FormEvent) => {
                     <button
                       key={program.program_id}
                       type="button"
-                      onClick={() => setActiveProgramModalId(normalizedId)}
+                      onClick={() => {
+                        setActiveProgramModalId(normalizedId);
+                        setActiveProgramModalSource("dashboard");
+                      }}
                       className="flex w-full items-center gap-3 rounded-[18px] border border-[#DFE9DD] bg-white px-3 py-3 text-left transition hover:border-[#B8D7A9] hover:bg-[#F6FBF1]"
                     >
                       <img
@@ -442,7 +446,10 @@ const handleSetDate = (e: React.FormEvent) => {
               >
                 <Card
                   className="overflow-hidden border border-[#E0EADD] rounded-[24px] hover:shadow-2xl transition-all cursor-pointer h-full relative group"
-                  onClick={() => setActiveProgramModalId(program.slug)}
+                  onClick={() => {
+                    setActiveProgramModalId(program.slug);
+                    setActiveProgramModalSource("programs");
+                  }}
                 >
                   <CardContent className="p-6 h-full flex flex-col">
                     <div className="flex items-center justify-center h-full min-h-[180px] mb-4">
@@ -646,13 +653,20 @@ const handleSetDate = (e: React.FormEvent) => {
       {activeProgramModalId && (
         <div
           className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          onClick={() => setActiveProgramModalId(null)}
+          onClick={() => {
+            setActiveProgramModalId(null);
+            setActiveProgramModalSource(null);
+          }}
         >
           <div
             className="h-[88vh] w-[min(1100px,96vw)] overflow-hidden rounded-[26px] border border-[#DCEAD8] bg-white shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
-            <ProgramDetail programIdOverride={activeProgramModalId} embeddedModal />
+            <ProgramDetail 
+                programIdOverride={activeProgramModalId} 
+                viewMode={activeProgramModalSource} 
+                embeddedModal 
+            />
           </div>
         </div>
       )}

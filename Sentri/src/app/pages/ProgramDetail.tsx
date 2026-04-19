@@ -707,9 +707,11 @@ function BulletinBoard({
 export function ProgramDetail({
   programIdOverride,
   embeddedModal = false,
+  viewMode,
 }: {
   programIdOverride?: string;
   embeddedModal?: boolean;
+  viewMode?: "dashboard" | "programs" | null;
 } = {}) {
   const { programId: routeProgramId } = useParams<{ programId: string }>();
   const { user, updateJoinedProgram } = useAuth();
@@ -1023,85 +1025,90 @@ export function ProgramDetail({
         </Card>
 
         <div className="grid lg:grid-cols-3 gap-5">
-          <div className="lg:col-span-2 space-y-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle>{isJoined ? "Member Hub" : "Public Guide"}</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <Tabs defaultValue="overview">
-                  <TabsList className="grid grid-cols-3 mb-4">
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="history">History</TabsTrigger>
-                    <TabsTrigger value="philosophy">Philosophy/Principles</TabsTrigger>
-                  </TabsList>
+          <div className={`${viewMode === "programs" ? "lg:col-span-3" : "lg:col-span-2"} space-y-4`}>
+            
+            {/* --- PROGRAMS TAB CONTENT: MEMBER HUB (Overview, History, Philosophy) --- */}
+            {(!viewMode || viewMode === "programs") && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle>{isJoined ? "Member Hub" : "Public Guide"}</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <Tabs defaultValue="overview">
+                    <TabsList className="grid grid-cols-3 mb-4">
+                      <TabsTrigger value="overview">Overview</TabsTrigger>
+                      <TabsTrigger value="history">History</TabsTrigger>
+                      <TabsTrigger value="philosophy">Philosophy/Principles</TabsTrigger>
+                    </TabsList>
 
-                  <TabsContent value="overview" className="space-y-3">
-                    <p className="text-[#2D5138] leading-relaxed text-sm">
-                      {program.description}
-                    </p>
+                    <TabsContent value="overview" className="space-y-3">
+                      <p className="text-[#2D5138] leading-relaxed text-sm">
+                        {program.description}
+                      </p>
 
-                    <div className="flex flex-wrap gap-2">
-                      {program.recoveryTypes.map((type, i) => (
-                        <Badge key={type} className={tagClasses[i % tagClasses.length]}>
-                          {type}
-                        </Badge>
-                      ))}
-                    </div>
+                      <div className="flex flex-wrap gap-2">
+                        {program.recoveryTypes.map((type, i) => (
+                          <Badge key={type} className={tagClasses[i % tagClasses.length]}>
+                            {type}
+                          </Badge>
+                        ))}
+                      </div>
 
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                      {program.keyAspects.map((aspect) => {
-                        const Icon = aspect.icon;
-                        return (
-                          <Card key={aspect.title}>
-                            <CardContent className="p-3">
-                              <div className="flex items-start gap-2">
-                                <Icon className="w-4 h-4 mt-1 text-[#005A2C]" />
-                                <div>
-                                  <h4 className="font-semibold text-sm">{aspect.title}</h4>
-                                  <p className="text-xs text-[#5A7462] mt-1 leading-snug">
-                                    {aspect.description}
-                                  </p>
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                        {program.keyAspects.map((aspect) => {
+                          const Icon = aspect.icon;
+                          return (
+                            <Card key={aspect.title}>
+                              <CardContent className="p-3">
+                                <div className="flex items-start gap-2">
+                                  <Icon className="w-4 h-4 mt-1 text-[#005A2C]" />
+                                  <div>
+                                    <h4 className="font-semibold text-sm">{aspect.title}</h4>
+                                    <p className="text-xs text-[#5A7462] mt-1 leading-snug">
+                                      {aspect.description}
+                                    </p>
+                                  </div>
                                 </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
 
-                    <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-2">
-                      {program.corePrinciples.map(({ label, icon: Icon }) => (
-                        <div
-                          key={label}
-                          className="flex items-center gap-2 text-xs p-2 rounded bg-[#F1F8EB]"
-                        >
-                          <Icon className="w-4 h-4 text-[#005A2C]" />
-                          {label}
-                        </div>
-                      ))}
-                    </div>
-                  </TabsContent>
+                      <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-2">
+                        {program.corePrinciples.map(({ label, icon: Icon }) => (
+                          <div
+                            key={label}
+                            className="flex items-center gap-2 text-xs p-2 rounded bg-[#F1F8EB]"
+                          >
+                            <Icon className="w-4 h-4 text-[#005A2C]" />
+                            {label}
+                          </div>
+                        ))}
+                      </div>
+                    </TabsContent>
 
-                  <TabsContent value="history">
-                    <p className="text-[#2D5138] whitespace-pre-line leading-relaxed text-sm">
-                      {program.history}
-                    </p>
-                  </TabsContent>
+                    <TabsContent value="history">
+                      <p className="text-[#2D5138] whitespace-pre-line leading-relaxed text-sm">
+                        {program.history}
+                      </p>
+                    </TabsContent>
 
-                  <TabsContent value="philosophy" className="space-y-3">
-                    <p className="text-[#2D5138] whitespace-pre-line leading-relaxed text-sm">
-                      {program.philosophy}
-                    </p>
-                    <p className="text-[#2D5138] whitespace-pre-line leading-relaxed text-sm">
-                      {program.principles}
-                    </p>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
+                    <TabsContent value="philosophy" className="space-y-3">
+                      <p className="text-[#2D5138] whitespace-pre-line leading-relaxed text-sm">
+                        {program.philosophy}
+                      </p>
+                      <p className="text-[#2D5138] whitespace-pre-line leading-relaxed text-sm">
+                        {program.principles}
+                      </p>
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+            )}
 
-            {isJoined ? (
+            {/* --- DASHBOARD TAB CONTENT: SCHEDULE & BULLETIN --- */}
+            {(!viewMode || viewMode === "dashboard") && isJoined && (
               <>
                 <Card>
                   <CardHeader className="pb-3">
@@ -1171,7 +1178,10 @@ export function ProgramDetail({
                   isJoined={isJoined}
                 />
               </>
-            ) : (
+            )}
+
+            {/* Public Reviews only shown in Programs path for non-joined users */}
+            {(!viewMode || viewMode === "programs") && !isJoined && (
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle>Member Reviews</CardTitle>
@@ -1229,7 +1239,8 @@ export function ProgramDetail({
             )}
           </div>
 
-          {isJoined && (
+          {/* --- DASHBOARD TAB CONTENT: LIVE CHAT COLUMN --- */}
+          {(!viewMode || viewMode === "dashboard") && isJoined && (
             <div>
               <Card className="h-[560px] xl:h-[600px] flex flex-col">
                 <CardHeader className="pb-3">
