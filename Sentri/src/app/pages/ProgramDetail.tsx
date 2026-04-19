@@ -731,14 +731,41 @@ export function ProgramDetail({
   }, [activeProgramId, program]);
 
   useEffect(() => {
-    const raw = user?.joined_program || "";
-    const joinedIds = raw
-      .split(",")
-      .map((value) => value.trim())
-      .filter(Boolean)
-      .map((value) => (value === "alanon" ? "al-anon" : value));
-    setIsJoined(Boolean(activeProgramId && joinedIds.includes(activeProgramId)));
-  }, [activeProgramId, user?.joined_program]);
+    const fetchJoinedStatus = async () => {
+      if (!activeProgramId || !user?.id) {
+        setIsJoined(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `${pythonURI}/get-user-details?user_id=${user.id}`,
+          fetchOptions
+        );
+
+        if (!response.ok) {
+          setIsJoined(false);
+          return;
+        }
+
+        const data = await response.json();
+
+        const raw = data?.joined_program || "";
+        const joinedIds = String(raw)
+          .split(",")
+          .map((value) => value.trim())
+          .filter(Boolean)
+          .map((value) => (value === "alanon" ? "al-anon" : value));
+
+        setIsJoined(joinedIds.includes(activeProgramId));
+      } catch (error) {
+        console.error("Error verifying joined program status:", error);
+        setIsJoined(false);
+      }
+    };
+
+    fetchJoinedStatus();
+  }, [activeProgramId, user?.id]);
 
   const fetchChatHistory = async () => {
     if (!activeProgramId) return;
