@@ -175,13 +175,16 @@ export function PRCGuidePanel({ isOpen, onClose, onMatch }: PRCGuidePanelProps) 
     <AnimatePresence>
       {isOpen && (
         <motion.aside
-          className="fixed left-8 bottom-28 z-50 w-[min(90vw,26rem)] rounded-[28px] border border-[#E0EADD] bg-white shadow-[0_10px_30px_rgba(0,90,44,0.1)]"
-          initial={{ x: -40, y: 20, opacity: 0 }}
-          animate={{ x: 0, y: 0, opacity: 1 }}
-          exit={{ x: -40, y: 20, opacity: 0 }}
+          className="fixed right-8 bottom-28 z-[150] w-[min(90vw,26rem)] rounded-[28px] border border-[#E0EADD] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.15)]"
+          initial={{ x: 40, y: 20, opacity: 0, scale: 0.95 }}
+          animate={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+          exit={{ x: 40, y: 20, opacity: 0, scale: 0.95 }}
           transition={{ type: "spring", stiffness: 260, damping: 25 }}
         >
-          <div className="p-5 sm:p-6">
+          {/* Chat bubble tail - points to the Bot button on the right */}
+          <div className="absolute -bottom-2 right-6 h-6 w-6 rotate-45 border-b border-r border-[#E0EADD] bg-white z-0" />
+
+          <div className="relative z-10 p-5 sm:p-6">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <p className="text-xs uppercase tracking-wider text-[#76B82A]">Assistant</p>
