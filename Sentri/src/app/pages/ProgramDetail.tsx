@@ -1180,8 +1180,8 @@ export function ProgramDetail({
               </>
             )}
 
-            {/* Public Reviews only shown in Programs path for non-joined users */}
-            {(!viewMode || viewMode === "programs") && !isJoined && (
+            {/* Public Reviews always shown regardless of joined status */}
+            {(!viewMode || viewMode === "programs" || viewMode === "dashboard") && (
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle>Member Reviews</CardTitle>
