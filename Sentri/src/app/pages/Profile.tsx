@@ -36,6 +36,18 @@ const programVisuals: Record<string, { logo: string; name: string }> = {
 };
 
 export function Profile() {
+
+  // Inside Profile function
+const [sobrietyDate, setSobrietyDate] = useState<string>(() => {
+  return localStorage.getItem("sobrietyStartDate") || "";
+});
+
+const handleSetDate = (e: React.FormEvent) => {
+  e.preventDefault();
+  const dateInput = (e.target as any).date.value;
+  setSobrietyDate(dateInput);
+  localStorage.setItem("sobrietyStartDate", dateInput);
+};
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<MainTab>("dashboard");
   const [meetings, setMeetings] = useState<Meeting[]>([]);
@@ -193,7 +205,53 @@ export function Profile() {
   );
 
   const renderCenterContent = () => {
-    if (activeTab === "tracker") return <TrackerMain userName={fullName} />;
+   if (activeTab === "tracker") {
+  return (
+    <div className="h-full rounded-[30px] border border-[#E0EADD] bg-white p-6 shadow-[0_12px_30px_rgba(0,90,44,0.09)]">
+      {!sobrietyDate ? (
+        // SETUP VIEW: Show if no date is set
+        <div className="flex h-full flex-col items-center justify-center text-center space-y-6 max-w-sm mx-auto">
+          <div className="p-4 bg-[#F1F8EB] rounded-full">
+            <Calendar className="h-10 w-10 text-[#005A2C]" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-[#005A2C]">Set Your Start Date</h2>
+            <p className="text-sm text-[#5A7462] mt-2">
+              Before your Poway Recovery Garden can grow, please enter the date your journey began.
+            </p>
+          </div>
+          
+          <form onSubmit={handleSetDate} className="w-full space-y-4">
+            <input 
+              name="date"
+              type="date" 
+              required
+              className="w-full p-3 rounded-xl border border-[#E0EADD] bg-[#F8FAF5] text-[#1F3B2B] focus:ring-2 focus:ring-[#76B82A] outline-none"
+            />
+            <Button type="submit" className="w-full bg-[#005A2C] hover:bg-[#124627] text-white py-6 rounded-xl font-bold">
+              Start My Streak
+            </Button>
+          </form>
+        </div>
+      ) : (
+        // GARDEN VIEW: Show once date is set
+        <div className="h-full p-2">
+           {/* We pass the sobrietyDate to your TrackerMain component */}
+          <TrackerMain 
+            userName={dbUser?.fname || user.username || "Guest User"} 
+            startDate={sobrietyDate} 
+          />
+          <button 
+            onClick={() => {setSobrietyDate(""); localStorage.removeItem("sobrietyStartDate");}}
+            className="mt-4 text-[10px] text-gray-400 hover:text-red-500 underline"
+          >
+            Reset Start Date
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
     if (activeTab === "programs") return <FindProgram embedded />;
     if (activeTab === "meetings") return <FindMeeting embedded />;
     return renderDashboardHome();
