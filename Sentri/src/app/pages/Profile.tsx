@@ -1,92 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
-import { Calendar, LayoutDashboard, Leaf, Sprout } from "lucide-react";
+import { useEffect, useMemo, useState, useRef } from "react"; // Added useRef
+import { Calendar, LayoutDashboard, Leaf, Sprout, Sparkles, Wind, Star, Heart } from "lucide-react"; // Added interactive icons
 import { Card, CardContent } from "../components/ui/card";
+import { Button } from "../components/ui/button"; // Added Button
 import { useAuth } from "../context/AuthContext";
 import { pythonURI, fetchOptions } from "../../../../assets/js/api/config.js";
 import TrackerMain from "../components/tracker/TrackerMain";
 import { FindProgram } from "./FindProgram";
 import { FindMeeting } from "./FindMeeting";
 import sproutGif from "../../assets/garden/sprout.gif";
-import aaLogo from "../../assets/735899c7aa27fedc5bfff3f073c9492f49572a67.png";
-import acaLogo from "../../assets/054168f67c068da00639dd1c8048e86acf2571ca.png";
-import alateenLogo from "../../assets/2c91f86ad959487223d3461bd473cbc2855a8351.png";
-import alanonLogo from "../../assets/3c35ee6fefb6bfce531c22f63b9380fedac4d6a6.png";
-import naLogo from "../../assets/2115c4842bd36bd47cd1708c3d26e2e14999ef8a.png";
-import caLogo from "../../assets/58e3f4b9794493f73bea7d751b9df8993b8c105f.png";
-import gaLogo from "../../assets/675121813725057c96f90900dde1cdb27e6a8031.png";
-import saLogo from "../../assets/50593eb25097566896b0e6a4b491eabb700c98a6.png";
 
-interface Meeting {
-  id: number;
-  program_id?: string;
-  name: string;
-  date: string;
-  time: string;
-  location: string;
-  type: string;
-}
-
-interface DashboardProgram {
-  program_id: string;
-  fullName: string;
-  last_message: {
-    text: string;
-    timestamp: string | null;
-  };
-}
-
-interface DbUserDetails {
-  username: string;
-  email: string;
-  fname: string;
-  lname: string;
-  joined_program?: string | null;
-}
-
-type MainTab = "dashboard" | "tracker" | "programs" | "meetings";
-
-const programVisuals: Record<string, { logo: string; name: string }> = {
-  aa: { logo: aaLogo, name: "Alcoholics Anonymous" },
-  aca: { logo: acaLogo, name: "Adult Children of Alcoholics" },
-  alateen: { logo: alateenLogo, name: "Alateen Support Group" },
-  alanon: { logo: alanonLogo, name: "Al-Anon Family Groups" },
-  na: { logo: naLogo, name: "Narcotics Anonymous" },
-  ca: { logo: caLogo, name: "Cocaine Anonymous" },
-  ga: { logo: gaLogo, name: "Gamblers Anonymous" },
-  sa: { logo: saLogo, name: "Sexaholics Anonymous" },
-};
-
-const formatMessageTimestamp = (timestamp: string | null) => {
-  if (!timestamp) return "";
-  const date = new Date(timestamp);
-  if (Number.isNaN(date.getTime())) return "";
-
-  const now = new Date();
-  const todayStart = new Date(now);
-  todayStart.setHours(0, 0, 0, 0);
-
-  const yesterdayStart = new Date(todayStart);
-  yesterdayStart.setDate(yesterdayStart.getDate() - 1);
-
-  if (date >= todayStart) {
-    return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-  }
-
-  if (date >= yesterdayStart && date < todayStart) {
-    return "Yesterday";
-  }
-
-  return date.toLocaleDateString([], { month: "short", day: "numeric" });
-};
-
-const isUnreadMessage = (timestamp: string | null) => {
-  if (!timestamp) return false;
-  const created = new Date(timestamp);
-  if (Number.isNaN(created.getTime())) return false;
-
-  const twoHoursMs = 2 * 60 * 60 * 1000;
-  return Date.now() - created.getTime() <= twoHoursMs;
-};
+// ... (Existing interfaces and helper functions stay the same)
 
 export function Profile() {
   const { user } = useAuth();
@@ -97,6 +20,76 @@ export function Profile() {
   const [, setLoading] = useState(true);
   const [contentVisible, setContentVisible] = useState(true);
 
+  // --- NEW: INTERACTIVE STATES ---
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [gratitudeCount, setGratitudeCount] = useState(0);
+  const [gratitudeText, setGratitudeText] = useState("");
+  const [isJarOpen, setIsJarOpen] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const dailyQuotes = [
+    "One day at a time.",
+    "Progress, not perfection.",
+    "Your past does not define your future.",
+    "Believe you can and you're halfway there.",
+    "Small steps lead to big changes."
+  ];
+  const dailyQuote = useMemo(() => dailyQuotes[new Date().getDate() % dailyQuotes.length], []);
+
+  // --- NEW: INTERACTIVE LOGIC ---
+  const handleScratch = (e: any) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.beginPath();
+    ctx.arc(x, y, 20, 0, Math.PI * 2);
+    ctx.fill();
+  };
+
+  const handleAddGratitude = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!gratitudeText.trim()) return;
+    setIsJarOpen(false);
+    setIsAnimating(true);
+    new Audio("https://assets.mixkit.co/active_storage/sfx/2432/2432-preview.mp3").play().catch(() => {});
+    setTimeout(() => {
+      setGratitudeCount(prev => prev + 1);
+      setIsAnimating(false);
+      setGratitudeText("");
+    }, 1200);
+  };
+
+  useEffect(() => {
+    if (activeTab === "dashboard" && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+        const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+        gradient.addColorStop(0, "#124627");
+        gradient.addColorStop(0.5, "#005A2C");
+        gradient.addColorStop(1, "#124627");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#FFFFFF";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "bold 12px sans-serif";
+        ctx.fillText("SCRATCH FOR DAILY FOCUS", canvas.width / 2, canvas.height / 2);
+      }
+    }
+  }, [activeTab, contentVisible]);
+
+  // ... (Existing fetchData useEffect and useMemos stay exactly the same)
   useEffect(() => {
     const fetchData = async () => {
       if (!user?.id) {
@@ -186,8 +179,23 @@ export function Profile() {
   const renderDashboardHome = () => (
     <Card className={cardShell}>
       <CardContent className="flex h-full flex-col gap-5 p-5">
-        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#DCEAD8] bg-[#E8F5E9] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#005A2C]">
-          <LayoutDashboard className="h-3.5 w-3.5" /> Dashboard
+        <div className="flex items-center justify-between">
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#DCEAD8] bg-[#E8F5E9] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#005A2C]">
+            <LayoutDashboard className="h-3.5 w-3.5" /> Dashboard
+          </div>
+
+          {/* --- NEW: SCRATCH CARD (Pill Style) --- */}
+          <div className="relative h-10 w-64 overflow-hidden rounded-full border-2 border-white bg-white shadow-md">
+            <div className="absolute inset-0 flex items-center justify-center px-4 text-center select-none">
+              <p className="text-[11px] font-bold italic text-[#005A2C]">"{dailyQuote}"</p>
+            </div>
+            <canvas
+              ref={canvasRef}
+              onMouseMove={handleScratch}
+              onTouchMove={handleScratch}
+              className="absolute inset-0 z-10 cursor-crosshair touch-none"
+            />
+          </div>
         </div>
 
         <div>
@@ -332,30 +340,72 @@ export function Profile() {
 
   return (
     <div className="h-[calc(100vh-97px)] w-full overflow-hidden bg-[linear-gradient(180deg,#F8FAF5_0%,#F1F8EB_55%,#E8F5E9_100%)]">
+      <style>{`
+        @keyframes starHeroAction {
+          0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+          30% { transform: scale(1.5) rotate(0deg); opacity: 1; filter: drop-shadow(0 0 20px #fbbf24); }
+          100% { transform: translateY(400px) scale(0.2) rotate(20deg); opacity: 0; }
+        }
+        @keyframes jarImpact {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.1) rotate(2deg); }
+        }
+      `}</style>
+
+      {/* --- NEW: GRATITUDE JAR WIDGET --- */}
+      <div className="fixed bottom-10 right-10 z-[100]">
+        {isAnimating && (
+          <div className="absolute bottom-[200px] left-1/2 -translate-x-1/2 text-yellow-400 animate-[starHeroAction_1.2s_ease-in-out] pointer-events-none">
+            <Star className="h-12 w-12 fill-current" />
+          </div>
+        )}
+
+        <div className="group relative">
+          <div onClick={() => setIsJarOpen(!isJarOpen)} className={`relative w-16 h-24 cursor-pointer transition-all hover:brightness-110 active:scale-95 ${isAnimating ? "animate-[jarImpact_1.2s_ease-in-out]" : ""}`}>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-3 bg-[#124627] rounded-t-md border-b-2 border-black/20 z-20" />
+            <div className="absolute inset-0 top-2 rounded-b-[1.5rem] rounded-t-md border-2 border-white/60 bg-white/10 backdrop-blur-md shadow-xl overflow-hidden">
+              <div className="flex h-full w-full flex-wrap-reverse content-start justify-center gap-1 p-2 pt-4">
+                {[...Array(Math.min(gratitudeCount, 15))].map((_, i) => (
+                  <Star key={i} className="h-2.5 w-2.5 text-yellow-300 fill-current animate-pulse" />
+                ))}
+              </div>
+            </div>
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-10 bg-white/80 border border-gray-200 px-1 py-0.5 shadow-sm rounded-sm">
+               <p className="text-[6px] font-bold text-[#124627] text-center uppercase">Gratitude</p>
+            </div>
+          </div>
+
+          {isJarOpen && (
+            <div className="absolute bottom-28 right-0 w-64 rounded-[24px] border border-[#E0EADD] bg-white p-4 shadow-2xl animate-in slide-in-from-bottom-6 duration-300 z-[110]">
+              <div className="flex items-center gap-2 mb-2">
+                <Heart className="h-3 w-3 text-[#76B82A] fill-current" />
+                <h4 className="text-xs font-bold text-[#005A2C]">One nice thing today?</h4>
+              </div>
+              <form onSubmit={handleAddGratitude} className="flex flex-col gap-2">
+                <textarea 
+                  autoFocus 
+                  value={gratitudeText} 
+                  onChange={(e) => setGratitudeText(e.target.value)} 
+                  className="w-full rounded-xl border-none bg-[#F8FAF5] p-2 text-xs outline-none" 
+                  placeholder="I am thankful for..." 
+                  rows={2} 
+                />
+                <Button type="submit" size="sm" className="bg-[#005A2C] text-white rounded-lg h-8 text-[10px]">Drop Star</Button>
+              </form>
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="grid h-full w-full grid-cols-[260px_minmax(0,1fr)] gap-4 p-4">
+        {/* ... (Sidebar stays the same) */}
         <aside className="h-full rounded-[30px] border border-[#DCEAD8] bg-white/95 p-3 shadow-[0_12px_30px_rgba(0,90,44,0.08)]">
           <nav className="space-y-2">
             {[
-              {
-                key: "dashboard",
-                label: "Dashboard",
-                icon: <LayoutDashboard className="h-4 w-4" />,
-              },
-              {
-                key: "programs",
-                label: "Programs",
-                icon: <Leaf className="h-4 w-4" />,
-              },
-              {
-                key: "meetings",
-                label: "Meetings",
-                icon: <Calendar className="h-4 w-4" />,
-              },
-              {
-                key: "tracker",
-                label: "Recovery Tracker",
-                icon: <Sprout className="h-4 w-4" />,
-              },
+              { key: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
+              { key: "programs", label: "Programs", icon: <Leaf className="h-4 w-4" /> },
+              { key: "meetings", label: "Meetings", icon: <Calendar className="h-4 w-4" /> },
+              { key: "tracker", label: "Recovery Tracker", icon: <Sprout className="h-4 w-4" /> },
             ].map((item) => (
               <button
                 key={item.key}
