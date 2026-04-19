@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, useRef } from "react";
-import { Calendar, LayoutDashboard, Leaf, Sprout, Sparkles, Wind, Star, Heart } from "lucide-react";
+import { useEffect, useMemo, useState, useRef, type ComponentType } from "react";
+import { Calendar, LayoutDashboard, Leaf, Sprout, Sparkles, Wind, Star, Heart, Bot } from "lucide-react"; // Added Bot icon
 import { motion, AnimatePresence } from "motion/react";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -8,6 +8,7 @@ import { pythonURI, fetchOptions } from "../../../../assets/js/api/config.js";
 import TrackerMain from "../components/tracker/TrackerMain";
 import { FindMeeting } from "./FindMeeting";
 import { ProgramDetail } from "./ProgramDetail";
+import { PRCGuidePanel, type GuideAnswers } from "./PRCGuide"; // Added PRC imports
 import sproutGif from "../../assets/garden/sprout.gif";
 
 // Icons mapping for programs (KEEPING AS IS)
@@ -189,8 +190,15 @@ const handleSetDate = (e: React.FormEvent) => {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [dashboardPrograms, setDashboardPrograms] = useState<DashboardProgram[]>([]);
   const [dbUser, setDbUser] = useState<DbUserDetails | null>(null);
+  
+  // Modal tracking logic from previous turn
   const [activeProgramModalId, setActiveProgramModalId] = useState<string | null>(null);
   const [activeProgramModalSource, setActiveProgramModalSource] = useState<"dashboard" | "programs" | null>(null);
+  
+  // NEW: PRC Guide states
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [matchedProgramId, setMatchedProgramId] = useState<number | null>(null);
+
   const [hoveredProgramId, setHoveredProgramId] = useState<number | null>(null);
   const [, setLoading] = useState(true);
   const [contentVisible, setContentVisible] = useState(true);
@@ -204,7 +212,9 @@ const handleSetDate = (e: React.FormEvent) => {
 
   const dailyQuotes = ["One day at a time.", "Progress, not perfection.", "Belief creates the actual fact.", "Recovery is a journey, not a destination.", "Small steps lead to big changes."];
   const dailyQuote = useMemo(() => dailyQuotes[new Date().getDate() % dailyQuotes.length], []);
-
+  type TrackerMainProps = { userName?: string; startDate: string };
+  const TrackerMainTyped = TrackerMain as ComponentType<TrackerMainProps>;
+  
   const handleScratch = (e: any) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -229,6 +239,33 @@ const handleSetDate = (e: React.FormEvent) => {
       setGratitudeText("");
     }, 1200);
   };
+
+  // --- PRC GUIDE HANDLER ---
+  const handleGuideMatch = async (programId: number, answers: GuideAnswers) => {
+    setMatchedProgramId(null);
+    try {
+      const response = await fetch(`${pythonURI}/api/ml/match`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(answers)
+      });
+
+      const data = (await response.json()) as Record<string, number>;
+      const bestProgramName = Object.entries(data).sort((a, b) => b[1] - a[1])[0]?.[0];
+      const bestProgram = allPrograms.find((p) => p.name === bestProgramName);
+      setMatchedProgramId(bestProgram?.id ?? programId);
+    } catch {
+      setMatchedProgramId(programId);
+    }
+  };
+
+  // Scroll to matched program if one is found
+  useEffect(() => {
+    if (!matchedProgramId) return;
+    const matchedCard = document.getElementById(`program-card-${matchedProgramId}`);
+    if (matchedCard) matchedCard.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [matchedProgramId]);
 
   // --- INITIALIZE CANVAS WITH TEXT ---
   useEffect(() => {
@@ -434,10 +471,12 @@ const handleSetDate = (e: React.FormEvent) => {
         <div className="grid h-full grid-cols-1 gap-6 overflow-y-auto sm:grid-cols-2 xl:grid-cols-3 pr-1">
           {allPrograms.map((program, idx) => {
             const isHovered = hoveredProgramId === program.id;
+            const isMatchedProgram = matchedProgramId === program.id; // Match logic
 
             return (
               <motion.div
                 key={program.id}
+                id={`program-card-${program.id}`} // Matching ID for scroll logic
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: idx * 0.05 }}
@@ -445,13 +484,23 @@ const handleSetDate = (e: React.FormEvent) => {
                 onMouseLeave={() => setHoveredProgramId(null)}
               >
                 <Card
-                  className="overflow-hidden border border-[#E0EADD] rounded-[24px] hover:shadow-2xl transition-all cursor-pointer h-full relative group"
+                  className={`overflow-hidden border border-[#E0EADD] rounded-[24px] hover:shadow-2xl transition-all cursor-pointer h-full relative group ${isMatchedProgram ? "border-4 border-[#76B82A] shadow-2xl ring-4 ring-[#D4EEC0]" : ""}`}
                   onClick={() => {
                     setActiveProgramModalId(program.slug);
                     setActiveProgramModalSource("programs");
                   }}
                 >
                   <CardContent className="p-6 h-full flex flex-col">
+                    {/* Your Match badge */}
+                    {isMatchedProgram && (
+                        <div className="absolute top-3 right-3 z-10">
+                          <div className="bg-gradient-to-r from-[#76B82A] to-[#005A2C] text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg flex items-center gap-1">
+                            <span>Your Match!</span>
+                            <span>🎉</span>
+                          </div>
+                        </div>
+                    )}
+
                     <div className="flex items-center justify-center h-full min-h-[180px] mb-4">
                       <img
                         src={program.logo}
@@ -501,7 +550,7 @@ const handleSetDate = (e: React.FormEvent) => {
     return (
       <div className="h-full rounded-[30px] border border-[#E0EADD] bg-white p-6 shadow-[0_12px_30px_rgba(0,90,44,0.09)]">
         {!sobrietyDate ? (
-          // SETUP VIEW: Show if no date is set
+          // SETUP VIEW
           <div className="flex h-full flex-col items-center justify-center text-center space-y-6 max-w-sm mx-auto">
             <div className="p-4 bg-[#F1F8EB] rounded-full">
               <Calendar className="h-10 w-10 text-[#005A2C]" />
@@ -526,10 +575,9 @@ const handleSetDate = (e: React.FormEvent) => {
             </form>
           </div>
         ) : (
-          // GARDEN VIEW: Show once date is set
+          // GARDEN VIEW
           <div className="h-full p-2">
-            {/* We pass the sobrietyDate to your TrackerMain component */}
-            <TrackerMain 
+            <TrackerMainTyped
               userName={dbUser?.fname || user.username || "Guest User"} 
               startDate={sobrietyDate} 
             />
@@ -623,6 +671,38 @@ const handleSetDate = (e: React.FormEvent) => {
           )}
         </div>
       </div>
+
+      {/* --- PRC GUIDE BOT (Bottom Right, above/near Jar) --- */}
+      {activeTab === "programs" && (
+        <div className="fixed bottom-10 right-40 z-[100] flex flex-col items-center">
+            {!isGuideOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: [0, -4, 0] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                className="relative mb-4 max-w-[270px] rounded-2xl border border-[#DCEAD8] bg-white px-4 py-3 text-sm text-[#2D5138] shadow-xl"
+              >
+                Find the right program for you.
+                <div className="absolute -bottom-2 left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 border-b border-r border-[#DCEAD8] bg-white" />
+              </motion.div>
+            )}
+
+            <motion.button
+              type="button"
+              className="rounded-full bg-gradient-to-r from-[#76B82A] to-[#005A2C] p-4 text-white shadow-2xl"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              animate={{ scale: [1, 1.06, 1] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+              onClick={() => setIsGuideOpen((prev) => !prev)}
+            >
+              <Bot className="h-7 w-7" />
+            </motion.button>
+        </div>
+      )}
+
+      {/* PRC GUIDE PANEL */}
+      <PRCGuidePanel isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} onMatch={handleGuideMatch} />
 
       <div className="grid h-full w-full grid-cols-[260px_minmax(0,1fr)] gap-4 p-4">
         <aside className="h-full rounded-[30px] border border-[#DCEAD8] bg-white/95 p-3 shadow-[0_12px_30px_rgba(0,90,44,0.08)]">
