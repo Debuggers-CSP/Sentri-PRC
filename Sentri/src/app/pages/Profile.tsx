@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef, type ComponentType } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback, type ComponentType } from "react";
 import { Calendar, LayoutDashboard, Leaf, Sprout, Sparkles, Wind, Star, Heart, Bot } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Card, CardContent } from "../components/ui/card";
@@ -184,24 +184,39 @@ export function Profile() {
     }
   }, [activeTab, contentVisible]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!user?.id) return;
-      try {
-        const summaryRes = await fetch(`${pythonURI}/get-dashboard-summary/${user.id}`, fetchOptions);
-        if (summaryRes.ok) {
-          const summary = await summaryRes.json();
-          setDashboardPrograms(summary.programs || []);
-          setMeetings(summary.meetings || []);
-        }
-        const userRes = await fetch(`${pythonURI}/get-user-details?user_id=${user.id}`, fetchOptions);
-        if (userRes.ok) setDbUser(await userRes.json());
-      } catch (error) { console.error(error); } finally { setLoading(false); }
-    };
-    fetchData();
-    window.addEventListener("sentri-programs-updated", fetchData);
-    return () => window.removeEventListener("sentri-programs-updated", fetchData);
+  const fetchDashboardData = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const summaryRes = await fetch(`${pythonURI}/get-dashboard-summary/${user.id}`, fetchOptions);
+      if (summaryRes.ok) {
+        const summary = await summaryRes.json();
+        setDashboardPrograms(summary.programs || []);
+        setMeetings(summary.meetings || []);
+      }
+      const userRes = await fetch(`${pythonURI}/get-user-details?user_id=${user.id}`, fetchOptions);
+      if (userRes.ok) setDbUser(await userRes.json());
+    } catch (error) {
+      console.error("Fetch dashboard error:", error);
+    } finally {
+      setLoading(false);
+    }
   }, [user?.id]);
+
+  useEffect(() => {
+    fetchDashboardData();
+    window.addEventListener("sentri-programs-updated", fetchDashboardData);
+    window.addEventListener("sentri-meetings-updated", fetchDashboardData);
+    return () => {
+      window.removeEventListener("sentri-programs-updated", fetchDashboardData);
+      window.removeEventListener("sentri-meetings-updated", fetchDashboardData);
+    };
+  }, [fetchDashboardData]);
+
+  useEffect(() => {
+    if (activeProgramModalId === null) {
+      fetchDashboardData();
+    }
+  }, [activeProgramModalId, fetchDashboardData]);
 
   useEffect(() => {
     setContentVisible(false);
