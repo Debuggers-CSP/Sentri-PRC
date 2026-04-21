@@ -73,7 +73,7 @@ export default function HeroSection() {
       {/* SMOOTH BOTTOM FADE 
           This creates the transition from the clouds to the page background color (#F8FAF5)
       */}
-      <div className="absolute inset-x-0 bottom-0 h-40 z-10 bg-gradient-to-t from-[#EFF8EB] to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-50 z-10 bg-gradient-to-t from-[#f9faf6] to-transparent" />
 
       {/* CONTENT LAYER */}
       <div className="relative z-20 mx-auto flex min-h-[60vh] max-w-7xl items-center px-4 sm:px-6 lg:px-8 pb-12">

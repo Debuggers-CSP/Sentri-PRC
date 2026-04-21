@@ -516,10 +516,7 @@ function BulletinBoard({ programId, userId, username, isJoined }: { programId: s
     const fetchNotes = async () => {
       try {
         const res = await fetch(`${pythonURI}/get-program-bulletin-notes?program_id=${programId}`, fetchOptions);
-        if (res.ok) {
-          setNotes(await res.json());
-          return;
-        }
+        if (res.ok) { setNotes(await res.json()); return; }
       } catch (error) { console.error("Error fetching bulletin notes:", error); }
       setNotes(fallbackBulletinNotes[programId] || fallbackBulletinNotes.default);
     };
@@ -721,7 +718,28 @@ export function ProgramDetail({ programIdOverride, embeddedModal = false, viewMo
                   <Tabs defaultValue="overview">
                     <div className="border-b border-[#E0EADD] bg-white px-6"><TabsList className="h-14 bg-transparent p-0 flex gap-8">{["overview", "history", "philosophy"].map((tab) => (<TabsTrigger key={tab} value={tab} className="h-14 bg-transparent px-0 rounded-none border-b-2 border-transparent data-[state=active]:border-[#005A2C] data-[state=active]:text-[#005A2C] data-[state=active]:bg-transparent font-bold text-slate-500 uppercase tracking-wider text-xs transition-all">{tab === "philosophy" ? "Philosophy & Principles" : tab}</TabsTrigger>))}</TabsList></div>
                     <div className="p-6">
-                      <TabsContent value="overview" className="mt-0 space-y-8"><p className="text-[#2D5138] leading-relaxed text-base italic">{program.description}</p><div className="grid sm:grid-cols-2 gap-4">{program.keyAspects.map((aspect) => { const Icon = aspect.icon; return (<div key={aspect.title} className="p-5 rounded-2xl border border-slate-100 bg-slate-50/50 flex items-start gap-4 transition-colors"><div className="p-3 bg-white rounded-xl shadow-sm"><Icon className="w-5 h-5 text-[#005A2C]" /></div><div><h4 className="font-bold text-[#173723] text-sm mb-1">{aspect.title}</h4><p className="text-xs text-[#5A7462] leading-relaxed">{aspect.description}</p></div></div>); })}</div></TabsContent>
+                      <TabsContent value="overview" className="mt-0 space-y-8">
+                        <p className="text-[#2D5138] leading-relaxed text-base italic mb-10">{program.description}</p>
+                        
+                        {/* FEATURE LIST (Replacing Cards with Informative Points) */}
+                        <div className="space-y-6">
+                          {program.keyAspects.map((aspect) => { 
+                            const Icon = aspect.icon; 
+                            return (
+                              <div key={aspect.title} className="flex items-start gap-4 p-2 border-l-4 border-[#76B82A] bg-slate-50/30 rounded-r-xl">
+                                <div className="mt-1 p-2 bg-white rounded-full shadow-sm">
+                                  <Icon className="w-4 h-4 text-[#005A2C]" />
+                                </div>
+                                <div>
+                                  <h4 className="font-bold text-[#173723] text-sm">{aspect.title}</h4>
+                                  <p className="text-xs text-[#5A7462] leading-relaxed mt-0.5">{aspect.description}</p>
+                                </div>
+                              </div>
+                            ); 
+                          })}
+                        </div>
+                      </TabsContent>
+                      
                       <TabsContent value="history" className="mt-0"><div className="prose prose-slate max-w-none"><p className="text-[#2D5138] whitespace-pre-line leading-relaxed text-sm bg-slate-50 p-6 rounded-2xl border border-slate-100">{program.history}</p></div></TabsContent>
                       <TabsContent value="philosophy" className="mt-0 space-y-6"><div className="space-y-4"><h4 className="font-bold text-[#173723]">Core Values</h4><p className="text-[#2D5138] whitespace-pre-line leading-relaxed text-sm">{program.philosophy}</p><div className="h-px bg-slate-100 w-full" /><h4 className="font-bold text-[#173723]">Operating Principles</h4><p className="text-[#2D5138] whitespace-pre-line leading-relaxed text-sm">{program.principles}</p></div></TabsContent>
                     </div>
