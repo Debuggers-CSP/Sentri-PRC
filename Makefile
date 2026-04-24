@@ -423,12 +423,3 @@ dev-integrated:
 	@(cd Sentri && npm run dev -- --port 3000) &
 	@echo "🚀 Starting JAL Dev Server on Port 4500..."
 	@make dev
-# Wellness Quest Game Commands
-wellness-quest-compile:
-	@echo "Compiling Wellness Quest game..."
-	javac ./wellness-quest/WellnessQuest.java
-	@echo "✓ Compilation successful!"
-
-wellness-quest: wellness-quest-compile
-	@echo "Starting Wellness Quest..."
-	java -cp ./wellness-quest WellnessQuest
