@@ -240,56 +240,66 @@ export function Profile() {
   const email = dbUser?.email || user.email || "";
   const cardShell = "h-full rounded-[30px] border border-[#E0EADD] bg-white shadow-[0_12px_30px_rgba(0,90,44,0.09)]";
 
-  const renderDashboardHome = () => (
+const renderDashboardHome = () => (
     <Card className="h-full rounded-[30px] border border-[#E0EADD] bg-white shadow-[0_12px_30px_rgba(0,90,44,0.09)]">
-      <CardContent className="flex h-full flex-col gap-5 p-5">
-        <div className="flex items-center justify-between">
+      <CardContent className="flex h-full flex-col gap-5 p-4 md:p-5">
+        
+        {/* HEADER SECTION: Changed to flex-col on mobile to prevent overflow */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          
+          {/* Dashboard Pill */}
           <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#DCEAD8] bg-[#E8F5E9] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#005A2C]">
             <LayoutDashboard className="h-3.5 w-3.5" /> Dashboard
           </div>
 
-          {/* Stacks vertically on mobile to prevent overlapping */}
-            <div className="flex flex-col md:flex-row items-end md:items-center gap-3 md:gap-6">
-            {/* SCRATCH CARD PILL */}
-            <div className="relative h-10 w-64 overflow-hidden rounded-full border-2 border-white bg-white shadow-md">
+          {/* Group: Scratcher and Jar - Centered on mobile, Right-aligned on desktop */}
+          <div className="flex items-center justify-between md:justify-end gap-3 w-full md:w-auto">
+            
+            {/* SCRATCH CARD: Reduced width on mobile to fit screen */}
+            <div className="relative h-10 w-full max-w-[240px] md:w-64 overflow-hidden rounded-full border-2 border-white bg-white shadow-md shrink-0">
               <div className="absolute inset-0 flex items-center justify-center px-4 text-center select-none">
-                <p className="text-[11px] font-bold italic text-[#005A2C]">"{dailyQuote}"</p>
+                <p className="text-[10px] md:text-[11px] font-bold italic text-[#005A2C] line-clamp-1">"{dailyQuote}"</p>
               </div>
-              <canvas ref={canvasRef} onMouseMove={handleScratch} onTouchMove={handleScratch} className="absolute inset-0 z-10 cursor-crosshair touch-none" />
+              <canvas 
+                ref={canvasRef} 
+                onMouseMove={handleScratch} 
+                onTouchMove={handleScratch} 
+                className="absolute inset-0 z-10 cursor-crosshair touch-none" 
+              />
             </div>
 
-            {/* GRATITUDE JAR (Upper Right Home) */}
-            <div className="relative z-50">
+            {/* GRATITUDE JAR */}
+            <div className="relative z-50 shrink-0">
                 {isAnimating && (
                   <div className="absolute -top-20 left-1/2 -translate-x-1/2 text-yellow-400 animate-[starHeroAction_1.2s_ease-in-out] pointer-events-none">
-                    <Star className="h-10 w-10 fill-current shadow-[0_0_20px_#fbbf24]" />
+                    <Star className="h-10 w-10 fill-current" />
                   </div>
                 )}
                 <div onClick={() => setIsJarOpen(!isJarOpen)} 
-                     className={`relative w-12 h-16 cursor-pointer transition-all hover:scale-110 active:scale-95 
-                     ${isAnimating ? "animate-[jarImpact_1.2s_ease-in-out]" : ""}`}>
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-2.5 bg-[#005A2C] rounded-t-sm border-b-2 border-black/30 z-30 shadow-sm" />
-                  <div className="absolute inset-0 top-1.5 rounded-b-xl rounded-t-md border-[2px] border-white/50 bg-white/10 backdrop-blur-md shadow-lg overflow-hidden">
+                     className={`relative w-10 h-14 md:w-12 md:h-16 cursor-pointer transition-all hover:scale-110 active:scale-95 ${isAnimating ? "animate-[jarImpact_1.2s_ease-in-out]" : ""}`}>
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-2 bg-[#005A2C] rounded-t-sm z-30 shadow-sm" />
+                  <div className="absolute inset-0 top-1 rounded-b-xl rounded-t-md border-2 border-white/50 bg-white/10 backdrop-blur-md shadow-lg overflow-hidden">
                     <div className="flex h-full w-full flex-wrap-reverse content-start justify-center gap-0.5 p-1 pt-4">
                       {[...Array(Math.min(gratitudeCount, 12))].map((_, i) => (
-                        <Star key={i} className="h-2 w-2 text-yellow-300 fill-current drop-shadow-[0_0_4px_rgba(250,204,21,1)]" />
+                        <Star key={i} className="h-2 w-2 text-yellow-300 fill-current" />
                       ))}
                     </div>
                   </div>
                 </div>
 
                 {isJarOpen && (
-                /* Changed 'absolute' to 'fixed' on mobile so it doesn't get pushed off screen by the keyboard */
-                  <div className="fixed md:absolute bottom-20 md:top-20 right-4 md:right-0 w-[calc(100%-32px)] md:w-64 rounded-[20px] border border-[#E0EADD] bg-white p-4 shadow-2xl z-[60]">
+                  /* Changed to fixed and centered on mobile so it doesn't float off-screen */
+                  <div className="fixed md:absolute top-1/2 md:top-20 left-1/2 md:left-auto md:right-0 -translate-x-1/2 md:translate-x-0 w-[90%] max-w-[280px] md:w-64 rounded-[20px] border border-[#E0EADD] bg-white p-4 shadow-2xl z-[100] animate-in fade-in zoom-in duration-200">
                     <div className="flex items-center gap-2 mb-2 text-[#005A2C]">
                       <Heart className="h-3 w-3 fill-current" />
                       <h4 className="text-[10px] font-bold uppercase">Add Gratitude</h4>
+                      <button onClick={() => setIsJarOpen(false)} className="ml-auto md:hidden"><X className="w-4 h-4" /></button>
                     </div>
                     <form onSubmit={handleAddGratitude} className="flex flex-col gap-2">
                       <textarea autoFocus value={gratitudeText} onChange={(e) => setGratitudeText(e.target.value)}
-                                className="w-full rounded-lg border-none bg-[#F8FAF5] p-2 text-[11px] text-[#124627] outline-none h-16 placeholder:text-gray-400"
+                                className="w-full rounded-lg border-none bg-[#F8FAF5] p-2 text-base md:text-[11px] text-[#124627] outline-none h-20 placeholder:text-gray-400"
                                 placeholder="What are you grateful for?" />
-                      <Button type="submit" className="bg-[#005A2C] text-white rounded-lg h-8 text-[11px] font-bold hover:bg-[#173723]">Drop In</Button>
+                      <Button type="submit" className="bg-[#005A2C] text-white rounded-lg h-10 font-bold">Drop In</Button>
                     </form>
                   </div>
                 )}
@@ -297,11 +307,13 @@ export function Profile() {
           </div>
         </div>
 
-        <div>
-          <h1 className="text-2xl md:text-[38px] leading-tight tracking-tight text-[#005A2C]">
-            Welcome back, <span className="block md:inline">{fullName}</span>
+        {/* Welcome Text: Ensure it doesn't wrap weirdly */}
+        <div className="mt-2">
+          <h1 className="text-2xl md:text-[38px] leading-tight font-semibold text-[#005A2C]">
+            Welcome back, <br className="md:hidden" />
+            <span className="text-[#2D5138]">{fullName}</span>
           </h1>
-          <p className="mt-1 text-xs md:text-sm text-[#5A7462] truncate">{email}</p>
+          <p className="mt-1 text-xs md:text-sm text-[#5A7462] opacity-80">{email}</p>
         </div>
 
         <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
