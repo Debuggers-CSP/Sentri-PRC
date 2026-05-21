@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef, useCallback, type ComponentType } from "react";
-import { Calendar, LayoutDashboard, Leaf, Sprout, Sparkles, Wind, Star, Heart, Bot } from "lucide-react";
+import { Calendar, LayoutDashboard, Leaf, Sprout, Sparkles, Wind, Star, Heart, Bot, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
