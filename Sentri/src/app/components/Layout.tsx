@@ -3,10 +3,10 @@ import { Navbar } from "./navbar";
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
-    /* We add 'flex flex-col' to stack on mobile, and 'md:flex-row' to go side-by-side on desktop */
-    <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    /* We use flex-col so that Navbar is on top and main is on bottom */
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <Navbar />
-      {/* 'flex-1' ensures the content takes up the remaining space */}
+      {/* overflow-x-hidden prevents the iPhone side-to-side wiggle */}
       <main className="flex-1 w-full overflow-x-hidden">
         {children}
       </main>

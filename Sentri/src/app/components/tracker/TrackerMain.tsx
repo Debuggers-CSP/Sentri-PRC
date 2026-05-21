@@ -133,9 +133,10 @@ export default function TrackerMain() {
           <GardenView dashboardData={safeDashboardData} pillStyle={pillStyle} smallCardStyle={smallCardStyle} onOpenCheckin={() => setActiveModal("checkin")} />
         </div>
 
+        {/* Change 'absolute' to 'fixed' to ensure the modal always covers the screen */}
         {activeModal && (
-          <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#0f1f13]/40 p-4" onClick={closeModal}>
-            <div className="max-h-[88%] w-full max-w-4xl overflow-auto rounded-[16px] border-4 border-[#87B171] bg-[#F8FAF5] p-4" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0f1f13]/60 p-4" onClick={closeModal}>
+            <div className="max-h-[90vh] w-full max-w-4xl overflow-auto rounded-[20px] border-4 border-[#87B171] bg-[#F8FAF5] p-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
               {renderModalBody()}
             </div>
           </div>

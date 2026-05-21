@@ -248,7 +248,8 @@ export function Profile() {
             <LayoutDashboard className="h-3.5 w-3.5" /> Dashboard
           </div>
 
-          <div className="flex items-center gap-6">
+          {/* Stacks vertically on mobile to prevent overlapping */}
+            <div className="flex flex-col md:flex-row items-end md:items-center gap-3 md:gap-6">
             {/* SCRATCH CARD PILL */}
             <div className="relative h-10 w-64 overflow-hidden rounded-full border-2 border-white bg-white shadow-md">
               <div className="absolute inset-0 flex items-center justify-center px-4 text-center select-none">
@@ -296,8 +297,10 @@ export function Profile() {
         </div>
 
         <div>
-          <h1 className="text-[clamp(28px,3vw,38px)] leading-[1.06] tracking-[-0.02em] text-[#005A2C]">Welcome back, {fullName}</h1>
-          <p className="mt-1 text-sm text-[#5A7462]">{email}</p>
+          <h1 className="text-2xl md:text-[38px] leading-tight tracking-tight text-[#005A2C]">
+            Welcome back, <span className="block md:inline">{fullName}</span>
+          </h1>
+          <p className="mt-1 text-xs md:text-sm text-[#5A7462] truncate">{email}</p>
         </div>
 
         <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
@@ -409,7 +412,8 @@ export function Profile() {
   };
 
   return (
-    <div className="h-[calc(100vh-97px)] w-full overflow-hidden bg-[linear-gradient(180deg,#F8FAF5_0%,#F1F8EB_55%,#E8F5E9_100%)]">
+    /* We change fixed height to 'min-h' on mobile so content doesn't get cut off by the iPhone notch */
+    <div className="min-h-[calc(100vh-97px)] md:h-[calc(100vh-97px)] w-full overflow-x-hidden md:overflow-hidden bg-[linear-gradient(180deg,#F8FAF5_0%,#F1F8EB_55%,#E8F5E9_100%)]">
       <style>{`
         @keyframes starHeroAction {
           0% { transform: scale(0) rotate(-45deg); opacity: 0; }
@@ -418,17 +422,20 @@ export function Profile() {
           100% { transform: translateY(150px) scale(0.3) rotate(20deg); opacity: 0; }
         }
         @keyframes jarImpact { 0%, 100% { transform: scale(1); } 85% { transform: scale(1); } 92% { transform: scale(1.1) rotate(2deg); } }
+        
+        /* This hides the scrollbar track on the mobile menu for a cleaner look */
+        .custom-scrollbar::-webkit-scrollbar { display: none; }
+        .custom-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
-      {/* --- PRC GUIDE BOT (Repositioned to bottom right) --- */}
+      {/* --- PRC GUIDE BOT --- */}
       {activeTab === "programs" && (
-        <div className="fixed bottom-10 right-10 z-[100] flex flex-col items-end">
+        <div className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[100] flex flex-col items-end">
             {!isGuideOpen && (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5 }}
-                className="relative mb-4 mr-2 max-w-[240px] rounded-2xl border border-[#DCEAD8] bg-white px-4 py-3 text-sm text-[#2D5138] shadow-2xl"
+                className="hidden md:block relative mb-4 mr-2 max-w-[240px] rounded-2xl border border-[#DCEAD8] bg-white px-4 py-3 text-sm text-[#2D5138] shadow-2xl"
               >
                 Find the right program for you.
                 <div className="absolute -bottom-2 right-6 h-4 w-4 rotate-45 border-b border-r border-[#DCEAD8] bg-white" />
@@ -436,40 +443,46 @@ export function Profile() {
             )}
 
             <motion.button
-              className="rounded-full bg-gradient-to-r from-[#76B82A] to-[#005A2C] p-4 text-white shadow-2xl"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              animate={{ scale: [1, 1.06, 1] }}
-              transition={{ duration: 1.8, repeat: Infinity }}
+              className="rounded-full bg-gradient-to-r from-[#76B82A] to-[#005A2C] p-3 md:p-4 text-white shadow-2xl"
+              whileTap={{ scale: 0.9 }}
               onClick={() => setIsGuideOpen(!isGuideOpen)}
             >
-              <Bot className="h-7 w-7" />
+              <Bot className="h-6 w-6 md:h-7 md:h-7" />
             </motion.button>
         </div>
       )}
 
       <PRCGuidePanel isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} onMatch={handleGuideMatch} />
 
-      <div className="grid h-full w-full grid-cols-[260px_minmax(0,1fr)] gap-4 p-4">
-        <aside className="h-full rounded-[30px] border border-[#DCEAD8] bg-white/95 p-3 shadow-lg">
-          <nav className="space-y-2">
+      {/* MAIN GRID: Stacks on iPhone, Side-by-Side on Desktop */}
+      <div className="flex flex-col md:grid md:grid-cols-[260px_1fr] h-full w-full gap-4 p-3 md:p-4">
+        
+        {/* SIDEBAR/TOP MENU */}
+        <aside className="shrink-0 h-auto md:h-full rounded-[22px] md:rounded-[30px] border border-[#DCEAD8] bg-white/95 p-2 md:p-3 shadow-md">
+          <nav className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-x-visible custom-scrollbar">
             {[
               { key: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
               { key: "programs", label: "Programs", icon: <Leaf className="h-4 w-4" /> },
               { key: "meetings", label: "Meetings", icon: <Calendar className="h-4 w-4" /> },
               { key: "tracker", label: "Recovery Tracker", icon: <Sprout className="h-4 w-4" /> },
             ].map((item) => (
-              <button key={item.key} onClick={() => setActiveTab(item.key as MainTab)}
-                className={`flex w-full items-center gap-3 rounded-[14px] border px-4 py-3 text-sm font-medium transition-all ${
-                  activeTab === item.key ? "border-[#A3D977] bg-[#E8F5E9] text-[#005A2C] shadow-[inset_3px_0_0_0_#76B82A]" : "border-transparent text-[#355844] hover:bg-[#F8FAF5]"
-                }`}>
-                {item.icon} {item.label}
+              <button 
+                key={item.key} 
+                onClick={() => setActiveTab(item.key as MainTab)}
+                className={`flex flex-shrink-0 items-center gap-2 md:gap-3 rounded-xl border px-3 md:px-4 py-2.5 md:py-3 text-[13px] md:text-sm font-medium transition-all whitespace-nowrap ${
+                  activeTab === item.key 
+                    ? "border-[#A3D977] bg-[#E8F5E9] text-[#005A2C] shadow-[inset_3px_0_0_0_#76B82A]" 
+                    : "border-transparent text-[#355844] hover:bg-[#F8FAF5]"
+                }`}
+              >
+                {item.icon} <span>{item.label}</span>
               </button>
             ))}
           </nav>
         </aside>
 
-        <section className="min-h-0 overflow-hidden rounded-[30px] border border-[#DCEAD8]/70 bg-[#F8FAF5]/50 p-4">
+        {/* MAIN CONTENT AREA */}
+        <section className="min-h-0 flex-1 rounded-[22px] md:rounded-[30px] border border-[#DCEAD8]/70 bg-[#F8FAF5]/50 p-3 md:p-4">
           <div className={`h-full transition-opacity duration-300 ${contentVisible ? "opacity-100" : "opacity-0"}`}>
             {renderCenterContent()}
           </div>
@@ -477,8 +490,8 @@ export function Profile() {
       </div>
 
       {activeProgramModalId && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setActiveProgramModalId(null)}>
-          <div className="h-[88vh] w-[min(1100px,96vw)] overflow-hidden rounded-[26px] bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-2 md:p-4" onClick={() => setActiveProgramModalId(null)}>
+          <div className="h-[92vh] md:h-[88vh] w-full max-w-6xl overflow-hidden rounded-[26px] bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <ProgramDetail programIdOverride={activeProgramModalId} viewMode={activeProgramModalSource} embeddedModal />
           </div>
         </div>
