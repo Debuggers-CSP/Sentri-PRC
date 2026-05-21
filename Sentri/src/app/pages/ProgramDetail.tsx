@@ -684,23 +684,40 @@ export function ProgramDetail({ programIdOverride, embeddedModal = false, viewMo
         
         {/* Header Card */}
         <Card className="mb-8 overflow-hidden shadow-lg border-none">
-          <div className="bg-gradient-to-r from-[#76B82A] to-[#005A2C] p-6 text-white">
-            <div className="flex items-center gap-6">
-              <img src={program.logo} alt={program.name} className="w-24 h-24 object-contain bg-white/20 rounded-2xl p-3 shadow-inner" />
-              <div className="flex-1 min-w-0">
-                <h2 className="text-4xl font-bold tracking-tight mb-3">{program.fullName}</h2>
-                <div className="flex flex-wrap gap-2">
-                  {program.focus.map((item, idx) => (
-                    <Badge key={idx} className="bg-white/20 text-white border-white/40 px-3 py-1 text-sm font-medium">{item}</Badge>
-                  ))}
+          <div className="bg-gradient-to-r from-[#76B82A] to-[#005A2C] p-4 md:p-6 text-white">
+            {/* Change to flex-col for mobile, flex-row for desktop */}
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6">
+              
+              <div className="flex items-center gap-4 w-full md:w-auto">
+                <img 
+                  src={program.logo} 
+                  alt={program.name} 
+                  className="w-16 h-16 md:w-24 md:h-24 object-contain bg-white/20 rounded-2xl p-2 shadow-inner shrink-0" 
+                />
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-xl md:text-4xl font-bold tracking-tight leading-tight">{program.fullName}</h2>
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {program.focus.map((item, idx) => (
+                      <Badge key={idx} className="bg-white/20 text-[10px] md:text-sm text-white border-white/40 px-2 py-0.5 font-medium">{item}</Badge>
+                    ))}
+                  </div>
                 </div>
               </div>
-              <div className="flex gap-3">
-                <Button onClick={isJoined ? handleLeave : handleJoin} onMouseEnter={() => setIsJoinHovered(true)} onMouseLeave={() => setIsJoinHovered(false)} className={`${actionButtonClass} rounded-xl px-6 h-12 font-bold transition-all shadow-md`}>
-                  {isJoined ? (<><Check className="w-5 h-5 mr-2" />{isJoinHovered ? "Leave Program" : "Joined"}</>) : (<><UserPlus className="w-5 h-5 mr-2" />Join Program</>)}
+
+              {/* Buttons: Full width on mobile, auto on desktop */}
+              <div className="flex flex-row w-full md:w-auto gap-2 md:gap-3">
+                <Button 
+                  onClick={isJoined ? handleLeave : handleJoin} 
+                  className={`${actionButtonClass} flex-1 md:flex-none rounded-xl px-4 h-11 md:h-12 text-sm md:text-base font-bold shadow-md`}
+                >
+                  {isJoined ? <Check className="w-4 h-4 mr-2" /> : <UserPlus className="w-4 h-4 mr-2" />}
+                  {isJoined ? (isJoinHovered ? "Leave" : "Joined") : "Join"}
                 </Button>
+                
                 {program.resourceLink && (
-                  <Button asChild className={`${actionButtonClass} rounded-xl px-6 h-12 font-bold shadow-md`}><a href={program.resourceLink} target="_blank" rel="noopener noreferrer"><Globe className="w-5 h-5 mr-2" />Resources</a></Button>
+                  <Button asChild className={`${actionButtonClass} flex-1 md:flex-none rounded-xl px-4 h-11 md:h-12 text-sm md:text-base font-bold shadow-md`}>
+                    <a href={program.resourceLink} target="_blank" rel="noopener noreferrer"><Globe className="w-4 h-4 mr-2" />Site</a>
+                  </Button>
                 )}
               </div>
             </div>
@@ -716,8 +733,20 @@ export function ProgramDetail({ programIdOverride, embeddedModal = false, viewMo
                 <CardHeader className="bg-slate-50/80 border-b border-[#E0EADD]"><CardTitle className="text-[#173723] text-xl font-bold">About the Program</CardTitle></CardHeader>
                 <CardContent className="p-0">
                   <Tabs defaultValue="overview">
-                    <div className="border-b border-[#E0EADD] bg-white px-6"><TabsList className="h-14 bg-transparent p-0 flex gap-8">{["overview", "history", "philosophy"].map((tab) => (<TabsTrigger key={tab} value={tab} className="h-14 bg-transparent px-0 rounded-none border-b-2 border-transparent data-[state=active]:border-[#005A2C] data-[state=active]:text-[#005A2C] data-[state=active]:bg-transparent font-bold text-slate-500 uppercase tracking-wider text-xs transition-all">{tab === "philosophy" ? "Philosophy & Principles" : tab}</TabsTrigger>))}</TabsList></div>
-                    <div className="p-6">
+                    <div className="border-b border-[#E0EADD] bg-white px-2 md:px-6">
+                      {/* Added overflow-x-auto and custom-scrollbar to allow swiping tabs on iPhone */}
+                      <TabsList className="h-12 md:h-14 bg-transparent p-0 flex justify-start md:justify-start gap-4 md:gap-8 overflow-x-auto overflow-y-hidden custom-scrollbar">
+                        {["overview", "history", "philosophy"].map((tab) => (
+                          <TabsTrigger 
+                            key={tab} 
+                            value={tab} 
+                            className="flex-shrink-0 h-12 md:h-14 bg-transparent px-0 rounded-none border-b-2 border-transparent data-[state=active]:border-[#005A2C] data-[state=active]:text-[#005A2C] font-bold text-slate-500 uppercase tracking-wider text-[10px] md:text-xs transition-all"
+                          >
+                            {tab === "philosophy" ? "Philosophy" : tab}
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+                    </div>                    <div className="p-6">
                       <TabsContent value="overview" className="mt-0 space-y-8">
                         <p className="text-[#2D5138] leading-relaxed text-base italic mb-10">{program.description}</p>
                         

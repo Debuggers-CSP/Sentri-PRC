@@ -89,14 +89,15 @@ export default function TrackerMain() {
         return <HistoryView dashboardData={safeDashboardData} pillStyle={pillStyle} smallCardStyle={smallCardStyle} />;
       case "streak":
         return (
-          <div className="space-y-4">
+          <div className="space-y-4 pb-6"> {/* Added bottom padding for better scrolling */}
             <div style={pillStyle}>🏆 Streak</div>
             <h2 className="font-mono text-2xl text-[#005A2C]">Streak Timeline</h2>
-            <div className="flex flex-wrap gap-3">
+            {/* flex-wrap is good, but let's ensure the gaps are big enough for thumbs */}
+            <div className="flex flex-wrap gap-4 md:gap-3"> 
               {milestones.map((m) => {
                 const reached = streakDays >= m;
                 return (
-                  <div key={m} className={`rounded-[10px] border px-4 py-2 font-mono text-sm ${
+                  <div key={m} className={`flex-1 min-w-[70px] text-center rounded-[10px] border px-4 py-3 font-mono text-sm ${
                       reached ? "border-[#76B82A] bg-[#E8F5E9] text-[#005A2C]" : "border-[#DCEAD8] bg-[#EEF6EA] text-[#5A7462]"
                     }`}>
                     {m}d
@@ -112,12 +113,12 @@ export default function TrackerMain() {
   };
 
   return (
-    <div className="min-h-[78vh] w-full overflow-hidden bg-[linear-gradient(180deg,#F8FAF5_0%,#F1F8EB_48%,#E8F5E9_100%)] p-4 text-[#1F3B2B]">
+    <div className="min-h-[70dvh] w-full overflow-hidden bg-[linear-gradient(180deg,#F8FAF5_0%,#F1F8EB_48%,#E8F5E9_100%)] p-2 md:p-4 text-[#1F3B2B] pb-[env(safe-area-inset-bottom)]">
         {/* We change p-4 to p-2 on mobile so the green cards don't get squashed */}
         <div className="relative mx-auto flex h-full w-full max-w-7xl flex-col rounded-[12px] md:rounded-[26px] border border-[#A9C59D] bg-[#F8FAF5]/95 p-2 md:p-4 shadow-xl">        <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-3">
-          <button onClick={() => setActiveModal("streak")} className="rounded-[12px] border-2 border-[#A9C59D] bg-white p-3 text-left font-mono">
-            <p className="text-xs text-[#5A7462]">Streak</p>
-            <p className="mt-1 text-lg font-bold text-[#005A2C]">{streakDays}</p>
+          <button onClick={() => setActiveModal("streak")} className="rounded-[12px] border-2 border-[#A9C59D] bg-white p-2.5 md:p-3 text-left font-mono">
+            <p className="text-[10px] md:text-xs text-[#5A7462]">Streak</p>
+            <p className="mt-0.5 text-base md:text-lg font-bold text-[#005A2C]">{streakDays}</p>
           </button>
           <button onClick={() => setActiveModal("rewards")} className="rounded-[12px] border-2 border-[#A9C59D] bg-white p-3 text-left font-mono">
             <p className="text-xs text-[#5A7462]">Points</p>
@@ -136,7 +137,7 @@ export default function TrackerMain() {
         {/* Change 'absolute' to 'fixed' to ensure the modal always covers the screen */}
         {activeModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0f1f13]/60 p-4" onClick={closeModal}>
-            <div className="max-h-[90vh] w-full max-w-4xl overflow-auto rounded-[20px] border-4 border-[#87B171] bg-[#F8FAF5] p-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="max-h-[82dvh] w-full max-w-4xl overflow-y-auto rounded-[20px] border-4 border-[#87B171] bg-[#F8FAF5] p-4 md:p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
               {renderModalBody()}
             </div>
           </div>

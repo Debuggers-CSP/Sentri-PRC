@@ -279,7 +279,8 @@ export function Profile() {
                 </div>
 
                 {isJarOpen && (
-                  <div className="absolute top-20 right-0 w-64 rounded-[20px] border border-[#E0EADD] bg-white p-4 shadow-2xl animate-in fade-in zoom-in duration-200 z-[60]">
+                /* Changed 'absolute' to 'fixed' on mobile so it doesn't get pushed off screen by the keyboard */
+                  <div className="fixed md:absolute bottom-20 md:top-20 right-4 md:right-0 w-[calc(100%-32px)] md:w-64 rounded-[20px] border border-[#E0EADD] bg-white p-4 shadow-2xl z-[60]">
                     <div className="flex items-center gap-2 mb-2 text-[#005A2C]">
                       <Heart className="h-3 w-3 fill-current" />
                       <h4 className="text-[10px] font-bold uppercase">Add Gratitude</h4>
@@ -413,8 +414,8 @@ export function Profile() {
 
   return (
     /* We change fixed height to 'min-h' on mobile so content doesn't get cut off by the iPhone notch */
-    <div className="min-h-[calc(100vh-97px)] md:h-[calc(100vh-97px)] w-full overflow-x-hidden md:overflow-hidden bg-[linear-gradient(180deg,#F8FAF5_0%,#F1F8EB_55%,#E8F5E9_100%)]">
-      <style>{`
+/* We use dvh (Dynamic Viewport Height) to account for Safari's bottom bars */
+      <div className="min-h-[calc(100dvh-97px)] md:h-[calc(100vh-97px)] w-full overflow-x-hidden md:overflow-hidden bg-[linear-gradient(180deg,#F8FAF5_0%,#F1F8EB_55%,#E8F5E9_100%)] pb-[env(safe-area-inset-bottom)]">      <style>{`
         @keyframes starHeroAction {
           0% { transform: scale(0) rotate(-45deg); opacity: 0; }
           30% { transform: scale(1.8) rotate(0deg); opacity: 1; filter: drop-shadow(0 0 20px #fbbf24); }
@@ -423,9 +424,13 @@ export function Profile() {
         }
         @keyframes jarImpact { 0%, 100% { transform: scale(1); } 85% { transform: scale(1); } 92% { transform: scale(1.1) rotate(2deg); } }
         
-        /* This hides the scrollbar track on the mobile menu for a cleaner look */
         .custom-scrollbar::-webkit-scrollbar { display: none; }
         .custom-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* FIX: Prevents iPhone from shifting the layout when you click an input */
+        input, textarea, select {
+          font-size: 16px !important;
+        }
       `}</style>
 
       {/* --- PRC GUIDE BOT --- */}
@@ -490,9 +495,13 @@ export function Profile() {
       </div>
 
       {activeProgramModalId && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-2 md:p-4" onClick={() => setActiveProgramModalId(null)}>
-          <div className="h-[92vh] md:h-[88vh] w-full max-w-6xl overflow-hidden rounded-[26px] bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <ProgramDetail programIdOverride={activeProgramModalId} viewMode={activeProgramModalSource} embeddedModal />
+        /* We use 'fixed' and a higher z-index to ensure it sits on top of everything correctly */
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-3 md:p-4" onClick={() => setActiveProgramModalId(null)}>
+          {/* Change h-[92vh] to h-[90dvh] so the 'Close' button isn't hidden by the notch */}
+          <div className="h-[90dvh] md:h-[88vh] w-full max-w-6xl overflow-hidden rounded-[26px] bg-white shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex-1 overflow-y-auto">
+              <ProgramDetail programIdOverride={activeProgramModalId} viewMode={activeProgramModalSource} embeddedModal />
+            </div>
           </div>
         </div>
       )}
