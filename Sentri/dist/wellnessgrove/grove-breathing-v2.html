@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Grove · Breathing Garden</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--sage:#7aab8e;--sage2:#9dc4ae;--amber2:#e0b48a;--muted:#4a6a5a;--text:#e8f0ec;--bg:#0b1820;--deep:#0d2018}
+html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;user-select:none}
+#gq{width:100%;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--bg)}
+.scr{display:none;flex-direction:column;align-items:center}
+.scr.on{display:flex}
+#menu{background:linear-gradient(160deg,#0d1e2e,#0b1820);padding:60px 24px 70px;gap:20px;text-align:center;min-height:100vh;justify-content:center}
+.badge{font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--sage);opacity:.65}
+.mtitle{font-family:'Cormorant Garamond',serif;font-size:clamp(34px,5vw,52px);font-weight:300;letter-spacing:.05em;line-height:1.1;color:var(--text)}
+.mtitle em{font-style:italic;color:var(--sage2)}
+.msub{font-size:14px;color:var(--muted);max-width:460px;line-height:1.9;font-weight:300}
+.div{width:40px;height:1px;background:var(--sage);opacity:.3}
+.pgrid{display:grid;gap:8px;width:min(460px,88vw)}
+.pi{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px 18px;cursor:pointer;transition:.2s;display:flex;justify-content:space-between;align-items:center}
+.pi:hover{background:rgba(122,171,142,.07);border-color:rgba(122,171,142,.28)}
+.pi.sel{border-color:var(--sage);background:rgba(122,171,142,.09)}
+.pn{font-size:13px;color:var(--text)}.pd{font-size:11px;color:var(--muted);margin-top:3px}.pt{font-size:11px;color:var(--sage2);letter-spacing:.04em}
+.gbtn{font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;padding:13px 44px;border-radius:50px;border:1px solid rgba(122,171,142,.5);background:transparent;color:var(--sage2);cursor:pointer;transition:.2s}
+.gbtn:hover{background:var(--sage);color:#0b1820;border-color:var(--sage)}
+.mhint{font-size:11px;color:var(--muted);opacity:.6;letter-spacing:.03em}
+#sess{width:100%;background:var(--deep);position:relative;overflow:hidden;min-height:100vh}
+#gc{display:block;width:100%}
+#ui{position:absolute;inset:0;pointer-events:none;z-index:10;display:flex;flex-direction:column;justify-content:space-between;padding:18px 22px 20px}
+.tr{display:flex;justify-content:space-between;align-items:flex-start}
+.hb{display:flex;flex-direction:column;gap:2px}
+.hl{font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted)}
+.hv{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--text);line-height:1}
+.br{width:100%;display:flex;flex-direction:column;gap:5px;align-items:center}
+.bi{font-family:'Cormorant Garamond',serif;font-size:clamp(14px,2.2vw,19px);font-style:italic;color:rgba(200,221,212,.45);letter-spacing:.06em;text-align:center;min-height:26px;transition:color .6s}
+.bi.active{color:rgba(157,196,174,.9)}
+.cw{width:100%;display:flex;flex-direction:column;gap:5px}
+.clr{display:flex;justify-content:space-between}
+.cl{font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted)}
+.cp{font-size:9px;color:var(--sage2);letter-spacing:.04em}
+.ct{width:100%;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+.cf{height:100%;background:linear-gradient(90deg,#4a7a5e,#9dc4ae);border-radius:2px;transition:width 1s ease;width:0%}
+#end{background:radial-gradient(ellipse at 50% 30%,#0f2a1e,#0b1820 70%);padding:60px 24px;gap:16px;text-align:center;min-height:100vh;justify-content:center}
+.et{font-family:'Cormorant Garamond',serif;font-size:clamp(24px,4vw,36px);font-weight:300;font-style:italic;letter-spacing:.04em;color:var(--text)}
+.er{width:min(280px,80vw);height:1px;background:linear-gradient(90deg,transparent,var(--sage) 40%,var(--sage) 60%,transparent);opacity:.3}
+.es{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:min(400px,88vw)}
+.ec{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:16px 8px;text-align:center}
+.ev{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;line-height:1}
+.el{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-top:5px}
+.em{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;color:var(--sage2);max-width:320px;line-height:1.8;opacity:.85}
+</style>
+</head>
+<body>
+<div id="gq">
+
+<div id="menu" class="scr on">
+  <div class="badge">wellness · grove</div>
+  <div class="mtitle">Tend your <em>inner garden</em></div>
+  <div class="div"></div>
+  <p class="msub">Each full breath cycle plants something new. A progress ring guides each phase. Watch your grove grow as your calm deepens.</p>
+  <div class="pgrid" id="pl"></div>
+  <button class="gbtn" id="bb">Enter the Grove</button>
+  <p class="mhint">space bar or tap to begin · ESC to finish early</p>
+</div>
+
+<div id="sess" class="scr">
+  <canvas id="gc"></canvas>
+  <div id="ui">
+    <div class="tr">
+      <div class="hb"><div class="hl">Breaths</div><div class="hv" id="bc">0</div></div>
+      <div class="hb" style="text-align:center"><div class="hl" style="text-align:center">Phase</div><div class="hv" id="ph" style="color:var(--sage2);font-size:18px">—</div></div>
+      <div class="hb" style="text-align:right"><div class="hl" style="text-align:right">Plants</div><div class="hv" id="pc" style="color:var(--amber2)">0</div></div>
+    </div>
+    <div class="br"><div class="bi" id="bi">tap or press space to begin</div></div>
+    <div class="cw">
+      <div class="clr"><span class="cl">calm</span><span class="cp" id="cpct">0%</span></div>
+      <div class="ct"><div class="cf" id="cf"></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="end" class="scr">
+  <div class="badge">session complete</div>
+  <div class="et" id="et">your grove is growing</div>
+  <div class="er"></div>
+  <div class="es">
+    <div class="ec"><div class="ev" id="ecalm" style="color:var(--sage2)">0%</div><div class="el">Calm</div></div>
+    <div class="ec"><div class="ev" id="ebr" style="color:var(--text)">0</div><div class="el">Breaths</div></div>
+    <div class="ec"><div class="ev" id="epl" style="color:var(--amber2)">0</div><div class="el">Plants</div></div>
+  </div>
+  <div class="em" id="emsg"></div>
+  <button class="gbtn" id="ab">Tend Again</button>
+</div>
+
+</div>
+<script>
+const PATS=[
+  {name:'Box breath',    desc:'Equal four-count rhythm',  inhale:4,hold1:4,exhale:4,hold2:4},
+  {name:'4-7-8 release', desc:'Nervous system reset',     inhale:4,hold1:7,exhale:8,hold2:0},
+  {name:'Deep & slow',   desc:'Ultra-gentle rhythm',      inhale:6,hold1:2,exhale:8,hold2:2},
+  {name:'Even calm',     desc:'Simple in-out balance',    inhale:5,hold1:0,exhale:5,hold2:0},
+];
+const MSGS=['You gave yourself the gift of stillness.','Every breath was a seed of calm.','Your nervous system thanks you.','The grove grows with each return.','Stillness is a practice, not a destination.'];
+const PTYPES=['grass','flower','fern','shrub','mushroom','reed','clover'];
+const PCOLS=['#6a9e72','#7aab8e','#9dc4ae','#5c8a6a','#8ab4a0','#4a7a5e','#b8d4c8'];
+
+let selP=0,G=null,raf=null;
+const cv=document.getElementById('gc');
+const c=cv.getContext('2d');
+let W,H,SOIL;
+
+function rsz(){
+  W=Math.min(window.innerWidth,680);
+  H=Math.max(Math.round(W*.75),440);
+  cv.width=W;cv.height=H;
+  cv.style.width=W+'px';cv.style.height=H+'px';
+  cv.style.left=((window.innerWidth-W)/2)+'px';
+  document.getElementById('sess').style.minHeight=H+'px';
+  SOIL=H*.63;
+}
+
+const pl=document.getElementById('pl');
+PATS.forEach((p,i)=>{
+  const el=document.createElement('div');
+  el.className='pi'+(i===0?' sel':'');
+  el.innerHTML=`<div><div class="pn">${p.name}</div><div class="pd">${p.desc}</div></div><div class="pt">${p.inhale}-${p.hold1||0}-${p.exhale}${p.hold2?'-'+p.hold2:''}</div>`;
+  el.onclick=()=>{document.querySelectorAll('.pi').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');selP=i;};
+  pl.appendChild(el);
+});
+
+function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');}
+
+function mkState(pat){
+  return{pat,phase:'idle',phaseT:0,phaseDur:0,
+    breathCount:0,calm:0,plants:[],particles:[],
+    tick:0,done:false};
+}
+
+const PHASE_SEQ={inhale:'hold1',hold1:'exhale',exhale:'hold2',hold2:'_done'};
+const PHASE_LABELS={inhale:'inhale slowly…',hold1:'hold gently…',exhale:'exhale fully…',hold2:'rest…',idle:'tap or press space to begin'};
+const PHASE_NAMES={inhale:'inhale',hold1:'hold',exhale:'exhale',hold2:'rest',idle:'—'};
+
+function startPhase(name){
+  if(!G)return;
+  G.phase=name;G.phaseT=0;
+  const d={inhale:G.pat.inhale,hold1:G.pat.hold1,exhale:G.pat.exhale,hold2:G.pat.hold2};
+  G.phaseDur=(d[name]||0)*60;
+  const bi=document.getElementById('bi');
+  bi.textContent=PHASE_LABELS[name]||'';
+  bi.className='bi'+(name!=='idle'?' active':'');
+  document.getElementById('ph').textContent=PHASE_NAMES[name]||'—';
+}
+
+function advancePhase(){
+  const next=PHASE_SEQ[G.phase];
+  if(next==='_done'){finishCycle();return;}
+  const d={inhale:G.pat.inhale,hold1:G.pat.hold1,exhale:G.pat.exhale,hold2:G.pat.hold2};
+  if(!d[next]||d[next]===0){
+    if(next==='hold1')startPhase('exhale');
+    else if(next==='hold2')finishCycle();
+    else startPhase(next);
+  } else startPhase(next);
+}
+
+function finishCycle(){
+  G.breathCount++;
+  G.calm=Math.min(100,G.calm+7+(G.breathCount>4?3:0)+(G.breathCount>8?2:0));
+  spawnPlants(2+Math.floor(Math.random()*2));
+  document.getElementById('bc').textContent=G.breathCount;
+  document.getElementById('pc').textContent=G.plants.length;
+  updateCalm();
+  startPhase('inhale');
+}
+
+function spawnPlants(n){
+  for(let i=0;i<n;i++){
+    const x=W*.06+Math.random()*W*.88;
+    const type=PTYPES[Math.floor(Math.random()*PTYPES.length)];
+    const sz=10+Math.random()*24;
+    const col=PCOLS[Math.floor(Math.random()*PCOLS.length)];
+    G.plants.push({x,y:SOIL,type,sz,col,age:0,alpha:0});
+    for(let j=0;j<6;j++) G.particles.push({x,y:SOIL-4,vx:(Math.random()-.5)*3,vy:-Math.random()*2.5-1,alpha:1,col,r:1.5+Math.random()*2});
+  }
+}
+
+function updateCalm(){
+  const pct=Math.round(G.calm);
+  document.getElementById('cf').style.width=pct+'%';
+  document.getElementById('cpct').textContent=pct+'%';
+}
+
+function lerpC(a,b,t){
+  const p=s=>parseInt(s,16);
+  const ah=a.replace('#',''),bh=b.replace('#','');
+  const r=Math.round(p(ah.slice(0,2))+(p(bh.slice(0,2))-p(ah.slice(0,2)))*t).toString(16).padStart(2,'0');
+  const g=Math.round(p(ah.slice(2,4))+(p(bh.slice(2,4))-p(ah.slice(2,4)))*t).toString(16).padStart(2,'0');
+  const bl=Math.round(p(ah.slice(4,6))+(p(bh.slice(4,6))-p(ah.slice(4,6)))*t).toString(16).padStart(2,'0');
+  return '#'+r+g+bl;
+}
+
+function drawPlant(p){
+  const s=p.sz*Math.min(1,p.age/80);
+  c.save();c.globalAlpha=Math.min(1,p.alpha);c.translate(p.x,p.y);
+  if(p.type==='grass'){
+    c.strokeStyle=p.col;c.lineWidth=1.1;
+    for(let i=-2;i<=2;i++){
+      const lean=(i*.18+.08)*s;
+      c.beginPath();c.moveTo(i*s*.22,0);
+      c.quadraticCurveTo(i*s*.2+lean*.5,-s*.6,i*s*.15+lean,-s);c.stroke();
+    }
+  } else if(p.type==='flower'){
+    c.strokeStyle=p.col+'88';c.lineWidth=1;
+    c.beginPath();c.moveTo(0,0);c.lineTo(0,-s*.55);c.stroke();
+    for(let i=0;i<5;i++){
+      const a=(i/5)*Math.PI*2,pr=s*.38,ox=Math.cos(a)*pr,oy=Math.sin(a)*pr-s*.55;
+      c.beginPath();c.ellipse(ox,oy,s*.18,s*.12,a,0,Math.PI*2);
+      c.fillStyle=p.col+'bb';c.fill();
+    }
+    c.beginPath();c.arc(0,-s*.55,s*.14,0,Math.PI*2);
+    c.fillStyle='#e0b48a';c.fill();
+  } else if(p.type==='fern'){
+    c.strokeStyle=p.col;c.lineWidth=1;
+    c.beginPath();c.moveTo(0,0);c.lineTo(0,-s);c.stroke();
+    for(let i=1;i<=5;i++){
+      const t=i/5.5,by=-s*t;
+      for(let side=-1;side<=1;side+=2){
+        c.beginPath();c.moveTo(0,by+s*.08);
+        c.quadraticCurveTo(side*s*.28*t,by-s*.06,side*s*.32*t,by);c.stroke();
+      }
+    }
+  } else if(p.type==='shrub'){
+    for(let i=0;i<5;i++){
+      const a=(i/5)*Math.PI*2,br=s*.35,bx=Math.cos(a)*br*.7,by=Math.sin(a)*br*.5-s*.3;
+      c.beginPath();c.arc(bx,by,s*.28,0,Math.PI*2);
+      c.fillStyle=p.col+'99';c.fill();
+    }
+    c.beginPath();c.arc(0,-s*.3,s*.22,0,Math.PI*2);
+    c.fillStyle=p.col+'cc';c.fill();
+  } else if(p.type==='mushroom'){
+    c.strokeStyle=p.col+'88';c.lineWidth=1;
+    c.beginPath();c.moveTo(0,0);c.lineTo(0,-s*.45);c.stroke();
+    c.beginPath();c.arc(0,-s*.45,s*.38,Math.PI,0);
+    c.fillStyle=p.col+'99';c.fill();
+    c.strokeStyle=p.col+'66';c.stroke();
+  } else if(p.type==='reed'){
+    c.strokeStyle=p.col;c.lineWidth=1;
+    for(let i=-1;i<=1;i++){
+      const lean=i*.12*s;
+      c.beginPath();c.moveTo(i*s*.25,0);
+      c.quadraticCurveTo(i*s*.22+lean,-s*.7,i*s*.18+lean,-s);c.stroke();
+      c.beginPath();c.ellipse(i*s*.18+lean,-s,s*.06,s*.18,lean*.04,0,Math.PI*2);
+      c.fillStyle=p.col+'cc';c.fill();
+    }
+  } else {
+    for(let i=0;i<8;i++){
+      const a=(i/8)*Math.PI*2,cx=Math.cos(a)*s*.28,cy=Math.sin(a)*s*.16-s*.1;
+      c.beginPath();c.arc(cx,cy,s*.14,0,Math.PI*2);
+      c.fillStyle=p.col+'88';c.fill();
+    }
+  }
+  c.restore();
+}
+
+function drawBreathRing(ts){
+  if(G.phase==='idle')return;
+  const cx=W/2,cy=SOIL-H*.19;
+  const total=G.phaseDur||1;
+  const prog=G.phaseT/total;
+  const maxR=Math.min(W,H)*.18;
+  let ringR,ringA;
+  if(G.phase==='inhale'){ringR=maxR*.3+prog*maxR*.7;ringA=.1+prog*.2;}
+  else if(G.phase==='hold1'||G.phase==='hold2'){ringR=maxR;ringA=.18+Math.sin(ts*.003)*.04;}
+  else{ringR=maxR*(1-prog*.7);ringA=.18-prog*.08;}
+  const rg=c.createRadialGradient(cx,cy,0,cx,cy,ringR);
+  rg.addColorStop(0,`rgba(122,171,142,${ringA})`);
+  rg.addColorStop(.6,`rgba(122,171,142,${ringA*.4})`);
+  rg.addColorStop(1,'rgba(122,171,142,0)');
+  c.fillStyle=rg;c.beginPath();c.arc(cx,cy,ringR,0,Math.PI*2);c.fill();
+  c.strokeStyle=`rgba(157,196,174,${ringA*1.6})`;
+  c.lineWidth=1.2;c.beginPath();c.arc(cx,cy,ringR,0,Math.PI*2);c.stroke();
+  const arcA=prog*Math.PI*2-Math.PI/2;
+  c.strokeStyle=`rgba(200,221,212,${.5+ringA})`;
+  c.lineWidth=2;c.beginPath();c.arc(cx,cy,ringR+6,-Math.PI/2,arcA);c.stroke();
+  const timerSec=Math.ceil((G.phaseDur-G.phaseT)/60);
+  c.fillStyle=`rgba(200,221,212,${.3+ringA*.8})`;
+  c.font=`300 italic ${Math.max(13,Math.floor(maxR*.22))}px 'Cormorant Garamond',serif`;
+  c.textAlign='center';c.textBaseline='middle';
+  c.fillText(PHASE_LABELS[G.phase]?.split('…')[0]||'',cx,cy-4);
+  c.font=`300 ${Math.max(11,Math.floor(maxR*.16))}px 'DM Sans',sans-serif`;
+  c.fillStyle=`rgba(122,171,142,${.4+ringA*.5})`;
+  c.fillText(timerSec+'s',cx,cy+maxR*.26);
+}
+
+function drawScene(ts){
+  c.clearRect(0,0,W,H);
+  const dawn=G.calm/100;
+  const skyG=c.createLinearGradient(0,0,0,SOIL);
+  skyG.addColorStop(0,lerpC('#08121a','#172e3a',dawn));
+  skyG.addColorStop(1,lerpC('#0d1e14','#1e3828',dawn));
+  c.fillStyle=skyG;c.fillRect(0,0,W,SOIL+2);
+  c.save();c.globalAlpha=Math.max(0,1-dawn*1.6);
+  for(let i=0;i<44;i++){
+    const sx=((Math.sin(i*37)*.5+.5))*W,sy=((Math.cos(i*53)*.5+.5))*SOIL*.85;
+    const sa=.3+Math.sin(ts*.0018+i)*.18;
+    c.beginPath();c.arc(sx,sy,.5+Math.sin(i)*.3,0,Math.PI*2);
+    c.fillStyle=`rgba(200,220,210,${sa})`;c.fill();
+  }
+  c.restore();
+  if(dawn<.75){
+    c.save();c.globalAlpha=(1-dawn)*.55;
+    c.beginPath();c.arc(W*.76,H*.13,13,0,Math.PI*2);
+    c.fillStyle='rgba(210,225,215,.7)';c.fill();c.restore();
+  }
+  if(dawn>.15){
+    c.save();c.globalAlpha=(dawn-.15)*.7;
+    const grd=c.createRadialGradient(W*.15,SOIL*.2,0,W*.15,SOIL*.2,W*.3);
+    grd.addColorStop(0,'rgba(220,160,80,.25)');grd.addColorStop(1,'rgba(220,160,80,0)');
+    c.fillStyle=grd;c.fillRect(0,0,W,SOIL);c.restore();
+  }
+  c.fillStyle=lerpC('#0f2214','#1a3820',dawn);
+  for(let i=0;i<14;i++){
+    const tx=(i/13)*W*1.05-W*.02;
+    const th=H*.1+Math.sin(i*2.1)*H*.055;
+    const tw=W*.055+Math.cos(i*1.6)*W*.015;
+    c.beginPath();c.moveTo(tx-tw/2,SOIL);
+    c.quadraticCurveTo(tx,SOIL-th*1.1,tx+tw/2,SOIL);c.fill();
+  }
+  const gndG=c.createLinearGradient(0,SOIL,0,H);
+  gndG.addColorStop(0,lerpC('#1a2e1e','#2a4a2e',dawn));
+  gndG.addColorStop(1,lerpC('#0d1a0e','#162614',dawn));
+  c.fillStyle=gndG;c.fillRect(0,SOIL,W,H-SOIL);
+  c.strokeStyle='rgba(80,130,80,.25)';c.lineWidth=1;
+  c.beginPath();c.moveTo(0,SOIL);c.lineTo(W,SOIL);c.stroke();
+  G.particles=G.particles.filter(p=>p.alpha>0);
+  for(const p of G.particles){
+    c.save();c.globalAlpha=p.alpha*.7;
+    c.beginPath();c.arc(p.x,p.y,p.r,0,Math.PI*2);
+    c.fillStyle=p.col;c.fill();c.restore();
+    p.x+=p.vx;p.y+=p.vy;p.vy+=.06;p.alpha-=.028;
+  }
+  for(const p of G.plants){
+    p.age=Math.min(100,p.age+.7);
+    p.alpha=Math.min(1,p.alpha+.015);
+    drawPlant(p);
+  }
+  if(G.calm>25){
+    const ff=Math.floor((G.calm-25)/12);
+    for(let i=0;i<ff;i++){
+      const fx=W*.08+((Math.sin(ts*.0007+i*2.3)*.5+.5))*W*.84;
+      const fy=SOIL*(.4+Math.cos(ts*.0005+i*1.9)*.35);
+      const fa=.2+Math.sin(ts*.004+i*1.4)*.2;
+      c.beginPath();c.arc(fx,fy,1.3,0,Math.PI*2);
+      c.fillStyle=`rgba(180,230,160,${fa})`;c.fill();
+    }
+  }
+  drawBreathRing(ts);
+}
+
+function loop(ts){
+  if(!G||G.done)return;
+  G.tick++;drawScene(ts);
+  if(G.phase!=='idle'&&G.phaseDur>0){
+    G.phaseT++;
+    if(G.phaseT>=G.phaseDur)advancePhase();
+  }
+  raf=requestAnimationFrame(loop);
+}
+
+function endSess(){
+  if(!G||G.done)return;
+  G.done=true;cancelAnimationFrame(raf);
+  document.getElementById('ecalm').textContent=Math.round(G.calm)+'%';
+  document.getElementById('ebr').textContent=G.breathCount;
+  document.getElementById('epl').textContent=G.plants.length;
+  const ts=['your grove is growing','a breath well taken','the garden remembers'];
+  document.getElementById('et').textContent=ts[Math.floor(Math.random()*ts.length)];
+  document.getElementById('emsg').textContent='"'+MSGS[Math.floor(Math.random()*MSGS.length)]+'"';
+  show('end');
+}
+
+function handleStart(){if(!G||G.done)return;if(G.phase==='idle')startPhase('inhale');}
+
+document.getElementById('bb').onclick=()=>{G=mkState(PATS[selP]);rsz();show('sess');raf=requestAnimationFrame(loop);};
+document.getElementById('ab').onclick=()=>show('menu');
+window.addEventListener('keydown',e=>{
+  if(e.code==='Space'&&!e.repeat){e.preventDefault();handleStart();}
+  if(e.key==='Escape'&&G&&!G.done)endSess();
+});
+document.getElementById('gc').addEventListener('pointerdown',e=>{e.preventDefault();handleStart();});
+window.addEventListener('resize',()=>{if(document.getElementById('sess').classList.contains('on'))rsz();});
+</script>
+</body>
+</html>
