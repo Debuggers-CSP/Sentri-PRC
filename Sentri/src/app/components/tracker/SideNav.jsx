@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 
 function SideNav({ navItems, activeView, setActiveView, getNavButtonStyle }) {
-  // Check if we are on mobile
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -11,23 +10,23 @@ function SideNav({ navItems, activeView, setActiveView, getNavButtonStyle }) {
   }, []);
 
   const sideNavStyle = isMobile ? {
-    // MOBILE: Fixed at bottom
+    // MOBILE: Optimized for iPhone "Safe Area"
     position: "fixed",
-    bottom: "20px",
-    left: "50%",
-    transform: "translateX(-50%)",
+    bottom: "0", // Snap to bottom
+    left: "0",
+    right: "0",
     display: "flex",
-    flexDirection: "row", // Horizontal on mobile
-    backgroundColor: "rgba(255, 255, 255, 0.8)", // Glassmorphism
-    backdropFilter: "blur(10px)",
-    padding: "10px 20px",
-    borderRadius: "40px",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-    gap: "24px",
-    zIndex: 100
+    flexDirection: "row", 
+    justifyContent: "space-around", // Spread icons evenly
+    backgroundColor: "rgba(255, 255, 255, 0.95)", 
+    backdropFilter: "blur(12px)",
+    padding: "12px 10px 28px 10px", // Extra bottom padding (28px) for iPhone notch/home bar
+    borderTop: "1px solid #DCEAD8",
+    boxShadow: "0 -4px 12px rgba(0,0,0,0.05)",
+    zIndex: 1000, // Very high to stay above everything
   } : {
-    // DESKTOP: Floating on right (your original design)
-    position: "fixed", // Changed to fixed so it stays when scrolling
+    // DESKTOP: Floating on right
+    position: "fixed", 
     right: "20px",
     top: "50%",
     transform: "translateY(-50%)",
@@ -48,10 +47,16 @@ function SideNav({ navItems, activeView, setActiveView, getNavButtonStyle }) {
             ...getNavButtonStyle(item.key),
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            // Ensure touch target is at least 44px for iOS standards
+            minWidth: isMobile ? "44px" : "auto",
+            minHeight: isMobile ? "44px" : "auto",
+            transition: "all 0.2s ease"
           }}
         >
           {item.icon}
+          {/* Optional: Add tiny labels under icons for mobile */}
+          {isMobile && <span style={{fontSize: '10px', marginTop: '4px'}}>{item.label}</span>}
         </button>
       ))}
     </div>

@@ -113,8 +113,8 @@ export default function TrackerMain() {
 
   return (
     <div className="min-h-[78vh] w-full overflow-hidden bg-[linear-gradient(180deg,#F8FAF5_0%,#F1F8EB_48%,#E8F5E9_100%)] p-4 text-[#1F3B2B]">
-      <div className="relative mx-auto flex h-full max-w-7xl flex-col rounded-[26px] border border-[#A9C59D] bg-[#F8FAF5]/95 p-4 shadow-xl">
-        <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-3">
+        {/* We change p-4 to p-2 on mobile so the green cards don't get squashed */}
+        <div className="relative mx-auto flex h-full w-full max-w-7xl flex-col rounded-[12px] md:rounded-[26px] border border-[#A9C59D] bg-[#F8FAF5]/95 p-2 md:p-4 shadow-xl">        <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-3">
           <button onClick={() => setActiveModal("streak")} className="rounded-[12px] border-2 border-[#A9C59D] bg-white p-3 text-left font-mono">
             <p className="text-xs text-[#5A7462]">Streak</p>
             <p className="mt-1 text-lg font-bold text-[#005A2C]">{streakDays}</p>
