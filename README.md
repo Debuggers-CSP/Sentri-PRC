@@ -42,4 +42,4 @@ Contributions are welcome from students, teachers, and collaborators.
 
 ## License
 
-This repository is licensed under Apache-2.0.
+This repository is licensed under Apache, Version 2.0, January 2004. See http://www.apache.org/licenses/for license information.
